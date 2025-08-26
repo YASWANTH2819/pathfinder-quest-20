@@ -4,8 +4,6 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Send, Bot, User, Mic, MicOff, FileText, Loader2 } from 'lucide-react';
 import { geminiService } from '@/services/geminiService';
-import { APIKeySetup } from './APIKeySetup';
-import { ResumeAnalyzer } from './ResumeAnalyzer';
 
 interface Message {
   id: string;
@@ -33,6 +31,7 @@ interface ProfileData {
   locationPreference: string;
   companyType: string;
   financialSupport: string;
+  resumeText?: string;
 }
 
 interface ChatInterfaceProps {
@@ -43,7 +42,7 @@ export const ChatInterface = ({ profileData }: ChatInterfaceProps) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      content: `Hello ${profileData?.name || 'there'}! 🚀 I've reviewed your profile and I'm excited to help guide your career journey. Based on your background in ${profileData?.fieldOfStudy || 'your field'}, I can provide personalized advice on:\n\n🎯 **Career Recommendations** - Job roles and paths\n📚 **Skill Development** - Courses and certifications\n🗺️ **Learning Roadmaps** - Step-by-step career plans\n📹 **YouTube Resources** - Tutorial links and channels\n💼 **Job Platforms** - Where to find opportunities\n📄 **Resume Tools** - Analysis and ATS-friendly generation\n🎤 **Interview Prep** - Tips and practice questions\n\nWhat would you like to explore first?`,
+      content: `Hello ${profileData?.name || 'there'}! 🚀 I've reviewed your profile and I'm excited to help guide your career journey. Based on your background in ${profileData?.fieldOfStudy || 'your field'}, I can provide personalized advice on:\n\n🎯 **Career Recommendations** - Job roles and paths\n📚 **Skill Development** - Courses and certifications\n🗺️ **Learning Roadmaps** - Step-by-step career plans\n📹 **YouTube Resources** - Tutorial links and channels\n💼 **Job Platforms** - Where to find opportunities\n📄 **Resume Analysis** - Based on your current resume\n🎤 **Interview Prep** - Tips and practice questions\n\nWhat would you like to explore first?`,
       sender: 'ai',
       timestamp: new Date()
     }
@@ -51,8 +50,6 @@ export const ChatInterface = ({ profileData }: ChatInterfaceProps) => {
   const [inputValue, setInputValue] = useState('');
   const [isListening, setIsListening] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [apiKey, setApiKey] = useState(geminiService.getApiKey());
-  const [showResumeAnalyzer, setShowResumeAnalyzer] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -63,17 +60,6 @@ export const ChatInterface = ({ profileData }: ChatInterfaceProps) => {
 
   const handleSendMessage = async () => {
     if (!inputValue.trim() || isLoading) return;
-
-    if (!apiKey) {
-      const errorMessage: Message = {
-        id: Date.now().toString(),
-        content: "⚠️ Please set up your Gemini API key first to start chatting with the AI assistant.",
-        sender: 'ai',
-        timestamp: new Date()
-      };
-      setMessages(prev => [...prev, errorMessage]);
-      return;
-    }
 
     const newMessage: Message = {
       id: Date.now().toString(),
@@ -101,7 +87,7 @@ export const ChatInterface = ({ profileData }: ChatInterfaceProps) => {
     } catch (error) {
       const errorMessage: Message = {
         id: Date.now().toString(),
-        content: `❌ **Error:** ${error instanceof Error ? error.message : 'Failed to get AI response. Please check your API key and try again.'}`,
+        content: `❌ **Error:** ${error instanceof Error ? error.message : 'Failed to get AI response. Please try again.'}`,
         sender: 'ai',
         timestamp: new Date()
       };
@@ -111,31 +97,15 @@ export const ChatInterface = ({ profileData }: ChatInterfaceProps) => {
     }
   };
 
-  const handleApiKeySet = (newApiKey: string) => {
-    geminiService.setApiKey(newApiKey);
-    setApiKey(newApiKey);
-  };
-
-  const handleResumeAnalysis = (analysis: string) => {
-    const analysisMessage: Message = {
-      id: Date.now().toString(),
-      content: analysis,
-      sender: 'ai',
-      timestamp: new Date()
-    };
-    setMessages(prev => [...prev, analysisMessage]);
-    setShowResumeAnalyzer(false);
-    scrollToBottom();
-  };
-
   const toggleVoiceInput = () => {
     setIsListening(!isListening);
     // Voice input logic would go here
   };
 
   const handleQuickResponse = (option: string) => {
-    if (option === "Resume tools") {
-      setShowResumeAnalyzer(true);
+    if (option === "Resume analyzer") {
+      // Navigate to resume analyzer page
+      window.location.href = '/resume-analyzer';
       return;
     }
     setInputValue(option);
@@ -147,38 +117,12 @@ export const ChatInterface = ({ profileData }: ChatInterfaceProps) => {
     "Learning roadmap",
     "YouTube tutorials",
     "Job platforms",
-    "Resume tools",
+    "Resume analyzer",
     "Interview tips"
   ];
 
   return (
     <div className="flex flex-col h-full max-w-4xl mx-auto">
-      {/* API Key Setup */}
-      <div className="p-4">
-        <APIKeySetup 
-          onApiKeySet={handleApiKeySet} 
-          currentApiKey={apiKey}
-        />
-      </div>
-
-      {/* Resume Analyzer Modal */}
-      {showResumeAnalyzer && (
-        <div className="p-4">
-          <ResumeAnalyzer 
-            profileData={profileData}
-            onAnalysisComplete={handleResumeAnalysis}
-          />
-          <Button
-            variant="glass"
-            size="sm"
-            onClick={() => setShowResumeAnalyzer(false)}
-            className="mt-2 w-full"
-          >
-            Close Resume Tools
-          </Button>
-        </div>
-      )}
-
       {/* Chat Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.map((message) => (

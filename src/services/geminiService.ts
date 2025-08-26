@@ -27,6 +27,7 @@ interface ProfileData {
   locationPreference: string;
   companyType: string;
   financialSupport: string;
+  resumeText?: string;
 }
 
 export class GeminiService {
@@ -34,12 +35,13 @@ export class GeminiService {
   private baseUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
 
   constructor() {
-    this.apiKey = localStorage.getItem('gemini_api_key') || '';
+    // Replace this with your actual Gemini API key from Google AI Studio
+    // Get your free API key at: https://makersuite.google.com/app/apikey
+    this.apiKey = 'YOUR_GEMINI_API_KEY_HERE';
   }
 
   setApiKey(key: string) {
     this.apiKey = key;
-    localStorage.setItem('gemini_api_key', key);
   }
 
   getApiKey(): string {
@@ -63,6 +65,7 @@ User Profile:
 - Study or Job: ${profileData.studyOrJob}
 - Certifications: ${profileData.certifications}
 - Financial Support: ${profileData.financialSupport}
+${profileData.resumeText ? `\nCurrent Resume Content:\n${profileData.resumeText}` : ''}
 ` : '';
 
     return `You are a specialized AI Career Guidance Assistant. You MUST ONLY provide information related to:
@@ -92,8 +95,8 @@ Provide a helpful, detailed response focused ONLY on career guidance and educati
   }
 
   async generateCareerResponse(profileData: ProfileData | null, userMessage: string): Promise<string> {
-    if (!this.apiKey) {
-      throw new Error('Gemini API key not found. Please set your API key first.');
+    if (!this.apiKey || this.apiKey === 'YOUR_GEMINI_API_KEY_HERE') {
+      throw new Error('Please add your Gemini API key in src/services/geminiService.ts');
     }
 
     try {
@@ -137,8 +140,8 @@ Provide a helpful, detailed response focused ONLY on career guidance and educati
   }
 
   async analyzeResume(resumeText: string, profileData: ProfileData | null): Promise<string> {
-    if (!this.apiKey) {
-      throw new Error('Gemini API key not found. Please set your API key first.');
+    if (!this.apiKey || this.apiKey === 'YOUR_GEMINI_API_KEY_HERE') {
+      throw new Error('Please add your Gemini API key in src/services/geminiService.ts');
     }
 
     const profileContext = profileData ? `
@@ -208,8 +211,8 @@ Provide detailed, actionable feedback focused on making this resume more effecti
   }
 
   async generateATSResume(profileData: ProfileData, experience: string, projects: string): Promise<string> {
-    if (!this.apiKey) {
-      throw new Error('Gemini API key not found. Please set your API key first.');
+    if (!this.apiKey || this.apiKey === 'YOUR_GEMINI_API_KEY_HERE') {
+      throw new Error('Please add your Gemini API key in src/services/geminiService.ts');
     }
 
     const prompt = `Create a professional, ATS-friendly resume based on this profile:

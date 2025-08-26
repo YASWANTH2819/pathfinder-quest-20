@@ -26,6 +26,7 @@ interface ProfileData {
   locationPreference: string;
   companyType: string;
   financialSupport: string;
+  resumeText: string;
 }
 
 interface ProfileFormProps {
@@ -53,7 +54,8 @@ export const ProfileForm = ({ onComplete, onBack }: ProfileFormProps) => {
     studyOrJob: '',
     locationPreference: '',
     companyType: '',
-    financialSupport: ''
+    financialSupport: '',
+    resumeText: ''
   });
 
   const totalSteps = 4;
@@ -66,8 +68,14 @@ export const ProfileForm = ({ onComplete, onBack }: ProfileFormProps) => {
     if (currentStep < totalSteps) {
       setCurrentStep(currentStep + 1);
     } else {
-      onComplete(formData);
+      handleSubmit();
     }
+  };
+
+  const handleSubmit = () => {
+    // Save profile data to localStorage for resume analyzer
+    localStorage.setItem('career_profile_data', JSON.stringify(formData));
+    onComplete(formData);
   };
 
   const prevStep = () => {
@@ -320,6 +328,19 @@ export const ProfileForm = ({ onComplete, onBack }: ProfileFormProps) => {
                   placeholder="e.g., I am from Mechanical but want IT career"
                   className="glass-card"
                 />
+              </div>
+              <div className="space-y-2 md:col-span-2">
+                <Label htmlFor="resumeText">Current Resume (Optional)</Label>
+                <Textarea
+                  id="resumeText"
+                  value={formData.resumeText}
+                  onChange={(e) => updateField('resumeText', e.target.value)}
+                  placeholder="Paste your current resume content here to get personalized AI suggestions based on your profile and experience..."
+                  className="glass-card min-h-[120px]"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Adding your resume helps the AI provide more accurate career guidance and recommendations.
+                </p>
               </div>
             </div>
           </div>
