@@ -58,22 +58,22 @@ export const CareerGuidePage = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen cyber-grid flex flex-col">
       {/* Chat Header */}
-      <div className="p-4 glass-card m-4 rounded-2xl">
+      <div className="p-4 glass-card m-4 rounded-2xl shimmer">
         <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <Button variant="glass" size="icon" onClick={handleBackToForm}>
+              <Button variant="rainbow" size="icon" onClick={handleBackToForm}>
                 <ArrowLeft className="w-5 h-5" />
               </Button>
               <div>
-                <h1 className="text-xl font-bold gradient-text">AI Career Guide</h1>
+                <h1 className="text-xl font-bold gradient-text-rainbow">AI Career Guide</h1>
                 <p className="text-sm text-muted-foreground">Chat with {profileData?.name || 'Student'}</p>
               </div>
             </div>
             <div className="flex items-center space-x-4">
               <Button
-                variant="glass"
+                variant="shine"
                 size="sm"
                 onClick={() => window.location.href = '/resume-analyzer'}
                 className="flex items-center space-x-2"

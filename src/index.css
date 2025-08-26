@@ -36,28 +36,36 @@ All colors MUST be HSL.
     --input: 240 3.7% 15.9%;
     --ring: 263 70% 50%;
 
-    /* Futuristic Design Tokens */
-    --cyber-blue: 195 100% 50%;
-    --cyber-purple: 263 70% 50%;
-    --cyber-pink: 320 100% 50%;
-    --cyber-green: 127 100% 50%;
-    --cyber-orange: 25 100% 50%;
+    /* Enhanced Futuristic Design Tokens - Bright & Shiny */
+    --cyber-blue: 190 100% 65%;
+    --cyber-purple: 270 85% 65%;
+    --cyber-pink: 315 100% 70%;
+    --cyber-green: 120 100% 60%;
+    --cyber-orange: 30 100% 65%;
+    --cyber-yellow: 50 100% 70%;
+    --cyber-teal: 180 100% 65%;
     
-    /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(263 70% 50%), hsl(195 100% 50%));
-    --gradient-secondary: linear-gradient(135deg, hsl(320 100% 50%), hsl(263 70% 50%));
-    --gradient-accent: linear-gradient(135deg, hsl(127 100% 50%), hsl(195 100% 50%));
-    --gradient-hero: linear-gradient(135deg, hsl(240 10% 3.9%), hsl(263 70% 50% / 0.1));
+    /* Vibrant Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(270 85% 65%), hsl(190 100% 65%));
+    --gradient-secondary: linear-gradient(135deg, hsl(315 100% 70%), hsl(270 85% 65%));
+    --gradient-accent: linear-gradient(135deg, hsl(120 100% 60%), hsl(180 100% 65%));
+    --gradient-hero: linear-gradient(135deg, hsl(240 20% 8%), hsl(270 85% 65% / 0.15));
+    --gradient-rainbow: linear-gradient(45deg, hsl(315 100% 70%), hsl(270 85% 65%), hsl(190 100% 65%), hsl(120 100% 60%));
+    --gradient-shine: linear-gradient(135deg, hsl(50 100% 70%), hsl(30 100% 65%), hsl(315 100% 70%));
     
-    /* Glass Effects */
-    --glass-background: hsl(240 10% 3.9% / 0.8);
-    --glass-border: hsl(0 0% 98% / 0.1);
+    /* Enhanced Glass Effects */
+    --glass-background: hsl(240 15% 8% / 0.85);
+    --glass-border: hsl(270 85% 65% / 0.2);
+    --glass-border-bright: hsl(190 100% 65% / 0.3);
     
-    /* Shadows & Glows */
-    --shadow-cyber: 0 0 30px hsl(263 70% 50% / 0.3);
-    --shadow-card: 0 10px 30px -5px hsl(240 10% 3.9% / 0.3);
-    --glow-primary: 0 0 20px hsl(263 70% 50% / 0.5);
-    --glow-accent: 0 0 20px hsl(195 100% 50% / 0.5);
+    /* Bright Shadows & Glows */
+    --shadow-cyber: 0 0 40px hsl(270 85% 65% / 0.4);
+    --shadow-card: 0 15px 35px -5px hsl(240 20% 8% / 0.4);
+    --shadow-rainbow: 0 0 50px hsl(315 100% 70% / 0.3), 0 0 100px hsl(190 100% 65% / 0.2);
+    --glow-primary: 0 0 30px hsl(270 85% 65% / 0.6);
+    --glow-accent: 0 0 30px hsl(190 100% 65% / 0.6);
+    --glow-intense: 0 0 50px hsl(315 100% 70% / 0.8), 0 0 100px hsl(270 85% 65% / 0.4);
+    --glow-soft: 0 0 20px hsl(120 100% 60% / 0.4);
 
     --radius: 0.5rem;
 
@@ -126,13 +134,36 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
     background: var(--gradient-hero);
     min-height: 100vh;
+    overflow-x: hidden;
+  }
+  
+  /* Cyber Grid Background */
+  .cyber-grid::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: 
+      radial-gradient(circle at 25% 25%, hsl(270 85% 65% / 0.1) 0%, transparent 50%),
+      radial-gradient(circle at 75% 75%, hsl(190 100% 65% / 0.1) 0%, transparent 50%),
+      radial-gradient(circle at 50% 50%, hsl(315 100% 70% / 0.05) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: -1;
   }
 }
 
 @layer components {
   .glass-card {
-    @apply backdrop-blur-xl bg-[var(--glass-background)] border border-[var(--glass-border)] rounded-2xl;
-    box-shadow: var(--shadow-card);
+    @apply backdrop-blur-xl bg-[var(--glass-background)] border border-[var(--glass-border-bright)] rounded-2xl;
+    box-shadow: var(--shadow-card), 0 0 20px hsl(var(--cyber-blue) / 0.1);
+    transition: all 0.3s ease;
+  }
+  
+  .glass-card:hover {
+    box-shadow: var(--shadow-card), var(--glow-accent);
+    border-color: hsl(var(--cyber-purple) / 0.4);
   }
   
   .gradient-text {
@@ -140,10 +171,26 @@ All colors MUST be HSL.
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+    animation: gradient-shift 3s ease-in-out infinite;
+  }
+  
+  .gradient-text-rainbow {
+    background: var(--gradient-rainbow);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    background-size: 200% 200%;
+    animation: gradient-shift 4s ease-in-out infinite;
   }
   
   .glow-effect {
     box-shadow: var(--glow-primary);
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+  
+  .glow-intense {
+    box-shadow: var(--glow-intense);
+    animation: intense-glow 3s ease-in-out infinite;
   }
   
   .cyber-border {
@@ -156,12 +203,29 @@ All colors MUST be HSL.
     position: absolute;
     inset: -1px;
     padding: 1px;
-    background: var(--gradient-primary);
+    background: var(--gradient-rainbow);
     border-radius: inherit;
     -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     -webkit-mask-composite: exclude;
     mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     mask-composite: exclude;
+    animation: border-flow 3s linear infinite;
+  }
+  
+  .shimmer {
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .shimmer::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, hsl(var(--cyber-blue) / 0.3), transparent);
+    animation: shimmer-slide 2s infinite;
   }
 }
 
@@ -177,14 +241,22 @@ All colors MUST be HSL.
   .animate-pulse-glow {
     animation: pulse-glow 2s ease-in-out infinite;
   }
+  
+  .animate-rainbow {
+    animation: rainbow-glow 4s ease-in-out infinite;
+  }
+  
+  .animate-shimmer {
+    animation: shimmer-slide 2s ease-in-out infinite;
+  }
 }
 
 @keyframes glow {
   from {
-    box-shadow: 0 0 20px hsl(var(--cyber-purple) / 0.5);
+    box-shadow: 0 0 30px hsl(var(--cyber-purple) / 0.6);
   }
   to {
-    box-shadow: 0 0 30px hsl(var(--cyber-blue) / 0.8), 0 0 40px hsl(var(--cyber-purple) / 0.3);
+    box-shadow: 0 0 50px hsl(var(--cyber-blue) / 0.8), 0 0 80px hsl(var(--cyber-purple) / 0.4);
   }
 }
 
@@ -199,9 +271,41 @@ All colors MUST be HSL.
 
 @keyframes pulse-glow {
   0%, 100% {
-    box-shadow: 0 0 5px hsl(var(--cyber-blue) / 0.5);
+    box-shadow: 0 0 10px hsl(var(--cyber-blue) / 0.6);
   }
   50% {
-    box-shadow: 0 0 20px hsl(var(--cyber-blue) / 0.8), 0 0 30px hsl(var(--cyber-purple) / 0.5);
+    box-shadow: 0 0 30px hsl(var(--cyber-blue) / 0.9), 0 0 50px hsl(var(--cyber-purple) / 0.6);
   }
+}
+
+@keyframes intense-glow {
+  0%, 100% {
+    box-shadow: var(--glow-intense);
+  }
+  50% {
+    box-shadow: 0 0 60px hsl(var(--cyber-pink) / 0.8), 0 0 120px hsl(var(--cyber-blue) / 0.5);
+  }
+}
+
+@keyframes rainbow-glow {
+  0% { box-shadow: 0 0 30px hsl(var(--cyber-pink) / 0.6); }
+  25% { box-shadow: 0 0 30px hsl(var(--cyber-purple) / 0.6); }
+  50% { box-shadow: 0 0 30px hsl(var(--cyber-blue) / 0.6); }
+  75% { box-shadow: 0 0 30px hsl(var(--cyber-green) / 0.6); }
+  100% { box-shadow: 0 0 30px hsl(var(--cyber-pink) / 0.6); }
+}
+
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+@keyframes border-flow {
+  0% { background-position: 0% 0%; }
+  100% { background-position: 200% 0%; }
+}
+
+@keyframes shimmer-slide {
+  0% { left: -100%; }
+  100% { left: 100%; }
 }

@@ -21,6 +21,8 @@ const buttonVariants = cva(
         cyber: "relative bg-gradient-to-r from-[hsl(var(--cyber-purple))] to-[hsl(var(--cyber-blue))] text-white hover:scale-105 hover:shadow-[0_0_30px_hsl(var(--cyber-purple)/0.5)] transition-all duration-300 animate-glow",
         glass: "glass-card text-foreground hover:bg-[var(--glass-background)] hover:scale-105 transition-all duration-300",
         neon: "bg-transparent border-2 border-[hsl(var(--cyber-blue))] text-[hsl(var(--cyber-blue))] hover:bg-[hsl(var(--cyber-blue))] hover:text-background hover:shadow-[0_0_20px_hsl(var(--cyber-blue)/0.5)] transition-all duration-300",
+        rainbow: "bg-gradient-to-r from-[hsl(var(--cyber-pink))] via-[hsl(var(--cyber-purple))] to-[hsl(var(--cyber-blue))] text-white hover:scale-105 animate-rainbow shimmer transition-all duration-300",
+        shine: "bg-gradient-to-r from-[hsl(var(--cyber-yellow))] via-[hsl(var(--cyber-orange))] to-[hsl(var(--cyber-pink))] text-white hover:scale-105 glow-intense shimmer transition-all duration-300",
       },
       size: {
         default: "h-10 px-4 py-2",
