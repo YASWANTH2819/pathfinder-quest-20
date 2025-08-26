@@ -2,7 +2,10 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
-import { Send, Bot, User, Mic, MicOff } from 'lucide-react';
+import { Send, Bot, User, Mic, MicOff, FileText, Loader2 } from 'lucide-react';
+import { geminiService } from '@/services/geminiService';
+import { APIKeySetup } from './APIKeySetup';
+import { ResumeAnalyzer } from './ResumeAnalyzer';
 
 interface Message {
   id: string;
@@ -40,13 +43,16 @@ export const ChatInterface = ({ profileData }: ChatInterfaceProps) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      content: `Hello ${profileData?.name || 'there'}! 🚀 I've reviewed your profile and I'm excited to help guide your career journey. Based on your background in ${profileData?.fieldOfStudy || 'your field'}, I can provide personalized advice on courses, skills, job opportunities, and career paths. What would you like to explore first?`,
+      content: `Hello ${profileData?.name || 'there'}! 🚀 I've reviewed your profile and I'm excited to help guide your career journey. Based on your background in ${profileData?.fieldOfStudy || 'your field'}, I can provide personalized advice on:\n\n🎯 **Career Recommendations** - Job roles and paths\n📚 **Skill Development** - Courses and certifications\n🗺️ **Learning Roadmaps** - Step-by-step career plans\n📹 **YouTube Resources** - Tutorial links and channels\n💼 **Job Platforms** - Where to find opportunities\n📄 **Resume Tools** - Analysis and ATS-friendly generation\n🎤 **Interview Prep** - Tips and practice questions\n\nWhat would you like to explore first?`,
       sender: 'ai',
       timestamp: new Date()
     }
   ]);
   const [inputValue, setInputValue] = useState('');
   const [isListening, setIsListening] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [apiKey, setApiKey] = useState(geminiService.getApiKey());
+  const [showResumeAnalyzer, setShowResumeAnalyzer] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -55,8 +61,19 @@ export const ChatInterface = ({ profileData }: ChatInterfaceProps) => {
 
   useEffect(scrollToBottom, [messages]);
 
-  const handleSendMessage = () => {
-    if (!inputValue.trim()) return;
+  const handleSendMessage = async () => {
+    if (!inputValue.trim() || isLoading) return;
+
+    if (!apiKey) {
+      const errorMessage: Message = {
+        id: Date.now().toString(),
+        content: "⚠️ Please set up your Gemini API key first to start chatting with the AI assistant.",
+        sender: 'ai',
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, errorMessage]);
+      return;
+    }
 
     const newMessage: Message = {
       id: Date.now().toString(),
@@ -66,127 +83,49 @@ export const ChatInterface = ({ profileData }: ChatInterfaceProps) => {
     };
 
     setMessages(prev => [...prev, newMessage]);
+    const userInput = inputValue;
     setInputValue('');
+    setIsLoading(true);
 
-    // Generate AI response
-    setTimeout(() => {
-      generateAIResponse(inputValue);
-    }, 1000);
+    try {
+      const aiResponse = await geminiService.generateCareerResponse(profileData, userInput);
+      
+      const aiMessage: Message = {
+        id: Date.now().toString(),
+        content: aiResponse,
+        sender: 'ai',
+        timestamp: new Date()
+      };
+
+      setMessages(prev => [...prev, aiMessage]);
+    } catch (error) {
+      const errorMessage: Message = {
+        id: Date.now().toString(),
+        content: `❌ **Error:** ${error instanceof Error ? error.message : 'Failed to get AI response. Please check your API key and try again.'}`,
+        sender: 'ai',
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const generateAIResponse = (userInput: string) => {
-    let aiResponse = "";
-    
-    // Generate contextual response based on user input and profile
-    if (userInput.toLowerCase().includes('course') || userInput.toLowerCase().includes('skill')) {
-      aiResponse = generateSkillRecommendations();
-    } else if (userInput.toLowerCase().includes('job') || userInput.toLowerCase().includes('career')) {
-      aiResponse = generateCareerRecommendations();
-    } else if (userInput.toLowerCase().includes('roadmap') || userInput.toLowerCase().includes('path')) {
-      aiResponse = generateRoadmap();
-    } else {
-      aiResponse = "That's a great question! Based on your profile, I can help you with:\n\n🎯 **Career recommendations** - Type 'career options'\n📚 **Skill development** - Type 'courses and skills'\n🗺️ **Learning roadmap** - Type 'roadmap'\n💼 **Job search tips** - Ask about interview prep or resume tips\n\nWhat would you like to explore?";
-    }
+  const handleApiKeySet = (newApiKey: string) => {
+    geminiService.setApiKey(newApiKey);
+    setApiKey(newApiKey);
+  };
 
-    const aiMessage: Message = {
+  const handleResumeAnalysis = (analysis: string) => {
+    const analysisMessage: Message = {
       id: Date.now().toString(),
-      content: aiResponse,
+      content: analysis,
       sender: 'ai',
       timestamp: new Date()
     };
-
-    setMessages(prev => [...prev, aiMessage]);
-  };
-
-  const generateCareerRecommendations = () => {
-    if (!profileData) return "Please complete your profile first.";
-    
-    let recommendations = "🎯 Based on your profile, here are personalized career recommendations:\n\n";
-    
-    // Generate recommendations based on profile data
-    if (profileData.fieldOfStudy.toLowerCase().includes('engineering')) {
-      if (profileData.workEnvironment.toLowerCase().includes('coding')) {
-        recommendations += "💻 **Software Developer/Engineer** - Perfect match for your technical interests\n";
-        recommendations += "🤖 **AI/ML Engineer** - Growing field with excellent opportunities\n";
-      }
-      recommendations += "📊 **Data Scientist** - Combine engineering with analytics\n";
-      recommendations += "🏗️ **Product Manager** - Bridge technical and business aspects\n\n";
-    }
-    
-    if (profileData.workEnvironment.toLowerCase().includes('creative')) {
-      recommendations += "🎨 **UI/UX Designer** - Perfect blend of creativity and technology\n";
-      recommendations += "📱 **Digital Marketing Specialist** - Creative campaigns and strategies\n\n";
-    }
-    
-    if (profileData.workEnvironment.toLowerCase().includes('research')) {
-      recommendations += "🔬 **Research Scientist** - Perfect for analytical minds\n";
-      recommendations += "📖 **Academic Career** - Teaching and research in universities\n\n";
-    }
-    
-    recommendations += "📚 **Next Steps for your goals:**\n";
-    recommendations += `• Focus on ${profileData.shortTermGoals} as your immediate priority\n`;
-    recommendations += "• Build relevant skills through online courses\n";
-    recommendations += "• Create projects to showcase your abilities\n";
-    recommendations += "• Connect with professionals in your field of interest\n\n";
-    recommendations += "Would you like specific course recommendations or a detailed roadmap? 🚀";
-    
-    return recommendations;
-  };
-
-  const generateSkillRecommendations = () => {
-    if (!profileData) return "Please complete your profile first.";
-    
-    let skills = "📚 **Recommended Skills & Courses:**\n\n";
-    
-    if (profileData.fieldOfStudy.toLowerCase().includes('engineering')) {
-      skills += "**Technical Skills:**\n";
-      skills += "• Programming: Python, Java, JavaScript\n";
-      skills += "• Data Analysis: SQL, Excel, Tableau\n";
-      skills += "• Cloud: AWS, Azure basics\n\n";
-    }
-    
-    skills += "**Soft Skills:**\n";
-    skills += "• Communication & Presentation\n";
-    skills += "• Project Management\n";
-    skills += "• Leadership & Teamwork\n\n";
-    
-    skills += "**Recommended Platforms:**\n";
-    skills += "• Coursera, edX for certifications\n";
-    skills += "• YouTube for tutorials\n";
-    skills += "• GitHub for project portfolio\n";
-    skills += "• LinkedIn Learning for professional skills\n\n";
-    
-    skills += "Would you like specific course links or want to discuss any particular skill? 🎓";
-    
-    return skills;
-  };
-
-  const generateRoadmap = () => {
-    if (!profileData) return "Please complete your profile first.";
-    
-    let roadmap = "🗺️ **Your Personalized Career Roadmap:**\n\n";
-    
-    roadmap += "**Phase 1 (Next 3 months):**\n";
-    roadmap += "• Complete your current studies\n";
-    roadmap += "• Learn 2-3 relevant technical skills\n";
-    roadmap += "• Start building a portfolio/GitHub\n\n";
-    
-    roadmap += "**Phase 2 (3-6 months):**\n";
-    roadmap += `• Focus on ${profileData.shortTermGoals}\n`;
-    roadmap += "• Apply for internships/jobs\n";
-    roadmap += "• Network with professionals\n";
-    roadmap += "• Get certifications\n\n";
-    
-    roadmap += "**Phase 3 (6-12 months):**\n";
-    roadmap += "• Gain practical experience\n";
-    roadmap += "• Build advanced projects\n";
-    roadmap += "• Prepare for next career step\n\n";
-    
-    roadmap += `**Long-term (2+ years): ${profileData.longTermGoals}**\n\n`;
-    
-    roadmap += "Would you like me to break down any specific phase in more detail? 📋";
-    
-    return roadmap;
+    setMessages(prev => [...prev, analysisMessage]);
+    setShowResumeAnalyzer(false);
+    scrollToBottom();
   };
 
   const toggleVoiceInput = () => {
@@ -195,6 +134,10 @@ export const ChatInterface = ({ profileData }: ChatInterfaceProps) => {
   };
 
   const handleQuickResponse = (option: string) => {
+    if (option === "Resume tools") {
+      setShowResumeAnalyzer(true);
+      return;
+    }
     setInputValue(option);
   };
 
@@ -202,12 +145,40 @@ export const ChatInterface = ({ profileData }: ChatInterfaceProps) => {
     "Career options",
     "Courses and skills", 
     "Learning roadmap",
-    "Interview tips",
-    "Resume help"
+    "YouTube tutorials",
+    "Job platforms",
+    "Resume tools",
+    "Interview tips"
   ];
 
   return (
     <div className="flex flex-col h-full max-w-4xl mx-auto">
+      {/* API Key Setup */}
+      <div className="p-4">
+        <APIKeySetup 
+          onApiKeySet={handleApiKeySet} 
+          currentApiKey={apiKey}
+        />
+      </div>
+
+      {/* Resume Analyzer Modal */}
+      {showResumeAnalyzer && (
+        <div className="p-4">
+          <ResumeAnalyzer 
+            profileData={profileData}
+            onAnalysisComplete={handleResumeAnalysis}
+          />
+          <Button
+            variant="glass"
+            size="sm"
+            onClick={() => setShowResumeAnalyzer(false)}
+            className="mt-2 w-full"
+          >
+            Close Resume Tools
+          </Button>
+        </div>
+      )}
+
       {/* Chat Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.map((message) => (
@@ -265,8 +236,9 @@ export const ChatInterface = ({ profileData }: ChatInterfaceProps) => {
           <Input
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-            placeholder="Type your message..."
+            onKeyPress={(e) => e.key === 'Enter' && !isLoading && handleSendMessage()}
+            placeholder={isLoading ? "AI is thinking..." : "Ask about careers, skills, roadmaps, resume help..."}
+            disabled={isLoading}
             className="flex-1 glass-card"
           />
           <Button
@@ -274,11 +246,17 @@ export const ChatInterface = ({ profileData }: ChatInterfaceProps) => {
             size="icon"
             onClick={toggleVoiceInput}
             className={isListening ? 'animate-pulse-glow' : ''}
+            disabled={isLoading}
           >
             {isListening ? <MicOff size={16} /> : <Mic size={16} />}
           </Button>
-          <Button variant="cyber" size="icon" onClick={handleSendMessage}>
-            <Send size={16} />
+          <Button 
+            variant="cyber" 
+            size="icon" 
+            onClick={handleSendMessage}
+            disabled={isLoading || !inputValue.trim()}
+          >
+            {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send size={16} />}
           </Button>
         </div>
       </div>
