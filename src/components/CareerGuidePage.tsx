@@ -1,14 +1,42 @@
 import React, { useState } from 'react';
 import { HeroSection } from './HeroSection';
 import { ChatInterface } from './ChatInterface';
+import { ProfileForm } from './ProfileForm';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Home } from 'lucide-react';
 
+interface ProfileData {
+  name: string;
+  age: string;
+  country: string;
+  educationLevel: string;
+  fieldOfStudy: string;
+  specialization: string;
+  currentYear: string;
+  certifications: string;
+  skills: string;
+  interests: string;
+  workEnvironment: string;
+  shortTermGoals: string;
+  longTermGoals: string;
+  careerTransition: string;
+  studyOrJob: string;
+  locationPreference: string;
+  companyType: string;
+  financialSupport: string;
+}
+
 export const CareerGuidePage = () => {
-  const [currentView, setCurrentView] = useState<'hero' | 'chat'>('hero');
+  const [currentView, setCurrentView] = useState<'hero' | 'form' | 'chat'>('hero');
+  const [profileData, setProfileData] = useState<ProfileData | null>(null);
 
   const handleStartChat = () => {
+    setCurrentView('form');
+  };
+
+  const handleFormComplete = (data: ProfileData) => {
+    setProfileData(data);
     setCurrentView('chat');
   };
 
@@ -16,8 +44,16 @@ export const CareerGuidePage = () => {
     setCurrentView('hero');
   };
 
+  const handleBackToForm = () => {
+    setCurrentView('form');
+  };
+
   if (currentView === 'hero') {
     return <HeroSection onStartChat={handleStartChat} />;
+  }
+
+  if (currentView === 'form') {
+    return <ProfileForm onComplete={handleFormComplete} onBack={handleBackToHome} />;
   }
 
   return (
@@ -26,12 +62,12 @@ export const CareerGuidePage = () => {
       <div className="p-4 glass-card m-4 rounded-2xl">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <Button variant="glass" size="icon" onClick={handleBackToHome}>
+            <Button variant="glass" size="icon" onClick={handleBackToForm}>
               <ArrowLeft className="w-5 h-5" />
             </Button>
             <div>
               <h1 className="text-xl font-bold gradient-text">AI Career Guide</h1>
-              <p className="text-sm text-muted-foreground">Your personal career advisor</p>
+              <p className="text-sm text-muted-foreground">Chat with {profileData?.name || 'Student'}</p>
             </div>
           </div>
           <div className="flex items-center space-x-2">
@@ -44,7 +80,7 @@ export const CareerGuidePage = () => {
       {/* Chat Interface */}
       <div className="flex-1 mx-4 mb-4">
         <Card className="glass-card h-full">
-          <ChatInterface />
+          <ChatInterface profileData={profileData} />
         </Card>
       </div>
     </div>

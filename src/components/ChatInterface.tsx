@@ -11,77 +11,41 @@ interface Message {
   timestamp: Date;
 }
 
-interface Question {
-  id: string;
-  text: string;
-  category: string;
-  options?: string[];
+interface ProfileData {
+  name: string;
+  age: string;
+  country: string;
+  educationLevel: string;
+  fieldOfStudy: string;
+  specialization: string;
+  currentYear: string;
+  certifications: string;
+  skills: string;
+  interests: string;
+  workEnvironment: string;
+  shortTermGoals: string;
+  longTermGoals: string;
+  careerTransition: string;
+  studyOrJob: string;
+  locationPreference: string;
+  companyType: string;
+  financialSupport: string;
 }
 
-const CAREER_QUESTIONS: Question[] = [
-  {
-    id: 'name',
-    text: "What's your name? I'd love to get to know you better! 👋",
-    category: 'profile'
-  },
-  {
-    id: 'age',
-    text: "How old are you?",
-    category: 'profile'
-  },
-  {
-    id: 'education_level',
-    text: "What's your current education level?",
-    category: 'education',
-    options: ['10th Grade', '12th Grade', 'Diploma', "Bachelor's Degree", "Master's Degree", 'Other']
-  },
-  {
-    id: 'field_of_study',
-    text: "What's your field of study?",
-    category: 'education',
-    options: ['Engineering', 'Commerce', 'Arts', 'Science', 'Medical', 'Law', 'Other']
-  },
-  {
-    id: 'skills',
-    text: "What skills do you currently have? (Technical or soft skills)",
-    category: 'skills'
-  },
-  {
-    id: 'interests',
-    text: "What subjects or activities do you enjoy the most?",
-    category: 'skills'
-  },
-  {
-    id: 'work_environment',
-    text: "What kind of work environment appeals to you?",
-    category: 'skills',
-    options: ['Coding/Technical', 'Management', 'Creative', 'Research', 'Business', 'Teaching', 'Other']
-  },
-  {
-    id: 'short_term_goals',
-    text: "What are your short-term goals (1-2 years)?",
-    category: 'goals',
-    options: ['Internship', 'Job', 'Higher Studies', 'Startup', 'Certification', 'Other']
-  },
-  {
-    id: 'long_term_goals',
-    text: "What are your long-term goals (5+ years)?",
-    category: 'goals'
-  }
-];
+interface ChatInterfaceProps {
+  profileData: ProfileData | null;
+}
 
-export const ChatInterface = () => {
+export const ChatInterface = ({ profileData }: ChatInterfaceProps) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      content: "Hey there! 🚀 I'm your AI Career Guide, here to help you discover the perfect career path! Let's start our journey together.",
+      content: `Hello ${profileData?.name || 'there'}! 🚀 I've reviewed your profile and I'm excited to help guide your career journey. Based on your background in ${profileData?.fieldOfStudy || 'your field'}, I can provide personalized advice on courses, skills, job opportunities, and career paths. What would you like to explore first?`,
       sender: 'ai',
       timestamp: new Date()
     }
   ]);
   const [inputValue, setInputValue] = useState('');
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [userResponses, setUserResponses] = useState<Record<string, string>>({});
   const [isListening, setIsListening] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -102,16 +66,6 @@ export const ChatInterface = () => {
     };
 
     setMessages(prev => [...prev, newMessage]);
-    
-    // Store the response for current question
-    if (currentQuestionIndex < CAREER_QUESTIONS.length) {
-      const currentQuestion = CAREER_QUESTIONS[currentQuestionIndex];
-      setUserResponses(prev => ({
-        ...prev,
-        [currentQuestion.id]: inputValue
-      }));
-    }
-
     setInputValue('');
 
     // Generate AI response
@@ -123,19 +77,15 @@ export const ChatInterface = () => {
   const generateAIResponse = (userInput: string) => {
     let aiResponse = "";
     
-    if (currentQuestionIndex < CAREER_QUESTIONS.length - 1) {
-      // Ask next question
-      const nextIndex = currentQuestionIndex + 1;
-      const nextQuestion = CAREER_QUESTIONS[nextIndex];
-      aiResponse = `Great! ${nextQuestion.text}`;
-      setCurrentQuestionIndex(nextIndex);
-    } else if (currentQuestionIndex === CAREER_QUESTIONS.length - 1) {
-      // Final question completed, generate career recommendations
+    // Generate contextual response based on user input and profile
+    if (userInput.toLowerCase().includes('course') || userInput.toLowerCase().includes('skill')) {
+      aiResponse = generateSkillRecommendations();
+    } else if (userInput.toLowerCase().includes('job') || userInput.toLowerCase().includes('career')) {
       aiResponse = generateCareerRecommendations();
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
+    } else if (userInput.toLowerCase().includes('roadmap') || userInput.toLowerCase().includes('path')) {
+      aiResponse = generateRoadmap();
     } else {
-      // Conversation mode
-      aiResponse = "That's interesting! Feel free to ask me anything about career guidance, education paths, or skill development. I'm here to help! 💡";
+      aiResponse = "That's a great question! Based on your profile, I can help you with:\n\n🎯 **Career recommendations** - Type 'career options'\n📚 **Skill development** - Type 'courses and skills'\n🗺️ **Learning roadmap** - Type 'roadmap'\n💼 **Job search tips** - Ask about interview prep or resume tips\n\nWhat would you like to explore?";
     }
 
     const aiMessage: Message = {
@@ -149,29 +99,94 @@ export const ChatInterface = () => {
   };
 
   const generateCareerRecommendations = () => {
-    const responses = userResponses;
-    let recommendations = "🎯 Based on your responses, here are some personalized career recommendations:\n\n";
+    if (!profileData) return "Please complete your profile first.";
     
-    // Simple recommendation logic based on responses
-    if (responses.field_of_study?.toLowerCase().includes('engineering')) {
-      recommendations += "🔧 **Software Engineer/Developer** - Your engineering background is perfect for tech roles\n";
-      recommendations += "📊 **Data Scientist** - Combine your technical skills with analytics\n";
+    let recommendations = "🎯 Based on your profile, here are personalized career recommendations:\n\n";
+    
+    // Generate recommendations based on profile data
+    if (profileData.fieldOfStudy.toLowerCase().includes('engineering')) {
+      if (profileData.workEnvironment.toLowerCase().includes('coding')) {
+        recommendations += "💻 **Software Developer/Engineer** - Perfect match for your technical interests\n";
+        recommendations += "🤖 **AI/ML Engineer** - Growing field with excellent opportunities\n";
+      }
+      recommendations += "📊 **Data Scientist** - Combine engineering with analytics\n";
       recommendations += "🏗️ **Product Manager** - Bridge technical and business aspects\n\n";
     }
     
-    if (responses.work_environment?.toLowerCase().includes('creative')) {
+    if (profileData.workEnvironment.toLowerCase().includes('creative')) {
       recommendations += "🎨 **UI/UX Designer** - Perfect blend of creativity and technology\n";
-      recommendations += "📱 **Digital Marketing** - Creative campaigns and strategies\n\n";
+      recommendations += "📱 **Digital Marketing Specialist** - Creative campaigns and strategies\n\n";
     }
     
-    recommendations += "📚 **Next Steps:**\n";
+    if (profileData.workEnvironment.toLowerCase().includes('research')) {
+      recommendations += "🔬 **Research Scientist** - Perfect for analytical minds\n";
+      recommendations += "📖 **Academic Career** - Teaching and research in universities\n\n";
+    }
+    
+    recommendations += "📚 **Next Steps for your goals:**\n";
+    recommendations += `• Focus on ${profileData.shortTermGoals} as your immediate priority\n`;
     recommendations += "• Build relevant skills through online courses\n";
     recommendations += "• Create projects to showcase your abilities\n";
-    recommendations += "• Connect with professionals in your field of interest\n";
-    recommendations += "• Consider internships to gain practical experience\n\n";
-    recommendations += "Would you like me to suggest specific courses or resources for any of these paths? 🚀";
+    recommendations += "• Connect with professionals in your field of interest\n\n";
+    recommendations += "Would you like specific course recommendations or a detailed roadmap? 🚀";
     
     return recommendations;
+  };
+
+  const generateSkillRecommendations = () => {
+    if (!profileData) return "Please complete your profile first.";
+    
+    let skills = "📚 **Recommended Skills & Courses:**\n\n";
+    
+    if (profileData.fieldOfStudy.toLowerCase().includes('engineering')) {
+      skills += "**Technical Skills:**\n";
+      skills += "• Programming: Python, Java, JavaScript\n";
+      skills += "• Data Analysis: SQL, Excel, Tableau\n";
+      skills += "• Cloud: AWS, Azure basics\n\n";
+    }
+    
+    skills += "**Soft Skills:**\n";
+    skills += "• Communication & Presentation\n";
+    skills += "• Project Management\n";
+    skills += "• Leadership & Teamwork\n\n";
+    
+    skills += "**Recommended Platforms:**\n";
+    skills += "• Coursera, edX for certifications\n";
+    skills += "• YouTube for tutorials\n";
+    skills += "• GitHub for project portfolio\n";
+    skills += "• LinkedIn Learning for professional skills\n\n";
+    
+    skills += "Would you like specific course links or want to discuss any particular skill? 🎓";
+    
+    return skills;
+  };
+
+  const generateRoadmap = () => {
+    if (!profileData) return "Please complete your profile first.";
+    
+    let roadmap = "🗺️ **Your Personalized Career Roadmap:**\n\n";
+    
+    roadmap += "**Phase 1 (Next 3 months):**\n";
+    roadmap += "• Complete your current studies\n";
+    roadmap += "• Learn 2-3 relevant technical skills\n";
+    roadmap += "• Start building a portfolio/GitHub\n\n";
+    
+    roadmap += "**Phase 2 (3-6 months):**\n";
+    roadmap += `• Focus on ${profileData.shortTermGoals}\n`;
+    roadmap += "• Apply for internships/jobs\n";
+    roadmap += "• Network with professionals\n";
+    roadmap += "• Get certifications\n\n";
+    
+    roadmap += "**Phase 3 (6-12 months):**\n";
+    roadmap += "• Gain practical experience\n";
+    roadmap += "• Build advanced projects\n";
+    roadmap += "• Prepare for next career step\n\n";
+    
+    roadmap += `**Long-term (2+ years): ${profileData.longTermGoals}**\n\n`;
+    
+    roadmap += "Would you like me to break down any specific phase in more detail? 📋";
+    
+    return roadmap;
   };
 
   const toggleVoiceInput = () => {
@@ -183,7 +198,13 @@ export const ChatInterface = () => {
     setInputValue(option);
   };
 
-  const currentQuestion = currentQuestionIndex < CAREER_QUESTIONS.length ? CAREER_QUESTIONS[currentQuestionIndex] : null;
+  const quickOptions = [
+    "Career options",
+    "Courses and skills", 
+    "Learning roadmap",
+    "Interview tips",
+    "Resume help"
+  ];
 
   return (
     <div className="flex flex-col h-full max-w-4xl mx-auto">
@@ -221,24 +242,22 @@ export const ChatInterface = () => {
       </div>
 
       {/* Quick Response Options */}
-      {currentQuestion?.options && (
-        <div className="p-4 border-t border-[var(--glass-border)]">
-          <p className="text-sm text-muted-foreground mb-2">Quick responses:</p>
-          <div className="flex flex-wrap gap-2">
-            {currentQuestion.options.map((option) => (
-              <Button
-                key={option}
-                variant="glass"
-                size="sm"
-                onClick={() => handleQuickResponse(option)}
-                className="text-xs"
-              >
-                {option}
-              </Button>
-            ))}
-          </div>
+      <div className="p-4 border-t border-[var(--glass-border)]">
+        <p className="text-sm text-muted-foreground mb-2">Quick topics:</p>
+        <div className="flex flex-wrap gap-2">
+          {quickOptions.map((option) => (
+            <Button
+              key={option}
+              variant="glass"
+              size="sm"
+              onClick={() => handleQuickResponse(option)}
+              className="text-xs"
+            >
+              {option}
+            </Button>
+          ))}
         </div>
-      )}
+      </div>
 
       {/* Input Area */}
       <div className="p-4 border-t border-[var(--glass-border)]">
