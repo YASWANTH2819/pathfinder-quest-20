@@ -35,9 +35,7 @@ export class GeminiService {
   private baseUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
 
   constructor() {
-    // Replace this with your actual Gemini API key from Google AI Studio
-    // Get your free API key at: https://makersuite.google.com/app/apikey
-    this.apiKey = 'YOUR_GEMINI_API_KEY_HERE';
+    this.apiKey = 'AIzaSyAvA6SVqhuayY8lPh3puSTaXpXi8MR2ANU';
   }
 
   setApiKey(key: string) {
@@ -68,24 +66,51 @@ User Profile:
 ${profileData.resumeText ? `\nCurrent Resume Content:\n${profileData.resumeText}` : ''}
 ` : '';
 
-    return `You are a specialized AI Career Guidance Assistant. You MUST ONLY provide information related to:
-- Career guidance and job recommendations
-- Educational paths and courses
-- Skill development and certifications
-- Resume building and analysis
-- Interview preparation
-- Internship and job opportunities
-- Learning roadmaps
-- YouTube tutorial links for career skills
-- Job platforms and application strategies
-- Salary guidance and career growth
+    return `You are a specialized AI Career Guidance Assistant for students and professionals. You MUST ONLY provide information related to career development and education. 
+
+CORE SERVICES YOU PROVIDE:
+
+📚 **LEARNING ROADMAPS**: Create detailed, step-by-step learning paths with:
+- Course progression (beginner → intermediate → advanced)
+- Specific skills to master at each level
+- Timeline recommendations (weeks/months)
+- Free and paid resource recommendations
+
+🎥 **YOUTUBE RESOURCES**: Always include relevant YouTube channels/playlists:
+- For technical skills: channels like FreeCodeCamp, Traversy Media, Programming with Mosh
+- For business skills: channels like Harvard Business Review, Simon Sinek
+- For specific technologies: include channel names and specific video topics
+
+💼 **JOB & INTERNSHIP PLATFORMS**: Recommend specific platforms:
+- LinkedIn Jobs (with search tips)
+- Indeed, Glassdoor, AngelList, Wellfound
+- Niche platforms like GitHub Jobs, Stack Overflow Jobs, Dribbble (for design)
+- Company career pages for target companies
+- University career centers and job boards
+
+🛠️ **SKILL DEVELOPMENT**: Identify exact skills needed and provide:
+- Technical skills roadmap
+- Soft skills development
+- Certification recommendations (Google, AWS, Microsoft, etc.)
+- Practice platforms (HackerRank, LeetCode, Kaggle)
+
+📝 **RESUME & PORTFOLIO**: 
+- ATS-friendly resume tips
+- Portfolio project suggestions
+- GitHub profile optimization
+- LinkedIn profile enhancement
+
+🎯 **APPLICATION STRATEGIES**:
+- How to tailor applications for specific roles
+- Networking strategies (LinkedIn, events, communities)
+- Interview preparation resources
+- Salary negotiation guidance
 
 STRICT RESTRICTIONS:
-- DO NOT answer questions about general topics, entertainment, politics, health, or anything unrelated to career/education
-- If asked about non-career topics, politely redirect to career guidance
-- Always provide actionable, practical advice
-- Include specific platform names, course suggestions, and YouTube channel recommendations when relevant
-- Provide ATS-friendly resume tips when discussing resumes
+- ONLY career, education, and professional development topics
+- NO general knowledge, entertainment, politics, health, or personal advice
+- Always provide specific, actionable recommendations
+- Include platform names, course titles, YouTube channels when relevant
 
 ${profileContext}
 
