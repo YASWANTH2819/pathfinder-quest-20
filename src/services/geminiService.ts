@@ -170,7 +170,7 @@ Provide a helpful, detailed response focused ONLY on career guidance and educati
     }
 
     const profileContext = profileData ? `
-Target Profile:
+Target Profile Context:
 - Field: ${profileData.fieldOfStudy} (${profileData.specialization})
 - Career Goals: ${profileData.shortTermGoals} → ${profileData.longTermGoals}
 - Skills: ${profileData.skills}
@@ -179,23 +179,48 @@ Target Profile:
 - Company Type: ${profileData.companyType}
 ` : '';
 
-    const prompt = `You are an expert ATS-friendly resume analyzer. Analyze this resume and provide:
+    const prompt = `You are an expert ATS-friendly resume analyzer. Provide a comprehensive analysis of this resume with the following structure:
 
-1. **Overall Rating (1-10)**: Rate the resume's effectiveness
-2. **ATS Compatibility**: Check for ATS-friendly formatting
-3. **Key Strengths**: What's working well
-4. **Critical Issues**: Problems that need immediate fixing
-5. **Missing Elements**: What should be added
-6. **Keyword Analysis**: Industry-specific keywords to include
-7. **Action Items**: Specific improvements needed
-8. **Enhanced Version**: Provide 3-5 improved bullet points
+## 📊 **RESUME RATING: X/10**
+Rate the overall effectiveness of this resume (1-10 scale).
+
+## 🤖 **ATS COMPATIBILITY CHECK**
+- **Status**: ATS-Friendly ✅ / Not ATS-Friendly ❌
+- **Analysis**: Detailed explanation of ATS compatibility
+- **Issues Found**: List any ATS-unfriendly elements
+
+## ✨ **KEY STRENGTHS**
+List 3-5 things that are working well in this resume.
+
+## 🚨 **CRITICAL ISSUES**
+List problems that need immediate attention.
+
+## 📋 **MISSING ELEMENTS**
+What essential components should be added.
+
+## 🔍 **KEYWORD ANALYSIS**
+- **Current Keywords**: Keywords found in the resume
+- **Missing Keywords**: Industry-specific keywords to add
+- **Keyword Density**: Assessment of keyword usage
+
+## 🎯 **ATS-FRIENDLY IMPROVEMENTS**
+Specific changes to make the resume more ATS-compatible:
+- Formatting improvements
+- Section organization
+- Content structure
+
+## 📝 **ACTION ITEMS**
+Prioritized list of specific improvements to implement.
+
+## 💡 **ENHANCED EXAMPLES**
+Provide 3-5 improved bullet points showing better formatting and content.
 
 ${profileContext}
 
-Resume Content:
+**Resume Content to Analyze:**
 ${resumeText}
 
-Provide detailed, actionable feedback focused on making this resume more effective for the target career path.`;
+Provide detailed, actionable feedback with specific examples and clear explanations.`;
 
     try {
       const response = await fetch(`${this.baseUrl}?key=${this.apiKey}`, {
@@ -235,80 +260,6 @@ Provide detailed, actionable feedback focused on making this resume more effecti
     }
   }
 
-  async generateATSResume(profileData: ProfileData, experience: string, projects: string): Promise<string> {
-    if (!this.apiKey || this.apiKey === 'YOUR_GEMINI_API_KEY_HERE') {
-      throw new Error('Please add your Gemini API key in src/services/geminiService.ts');
-    }
-
-    const prompt = `Create a professional, ATS-friendly resume based on this profile:
-
-Profile Information:
-- Name: ${profileData.name}
-- Education: ${profileData.educationLevel} in ${profileData.fieldOfStudy} (${profileData.specialization})
-- Skills: ${profileData.skills}
-- Certifications: ${profileData.certifications}
-- Career Goals: ${profileData.shortTermGoals} → ${profileData.longTermGoals}
-- Work Environment: ${profileData.workEnvironment}
-- Location: ${profileData.locationPreference}
-
-Experience Details: ${experience}
-Project Details: ${projects}
-
-Create a complete ATS-optimized resume with:
-1. Professional summary (3-4 lines)
-2. Technical skills section
-3. Education details
-4. Experience section with strong action verbs
-5. Projects section
-6. Certifications (if any)
-
-Format Guidelines:
-- Use simple, clean formatting
-- Include relevant keywords for ${profileData.fieldOfStudy}
-- Strong action verbs (Led, Developed, Implemented, etc.)
-- Quantifiable achievements where possible
-- ATS-friendly section headers
-- No graphics, tables, or special formatting
-
-Make it tailored for ${profileData.shortTermGoals} roles in ${profileData.fieldOfStudy}.`;
-
-    try {
-      const response = await fetch(`${this.baseUrl}?key=${this.apiKey}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          contents: [{
-            parts: [{
-              text: prompt
-            }]
-          }],
-          generationConfig: {
-            temperature: 0.4,
-            topK: 40,
-            topP: 0.8,
-            maxOutputTokens: 2000,
-          },
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Gemini API error: ${response.status}`);
-      }
-
-      const data: GeminiResponse = await response.json();
-      
-      if (data.candidates && data.candidates[0]?.content?.parts[0]?.text) {
-        return data.candidates[0].content.parts[0].text;
-      } else {
-        throw new Error('Invalid response format from Gemini API');
-      }
-    } catch (error) {
-      console.error('Resume Generation Error:', error);
-      throw error;
-    }
-  }
 }
 
 export const geminiService = new GeminiService();
