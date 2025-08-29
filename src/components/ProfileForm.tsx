@@ -73,8 +73,6 @@ export const ProfileForm = ({ onComplete, onBack }: ProfileFormProps) => {
   };
 
   const handleSubmit = () => {
-    // Save profile data to localStorage for resume analyzer
-    localStorage.setItem('career_profile_data', JSON.stringify(formData));
     onComplete(formData);
   };
 

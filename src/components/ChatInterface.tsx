@@ -103,11 +103,6 @@ export const ChatInterface = ({ profileData }: ChatInterfaceProps) => {
   };
 
   const handleQuickResponse = (option: string) => {
-    if (option === "Resume analyzer") {
-      // Navigate to resume analyzer page
-      window.location.href = '/resume-analyzer';
-      return;
-    }
     setInputValue(option);
   };
 

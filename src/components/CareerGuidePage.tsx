@@ -72,15 +72,6 @@ export const CareerGuidePage = () => {
               </div>
             </div>
             <div className="flex items-center space-x-4">
-              <Button
-                variant="shine"
-                size="sm"
-                onClick={() => window.location.href = '/resume-analyzer'}
-                className="flex items-center space-x-2"
-              >
-                <FileText className="w-4 h-4" />
-                <span>Resume Tools</span>
-              </Button>
               <div className="flex items-center space-x-2">
                 <div className="w-3 h-3 bg-[hsl(var(--cyber-green))] rounded-full animate-pulse"></div>
                 <span className="text-sm text-muted-foreground">Online</span>
