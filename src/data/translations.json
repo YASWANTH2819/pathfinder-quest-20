@@ -1,0 +1,161 @@
+{
+  "en": {
+    "nav": {
+      "careerGuide": "Career Guide",
+      "resumeAnalyzer": "Resume Analyzer",
+      "dashboard": "Dashboard",
+      "roadmap": "Roadmap"
+    },
+    "common": {
+      "loading": "Loading...",
+      "error": "Error occurred",
+      "save": "Save",
+      "cancel": "Cancel",
+      "next": "Next",
+      "previous": "Previous",
+      "analyze": "Analyze",
+      "generate": "Generate",
+      "download": "Download",
+      "upload": "Upload"
+    },
+    "dashboard": {
+      "title": "Career Dashboard",
+      "subtitle": "Track your career journey with AI-powered insights",
+      "careerHealthScore": "Career Health Score",
+      "atsScore": "ATS Score",
+      "skillsMatch": "Skills Match",
+      "roadmapProgress": "Roadmap Progress",
+      "recentAnalyses": "Recent Analyses",
+      "skillGap": "Skill Gap Analysis",
+      "badges": "Achievements"
+    },
+    "resume": {
+      "title": "Resume Analyzer",
+      "subtitle": "Get ATS-friendly analysis and improvement suggestions",
+      "uploadFile": "Upload Resume File",
+      "pasteText": "Paste Resume Text",
+      "analyzing": "Analyzing Resume...",
+      "atsCompatibility": "ATS Compatibility",
+      "missingSkills": "Missing Skills",
+      "quickFixes": "Quick Fixes",
+      "suggestedCourses": "Suggested Courses"
+    },
+    "roadmap": {
+      "title": "Career Roadmap",
+      "subtitle": "Your personalized journey to career success",
+      "generateRoadmap": "Generate Roadmap",
+      "markComplete": "Mark as Complete",
+      "semester": "Semester",
+      "skill": "Skill Development",
+      "project": "Project",
+      "internship": "Internship",
+      "prep": "Interview Preparation"
+    }
+  },
+  "hi": {
+    "nav": {
+      "careerGuide": "करियर गाइड",
+      "resumeAnalyzer": "रिज्यूमे विश्लेषक",
+      "dashboard": "डैशबोर्ड",
+      "roadmap": "रोडमैप"
+    },
+    "common": {
+      "loading": "लोड हो रहा है...",
+      "error": "त्रुटि हुई",
+      "save": "सेव करें",
+      "cancel": "रद्द करें",
+      "next": "अगला",
+      "previous": "पिछला",
+      "analyze": "विश्लेषण करें",
+      "generate": "उत्पन्न करें",
+      "download": "डाउनलोड करें",
+      "upload": "अपलोड करें"
+    },
+    "dashboard": {
+      "title": "करियर डैशबोर्ड",
+      "subtitle": "AI-संचालित अंतर्दृष्टि के साथ अपनी करियर यात्रा को ट्रैक करें",
+      "careerHealthScore": "करियर स्वास्थ्य स्कोर",
+      "atsScore": "ATS स्कोर",
+      "skillsMatch": "कौशल मिलान",
+      "roadmapProgress": "रोडमैप प्रगति",
+      "recentAnalyses": "हाल के विश्लेषण",
+      "skillGap": "कौशल अंतर विश्लेषण",
+      "badges": "उपलब्धियां"
+    },
+    "resume": {
+      "title": "रिज्यूमे विश्लेषक",
+      "subtitle": "ATS-अनुकूल विश्लेषण और सुधार सुझाव प्राप्त करें",
+      "uploadFile": "रिज्यूमे फ़ाइल अपलोड करें",
+      "pasteText": "रिज्यूमे टेक्स्ट पेस्ट करें",
+      "analyzing": "रिज्यूमे का विश्लेषण कर रहे हैं...",
+      "atsCompatibility": "ATS संगतता",
+      "missingSkills": "अनुपस्थित कौशल",
+      "quickFixes": "त्वरित सुधार",
+      "suggestedCourses": "सुझाए गए कोर्स"
+    },
+    "roadmap": {
+      "title": "करियर रोडमैप",
+      "subtitle": "करियर सफलता के लिए आपकी व्यक्तिगत यात्रा",
+      "generateRoadmap": "रोडमैप जनरेट करें",
+      "markComplete": "पूर्ण के रूप में चिह्नित करें",
+      "semester": "सेमेस्टर",
+      "skill": "कौशल विकास",
+      "project": "प्रोजेक्ट",
+      "internship": "इंटर्नशिप",
+      "prep": "साक्षात्कार तैयारी"
+    }
+  },
+  "te": {
+    "nav": {
+      "careerGuide": "కెరీర్ గైడ్",
+      "resumeAnalyzer": "రెజ్యూమే ఎనలైజర్",
+      "dashboard": "డ్యాష్‌బోర్డ్",
+      "roadmap": "రోడ్‌మ్యాప్"
+    },
+    "common": {
+      "loading": "లోడ్ అవుతోంది...",
+      "error": "ఎర్రర్ సంభవించింది",
+      "save": "సేవ్ చేయండి",
+      "cancel": "రద్దు చేయండి",
+      "next": "తదుపరి",
+      "previous": "మునుపటి",
+      "analyze": "విశ్లేషించండి",
+      "generate": "జనరేట్ చేయండి",
+      "download": "డౌన్‌లోడ్ చేయండి",
+      "upload": "అప్‌లోడ్ చేయండి"
+    },
+    "dashboard": {
+      "title": "కెరీర్ డ్యాష్‌బోర్డ్",
+      "subtitle": "AI-శక్తితో కూడిన అంతర్దృష్టులతో మీ కెరీర్ ప్రయాణాన్ని ట్రాక్ చేయండి",
+      "careerHealthScore": "కెరీర్ హెల్త్ స్కోర్",
+      "atsScore": "ATS స్కోర్",
+      "skillsMatch": "స్కిల్స్ మ్యాచ్",
+      "roadmapProgress": "రోడ్‌మ్యాప్ ప్రోగ్రెస్",
+      "recentAnalyses": "ఇటీవలి విశ్లేషణలు",
+      "skillGap": "స్కిల్ గ్యాప్ విశ్లేషణ",
+      "badges": "అచీవ్‌మెంట్స్"
+    },
+    "resume": {
+      "title": "రెజ్యూమే ఎనలైజర్",
+      "subtitle": "ATS-స్నేహపూర్వక విశ్లేషణ మరియు మెరుగుదల సూచనలను పొందండి",
+      "uploadFile": "రెజ్యూమే ఫైల్‌ను అప్‌లోడ్ చేయండి",
+      "pasteText": "రెజ్యూమే టెక్స్ట్‌ను పేస్ట్ చేయండి",
+      "analyzing": "రెజ్యూమేను విశ్లేషిస్తోంది...",
+      "atsCompatibility": "ATS అనుకూలత",
+      "missingSkills": "లేని స్కిల్స్",
+      "quickFixes": "త్వరిత పరిష్కారాలు",
+      "suggestedCourses": "సూచించిన కోర్సులు"
+    },
+    "roadmap": {
+      "title": "కెరీర్ రోడ్‌మ్యాప్",
+      "subtitle": "కెరీర్ విజయానికి మీ వ్యక్తిగత ప్రయాణం",
+      "generateRoadmap": "రోడ్‌మ్యాప్ జనరేట్ చేయండి",
+      "markComplete": "పూర్తయినట్లు మార్క్ చేయండి",
+      "semester": "సెమిస్టర్",
+      "skill": "స్కిల్ డెవలప్‌మెంట్",
+      "project": "ప్రాజెక్ట్",
+      "internship": "ఇంటర్న్‌షిప్",
+      "prep": "ఇంటర్వ్యూ ప్రిపరేషన్"
+    }
+  }
+}

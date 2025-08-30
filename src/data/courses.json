@@ -1,0 +1,114 @@
+{
+  "courses": [
+    {
+      "title": "Complete Web Development Bootcamp",
+      "provider": "FreeCodeCamp",
+      "url": "https://www.freecodecamp.org/learn",
+      "level": "Beginner to Advanced",
+      "duration": "300 hours",
+      "skills": ["JavaScript", "React", "Node.js", "Database Management", "API Development"],
+      "price": "Free",
+      "language": "English",
+      "indianFocus": true
+    },
+    {
+      "title": "Python for Data Science",
+      "provider": "Coursera (University of Michigan)",
+      "url": "https://coursera.org/specializations/data-science-python",
+      "level": "Beginner",
+      "duration": "5 months",
+      "skills": ["Python", "Data Analysis", "Pandas", "NumPy", "Machine Learning"],
+      "price": "₹3,900/month",
+      "language": "English",
+      "indianFocus": false
+    },
+    {
+      "title": "Digital Marketing Course",
+      "provider": "Google Digital Garage",
+      "url": "https://learndigital.withgoogle.com/digitalgarage",
+      "level": "Beginner",
+      "duration": "40 hours",
+      "skills": ["SEO", "SEM", "Social Media Marketing", "Google Analytics"],
+      "price": "Free",
+      "language": "Hindi/English",
+      "indianFocus": true
+    },
+    {
+      "title": "AWS Cloud Practitioner",
+      "provider": "AWS Training",
+      "url": "https://aws.amazon.com/training/",
+      "level": "Beginner",
+      "duration": "3 months",
+      "skills": ["AWS", "Cloud Computing", "Infrastructure", "DevOps"],
+      "price": "₹12,000",
+      "language": "English",
+      "indianFocus": false
+    },
+    {
+      "title": "UX Design Fundamentals",
+      "provider": "Interaction Design Foundation",
+      "url": "https://www.interaction-design.org/",
+      "level": "Beginner",
+      "duration": "2 months",
+      "skills": ["User Research", "Wireframing", "Prototyping", "Design Thinking"],
+      "price": "₹1,800/year",
+      "language": "English",
+      "indianFocus": false
+    },
+    {
+      "title": "Full Stack Development",
+      "provider": "Coding Ninjas India",
+      "url": "https://www.codingninjas.com/",
+      "level": "Intermediate",
+      "duration": "8 months",
+      "skills": ["Java", "Spring Boot", "React", "Database Management", "System Design"],
+      "price": "₹75,000",
+      "language": "Hindi/English",
+      "indianFocus": true
+    },
+    {
+      "title": "Data Structures & Algorithms",
+      "provider": "GeeksforGeeks",
+      "url": "https://www.geeksforgeeks.org/courses",
+      "level": "Intermediate",
+      "duration": "4 months",
+      "skills": ["Data Structures", "Algorithms", "Problem Solving", "Coding Interview Prep"],
+      "price": "₹9,999",
+      "language": "Hindi/English",
+      "indianFocus": true
+    },
+    {
+      "title": "Business Analytics",
+      "provider": "NPTEL",
+      "url": "https://nptel.ac.in/",
+      "level": "Intermediate",
+      "duration": "12 weeks",
+      "skills": ["SQL", "Excel", "Business Intelligence", "Data Analysis"],
+      "price": "Free (₹1,000 for certificate)",
+      "language": "Hindi/English",
+      "indianFocus": true
+    },
+    {
+      "title": "Machine Learning A-Z",
+      "provider": "Udemy",
+      "url": "https://www.udemy.com/course/machinelearning/",
+      "level": "Intermediate",
+      "duration": "44 hours",
+      "skills": ["Machine Learning", "Python", "TensorFlow", "Deep Learning"],
+      "price": "₹3,200",
+      "language": "English",
+      "indianFocus": false
+    },
+    {
+      "title": "Content Writing Masterclass",
+      "provider": "Skill India",
+      "url": "https://www.skillindia.gov.in/",
+      "level": "Beginner",
+      "duration": "6 weeks",
+      "skills": ["Creative Writing", "SEO Writing", "Content Strategy", "Copywriting"],
+      "price": "Free",
+      "language": "Hindi/English",
+      "indianFocus": true
+    }
+  ]
+}

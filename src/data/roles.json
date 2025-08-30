@@ -1,0 +1,84 @@
+{
+  "roles": {
+    "Software Engineer": {
+      "requiredSkills": [
+        "JavaScript", "Python", "Java", "React", "Node.js", "Git", "Database Management", 
+        "API Development", "Data Structures", "Algorithms", "System Design", "Testing"
+      ],
+      "description": "Develops and maintains software applications and systems",
+      "averageSalary": "₹6-15 LPA",
+      "growthRate": "22%",
+      "indianMarketDemand": "Very High"
+    },
+    "Data Scientist": {
+      "requiredSkills": [
+        "Python", "R", "SQL", "Machine Learning", "Statistics", "Data Visualization", 
+        "Pandas", "NumPy", "Scikit-learn", "TensorFlow", "Tableau", "Excel"
+      ],
+      "description": "Analyzes complex data to help organizations make informed decisions",
+      "averageSalary": "₹8-20 LPA",
+      "growthRate": "31%",
+      "indianMarketDemand": "Very High"
+    },
+    "Product Manager": {
+      "requiredSkills": [
+        "Product Strategy", "Market Research", "User Experience", "Analytics", 
+        "Communication", "Leadership", "Agile Methodology", "SQL", "A/B Testing", "Roadmapping"
+      ],
+      "description": "Leads product development from conception to launch",
+      "averageSalary": "₹12-25 LPA",
+      "growthRate": "19%",
+      "indianMarketDemand": "High"
+    },
+    "Digital Marketing Manager": {
+      "requiredSkills": [
+        "SEO", "SEM", "Social Media Marketing", "Content Marketing", "Google Analytics", 
+        "Email Marketing", "PPC", "Marketing Automation", "Data Analysis", "Campaign Management"
+      ],
+      "description": "Plans and executes digital marketing strategies to reach target audiences",
+      "averageSalary": "₹4-12 LPA",
+      "growthRate": "25%",
+      "indianMarketDemand": "High"
+    },
+    "UX/UI Designer": {
+      "requiredSkills": [
+        "Figma", "Adobe Creative Suite", "User Research", "Wireframing", "Prototyping", 
+        "Design Systems", "HTML/CSS", "Usability Testing", "Information Architecture", "Design Thinking"
+      ],
+      "description": "Creates intuitive and engaging user experiences for digital products",
+      "averageSalary": "₹5-15 LPA",
+      "growthRate": "20%",
+      "indianMarketDemand": "High"
+    },
+    "Business Analyst": {
+      "requiredSkills": [
+        "SQL", "Excel", "Business Process Modeling", "Requirements Analysis", 
+        "Data Analysis", "Communication", "Problem Solving", "Stakeholder Management", "Documentation", "Tableau"
+      ],
+      "description": "Analyzes business processes to improve efficiency and profitability",
+      "averageSalary": "₹5-12 LPA",
+      "growthRate": "14%",
+      "indianMarketDemand": "Medium"
+    },
+    "DevOps Engineer": {
+      "requiredSkills": [
+        "AWS", "Docker", "Kubernetes", "CI/CD", "Linux", "Shell Scripting", 
+        "Infrastructure as Code", "Monitoring", "Git", "Jenkins", "Terraform", "Ansible"
+      ],
+      "description": "Manages deployment pipeline and infrastructure automation",
+      "averageSalary": "₹8-18 LPA",
+      "growthRate": "27%",
+      "indianMarketDemand": "Very High"
+    },
+    "Content Writer": {
+      "requiredSkills": [
+        "Creative Writing", "SEO Writing", "Research", "Grammar", "Content Strategy", 
+        "Social Media", "Blog Writing", "Copywriting", "WordPress", "Analytics"
+      ],
+      "description": "Creates engaging written content for various digital platforms",
+      "averageSalary": "₹3-8 LPA",
+      "growthRate": "12%",
+      "indianMarketDemand": "Medium"
+    }
+  }
+}
