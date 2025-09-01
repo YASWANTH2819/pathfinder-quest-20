@@ -110,7 +110,7 @@ export interface DashboardData {
   chartData: {
     healthScoreHistory: Array<{ date: string; score: number }>;
     atsScoreHistory: Array<{ date: string; score: number }>;
-    skillsProgress: Array<{ skill: string; proficiency: number }>;
+    skillsProgress: Array<{ skill: string; proficiency: number; required: number }>;
   };
 }
 
