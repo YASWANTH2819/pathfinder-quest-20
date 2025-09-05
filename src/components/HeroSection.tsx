@@ -1,7 +1,8 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { ArrowRight, Sparkles, Target, Users, Zap } from 'lucide-react';
+import { ArrowRight, Sparkles, Target, Users, Zap, Home } from 'lucide-react';
 import heroImage from '@/assets/hero-career-guide.jpg';
 
 interface HeroSectionProps {
@@ -9,6 +10,8 @@ interface HeroSectionProps {
 }
 
 export const HeroSection = ({ onStartChat }: HeroSectionProps) => {
+  const navigate = useNavigate();
+  
   return (
     <div className="min-h-screen cyber-grid">
       {/* Navigation */}
@@ -20,10 +23,15 @@ export const HeroSection = ({ onStartChat }: HeroSectionProps) => {
             </div>
             <span className="text-xl font-bold gradient-text-rainbow">CareerAI Guide</span>
           </div>
-          <div className="hidden md:flex space-x-6">
-            <a href="#features" className="text-foreground hover:text-[hsl(var(--cyber-blue))] transition-colors">Features</a>
-            <a href="#about" className="text-foreground hover:text-[hsl(var(--cyber-blue))] transition-colors">About</a>
-            <a href="#contact" className="text-foreground hover:text-[hsl(var(--cyber-blue))] transition-colors">Contact</a>
+          <div className="flex items-center space-x-4">
+            <Button variant="glass" size="icon" onClick={() => navigate('/')}>
+              <Home className="w-5 h-5" />
+            </Button>
+            <div className="hidden md:flex space-x-6">
+              <a href="#features" className="text-foreground hover:text-[hsl(var(--cyber-blue))] transition-colors">Features</a>
+              <a href="#about" className="text-foreground hover:text-[hsl(var(--cyber-blue))] transition-colors">About</a>
+              <a href="#contact" className="text-foreground hover:text-[hsl(var(--cyber-blue))] transition-colors">Contact</a>
+            </div>
           </div>
         </div>
       </nav>

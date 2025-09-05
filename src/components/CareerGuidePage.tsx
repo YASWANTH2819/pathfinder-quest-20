@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { HeroSection } from './HeroSection';
 import { ChatInterface } from './ChatInterface';
 import { ProfileForm } from './ProfileForm';
@@ -29,6 +30,7 @@ interface ProfileData {
 }
 
 export const CareerGuidePage = () => {
+  const navigate = useNavigate();
   const [currentView, setCurrentView] = useState<'hero' | 'form' | 'chat'>('hero');
   const [profileData, setProfileData] = useState<ProfileData | null>(null);
 
@@ -72,6 +74,9 @@ export const CareerGuidePage = () => {
               </div>
             </div>
             <div className="flex items-center space-x-4">
+              <Button variant="glass" size="icon" onClick={() => navigate('/')} className="mr-2">
+                <Home className="w-5 h-5" />
+              </Button>
               <div className="flex items-center space-x-2">
                 <div className="w-3 h-3 bg-[hsl(var(--cyber-green))] rounded-full animate-pulse"></div>
                 <span className="text-sm text-muted-foreground">Online</span>
