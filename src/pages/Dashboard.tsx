@@ -151,10 +151,9 @@ export const Dashboard: React.FC = () => {
           {/* Left Column - Career Health Score */}
           <div className="lg:col-span-1 space-y-6">
             <CareerHealthGauge
-              overallScore={dashboardData.careerHealthScore.overallScore}
               atsScore={dashboardData.careerHealthScore.atsScore}
-              skillsMatchScore={dashboardData.careerHealthScore.skillsMatchScore}
-              roadmapProgress={dashboardData.careerHealthScore.roadmapProgress}
+              skillsMatch={dashboardData.careerHealthScore.skillsMatchScore}
+              roadmapProgress={dashboardData.roadmapProgress.percentage}
             />
 
             {/* Badges */}

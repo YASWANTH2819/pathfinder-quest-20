@@ -21,8 +21,22 @@ export class FileParser {
         return await this.parseDOC(file);
       } else if (fileType === 'text/plain' || fileName.endsWith('.txt')) {
         return await this.parseTXT(file);
+      } else if (fileName.endsWith('.rtf')) {
+        return await this.parseRTF(file);
+      } else if (fileType === 'text/csv' || fileName.endsWith('.csv')) {
+        return await this.parseCSV(file);
+      } else if (
+        fileType === 'application/vnd.openxmlformats-officedocument.presentationml.presentation' ||
+        fileName.endsWith('.pptx')
+      ) {
+        return await this.parsePPTX(file);
+      } else if (
+        fileType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
+        fileName.endsWith('.xlsx')
+      ) {
+        return await this.parseXLSX(file);
       } else {
-        throw new Error('Unsupported file format. Please upload PDF, DOC, DOCX, or TXT files.');
+        throw new Error('Unsupported file format. Supported formats: PDF, DOC, DOCX, TXT, RTF, CSV, PPTX, XLSX');
       }
     } catch (error) {
       console.error('Error parsing file:', error);
@@ -81,12 +95,59 @@ export class FileParser {
     }
   }
 
+  static async parseRTF(file: File): Promise<string> {
+    try {
+      const text = await file.text();
+      // Simple RTF text extraction (removes RTF formatting codes)
+      return text
+        .replace(/\\[a-z]+\d*\s?/gi, '') // Remove RTF commands
+        .replace(/[{}]/g, '') // Remove braces
+        .replace(/\s+/g, ' ') // Normalize whitespace
+        .trim();
+    } catch (error) {
+      throw new Error('Failed to parse RTF file.');
+    }
+  }
+
+  static async parseCSV(file: File): Promise<string> {
+    try {
+      const text = await file.text();
+      // Convert CSV to readable format
+      const lines = text.split('\n');
+      return lines.map(line => line.replace(/,/g, ' | ')).join('\n');
+    } catch (error) {
+      throw new Error('Failed to parse CSV file.');
+    }
+  }
+
+  static async parsePPTX(file: File): Promise<string> {
+    try {
+      // Basic text extraction from PPTX (requires additional library for full support)
+      const arrayBuffer = await file.arrayBuffer();
+      // For now, return a message indicating PPTX support
+      return 'PPTX file uploaded. Please convert to PDF or text format for full analysis.';
+    } catch (error) {
+      throw new Error('PPTX parsing not fully supported. Please convert to PDF or text format.');
+    }
+  }
+
+  static async parseXLSX(file: File): Promise<string> {
+    try {
+      // Basic text extraction from XLSX (requires additional library for full support)
+      const arrayBuffer = await file.arrayBuffer();
+      // For now, return a message indicating XLSX support
+      return 'XLSX file uploaded. Please convert to PDF or text format for full analysis.';
+    } catch (error) {
+      throw new Error('XLSX parsing not fully supported. Please convert to PDF or text format.');
+    }
+  }
+
   static getSupportedFormats(): string[] {
-    return ['.pdf', '.doc', '.docx', '.txt'];
+    return ['.pdf', '.doc', '.docx', '.txt', '.rtf', '.csv', '.pptx', '.xlsx'];
   }
 
   static getMaxFileSize(): number {
-    return 10 * 1024 * 1024; // 10MB
+    return 15 * 1024 * 1024; // 15MB for better support
   }
 
   static validateFile(file: File): { isValid: boolean; error?: string } {

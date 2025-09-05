@@ -1,200 +1,98 @@
 import React from 'react';
-import { motion } from 'framer-motion';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Info, TrendingUp, TrendingDown } from 'lucide-react';
-import { useTranslation } from '@/hooks/useTranslation';
+import { TrendingUp, Award, Target, Zap } from 'lucide-react';
 
 interface CareerHealthGaugeProps {
-  overallScore: number;
   atsScore: number;
-  skillsMatchScore: number;
+  skillsMatch: number;
   roadmapProgress: number;
-  previousScore?: number;
-  className?: string;
 }
 
-export const CareerHealthGauge: React.FC<CareerHealthGaugeProps> = ({
-  overallScore,
-  atsScore,
-  skillsMatchScore,
-  roadmapProgress,
-  previousScore,
-  className = ''
-}) => {
-  const { t } = useTranslation();
-
-  // Determine color based on score
-  const getScoreColor = (score: number) => {
-    if (score < 40) return 'text-red-400';
-    if (score < 70) return 'text-yellow-400';
-    return 'text-[hsl(var(--cyber-green))]';
-  };
-
-  const getScoreGlow = (score: number) => {
-    if (score < 40) return 'shadow-[0_0_30px_rgba(248,113,113,0.6)]';
-    if (score < 70) return 'shadow-[0_0_30px_rgba(250,204,21,0.6)]';
-    return 'shadow-[0_0_30px_hsl(var(--cyber-green)/0.6)]';
-  };
-
-  const getBadgeLevel = (score: number) => {
-    if (score < 40) return { level: 'Beginner', color: 'destructive' };
-    if (score < 70) return { level: 'Builder', color: 'secondary' };
-    if (score < 85) return { level: 'Job-Ready', color: 'default' };
-    return { level: 'Pro', color: 'default' };
-  };
-
-  const badge = getBadgeLevel(overallScore);
-  const scoreChange = previousScore ? overallScore - previousScore : 0;
+export const CareerHealthGauge = ({ atsScore, skillsMatch, roadmapProgress }: CareerHealthGaugeProps) => {
+  const careerHealthScore = Math.round((atsScore + skillsMatch + roadmapProgress) / 3);
   
-  // Calculate circumference for progress ring
-  const radius = 120;
-  const circumference = 2 * Math.PI * radius;
-  const strokeDasharray = circumference;
-  const strokeDashoffset = circumference - (overallScore / 100) * circumference;
+  const getHealthStatus = (score: number) => {
+    if (score >= 80) return { label: 'Excellent', color: 'text-green-400', bg: 'bg-green-400/10' };
+    if (score >= 60) return { label: 'Good', color: 'text-blue-400', bg: 'bg-blue-400/10' };
+    if (score >= 40) return { label: 'Fair', color: 'text-yellow-400', bg: 'bg-yellow-400/10' };
+    return { label: 'Needs Improvement', color: 'text-red-400', bg: 'bg-red-400/10' };
+  };
+
+  const status = getHealthStatus(careerHealthScore);
 
   return (
-    <TooltipProvider>
-      <Card className={`glass-card p-6 ${className}`}>
-        <CardHeader className="text-center pb-2">
-          <CardTitle className="font-orbitron text-2xl gradient-text flex items-center justify-center gap-2">
-            {t('dashboard.careerHealthScore')}
-            <Tooltip>
-              <TooltipTrigger>
-                <Info className="w-5 h-5 text-muted-foreground" />
-              </TooltipTrigger>
-              <TooltipContent className="max-w-sm">
-                <div className="space-y-2">
-                  <p className="font-semibold">Formula:</p>
-                  <p>(ATS Score + Skills Match + Roadmap Progress) ÷ 3</p>
-                  <p className="text-sm text-muted-foreground">
-                    Example: ({atsScore} + {skillsMatchScore} + {roadmapProgress}) ÷ 3 = {overallScore}
-                  </p>
-                </div>
-              </TooltipContent>
-            </Tooltip>
-          </CardTitle>
-        </CardHeader>
-        
-        <CardContent className="flex flex-col items-center space-y-6">
-          {/* Circular Progress Gauge */}
-          <div className="relative">
-            <motion.div
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ duration: 0.8, ease: "easeOut" }}
-              className={`relative ${getScoreGlow(overallScore)} rounded-full`}
-            >
-              <svg width="280" height="280" className="transform -rotate-90">
-                {/* Background circle */}
-                <circle
-                  cx="140"
-                  cy="140"
-                  r={radius}
-                  stroke="hsl(var(--glass-border))"
-                  strokeWidth="12"
-                  fill="transparent"
-                  className="opacity-30"
-                />
-                
-                {/* Progress circle */}
-                <motion.circle
-                  cx="140"
-                  cy="140"
-                  r={radius}
-                  stroke="url(#scoreGradient)"
-                  strokeWidth="12"
-                  fill="transparent"
-                  strokeLinecap="round"
-                  strokeDasharray={strokeDasharray}
-                  strokeDashoffset={strokeDashoffset}
-                  initial={{ strokeDashoffset: circumference }}
-                  animate={{ strokeDashoffset }}
-                  transition={{ duration: 2, ease: "easeOut" }}
-                  className="filter drop-shadow-lg"
-                />
-                
-                <defs>
-                  <linearGradient id="scoreGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor={overallScore < 40 ? '#f87171' : overallScore < 70 ? '#facc15' : 'hsl(var(--cyber-green))'} />
-                    <stop offset="100%" stopColor={overallScore < 40 ? '#ef4444' : overallScore < 70 ? '#eab308' : 'hsl(var(--cyber-blue))'} />
-                  </linearGradient>
-                </defs>
-              </svg>
-              
-              {/* Score Text */}
-              <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ delay: 1, duration: 0.5 }}
-                  className="text-center"
-                >
-                  <div className={`text-6xl font-orbitron font-bold ${getScoreColor(overallScore)}`}>
-                    {overallScore}
-                  </div>
-                  <div className="text-lg text-muted-foreground font-medium">
-                    /100
-                  </div>
-                  
-                  {/* Score Change Indicator */}
-                  {scoreChange !== 0 && (
-                    <div className={`flex items-center justify-center mt-2 text-sm ${scoreChange > 0 ? 'text-[hsl(var(--cyber-green))]' : 'text-red-400'}`}>
-                      {scoreChange > 0 ? <TrendingUp className="w-4 h-4 mr-1" /> : <TrendingDown className="w-4 h-4 mr-1" />}
-                      {scoreChange > 0 ? '+' : ''}{scoreChange}
-                    </div>
-                  )}
-                </motion.div>
-              </div>
-            </motion.div>
-          </div>
-
-          {/* Badge Level */}
-          <motion.div
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 1.5, duration: 0.5 }}
-          >
-            <Badge variant={badge.color as any} className="px-4 py-2 text-lg font-orbitron">
-              {badge.level}
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Main Health Score */}
+      <Card className="glass-card p-6 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-green-500/5" />
+        <div className="relative z-10">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold flex items-center gap-2">
+              <TrendingUp className="w-5 h-5 text-blue-400" />
+              Career Health Score
+            </h3>
+            <Badge className={`${status.bg} ${status.color} border-0`}>
+              {status.label}
             </Badge>
-          </motion.div>
-
-          {/* Score Breakdown */}
-          <div className="w-full space-y-3">
-            <motion.div
-              initial={{ x: -20, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              transition={{ delay: 2, duration: 0.5 }}
-              className="flex justify-between items-center"
-            >
-              <span className="text-sm text-muted-foreground">{t('dashboard.atsScore')}</span>
-              <span className={`font-semibold ${getScoreColor(atsScore)}`}>{atsScore}</span>
-            </motion.div>
-            
-            <motion.div
-              initial={{ x: -20, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              transition={{ delay: 2.2, duration: 0.5 }}
-              className="flex justify-between items-center"
-            >
-              <span className="text-sm text-muted-foreground">{t('dashboard.skillsMatch')}</span>
-              <span className={`font-semibold ${getScoreColor(skillsMatchScore)}`}>{skillsMatchScore}</span>
-            </motion.div>
-            
-            <motion.div
-              initial={{ x: -20, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              transition={{ delay: 2.4, duration: 0.5 }}
-              className="flex justify-between items-center"
-            >
-              <span className="text-sm text-muted-foreground">{t('dashboard.roadmapProgress')}</span>
-              <span className={`font-semibold ${getScoreColor(roadmapProgress)}`}>{roadmapProgress}</span>
-            </motion.div>
           </div>
-        </CardContent>
+          
+          <div className="text-center mb-6">
+            <div className="text-4xl font-bold mb-2 bg-gradient-to-r from-blue-400 to-green-400 bg-clip-text text-transparent">
+              {careerHealthScore}%
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Formula: (ATS Score + Skills Match + Roadmap Progress) ÷ 3
+            </p>
+          </div>
+          
+          <Progress value={careerHealthScore} className="h-3" />
+        </div>
       </Card>
-    </TooltipProvider>
+
+      {/* Breakdown Metrics */}
+      <Card className="glass-card p-6">
+        <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+          <Award className="w-5 h-5 text-purple-400" />
+          Score Breakdown
+        </h3>
+        
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Target className="w-4 h-4 text-blue-400" />
+              <span className="text-sm">ATS Score</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Progress value={atsScore} className="w-20 h-2" />
+              <span className="text-sm font-medium w-12 text-right">{atsScore}%</span>
+            </div>
+          </div>
+          
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Zap className="w-4 h-4 text-green-400" />
+              <span className="text-sm">Skills Match</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Progress value={skillsMatch} className="w-20 h-2" />
+              <span className="text-sm font-medium w-12 text-right">{skillsMatch}%</span>
+            </div>
+          </div>
+          
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <TrendingUp className="w-4 h-4 text-purple-400" />
+              <span className="text-sm">Roadmap Progress</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Progress value={roadmapProgress} className="w-20 h-2" />
+              <span className="text-sm font-medium w-12 text-right">{roadmapProgress}%</span>
+            </div>
+          </div>
+        </div>
+      </Card>
+    </div>
   );
 };

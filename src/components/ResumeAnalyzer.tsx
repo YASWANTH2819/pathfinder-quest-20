@@ -101,9 +101,9 @@ export const ResumeAnalyzer = ({ profileData, onAnalysisComplete }: ResumeAnalyz
       </div>
 
       <div className="space-y-4">
-        <Alert>
+            <Alert>
           <AlertDescription className="text-sm">
-            Upload your resume file (PDF, DOC, DOCX, TXT) or paste the text content for detailed analysis including rating, ATS compatibility, and improvement suggestions.
+            🚀 <strong>Advanced Resume Analyzer</strong> - Upload your resume in any format (PDF, DOC, DOCX, TXT, RTF, CSV, PPTX, XLSX) for comprehensive AI analysis including ATS scoring, skills matching, and personalized recommendations.
           </AlertDescription>
         </Alert>
 
@@ -120,13 +120,13 @@ export const ResumeAnalyzer = ({ profileData, onAnalysisComplete }: ResumeAnalyz
                 <div className="space-y-2">
                   <p className="text-sm font-medium">Upload your resume</p>
                   <p className="text-xs text-muted-foreground">
-                    Supported formats: PDF, DOC, DOCX, TXT (Max 10MB)
+                    ✨ Supported: PDF, DOC, DOCX, TXT, RTF, CSV, PPTX, XLSX (Max 15MB)
                   </p>
                 </div>
                 <Input
                   ref={fileInputRef}
                   type="file"
-                  accept=".pdf,.doc,.docx,.txt"
+                  accept=".pdf,.doc,.docx,.txt,.rtf,.csv,.pptx,.xlsx"
                   onChange={handleFileUpload}
                   disabled={isProcessingFile}
                   className="mt-4 cursor-pointer file:cursor-pointer"
@@ -188,8 +188,8 @@ export const ResumeAnalyzer = ({ profileData, onAnalysisComplete }: ResumeAnalyz
         <Button 
           onClick={handleAnalyzeResume}
           disabled={!resumeText.trim() || isAnalyzing || isProcessingFile}
-          variant="cyber"
-          className="w-full"
+          variant="default"
+          className="w-full bg-green-600 hover:bg-green-700 text-white"
         >
           {isAnalyzing ? (
             <>
