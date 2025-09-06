@@ -1,0 +1,102 @@
+{
+  "common": {
+    "loading": "लोड हो रहा है...",
+    "error": "त्रुटि हुई",
+    "success": "सफलता",
+    "cancel": "रद्द करें",
+    "save": "सेव करें",
+    "delete": "डिलीट करें",
+    "edit": "एडिट करें",
+    "back": "वापस",
+    "next": "अगला",
+    "previous": "पिछला",
+    "submit": "सबमिट करें",
+    "close": "बंद करें",
+    "confirm": "पुष्टि करें",
+    "yes": "हाँ",
+    "no": "नहीं"
+  },
+  "language": {
+    "select": "भाषा चुनें",
+    "english": "English",
+    "hindi": "हिंदी",
+    "telugu": "తెలుగు",
+    "tooltip": "अपनी भाषा चुनें — सभी AI उत्तर इसी भाषा में होंगे"
+  },
+  "auth": {
+    "signIn": "साइन इन",
+    "signUp": "साइन अप",
+    "signOut": "साइन आउट",
+    "email": "ईमेल",
+    "password": "पासवर्ड",
+    "confirmPassword": "पासवर्ड की पुष्टि करें",
+    "name": "पूरा नाम",
+    "forgotPassword": "पासवर्ड भूल गए?",
+    "noAccount": "कोई अकाउंट नहीं है?",
+    "hasAccount": "पहले से अकाउंट है?",
+    "emailVerification": "कृपया अपना ईमेल सत्यापित करें",
+    "consent": "मैं अपने रिज्यूमे को AI द्वारा प्रोसेस करने की सहमति देता हूँ",
+    "consentRequired": "आगे बढ़ने के लिए सहमति आवश्यक है"
+  },
+  "hero": {
+    "title": "AI करियर गाइड",
+    "subtitle": "आपका भविष्य, आपका रास्ता",
+    "description": "AI-संचालित अंतर्दृष्टि, व्यक्तिगत रोडमैप और व्यापक कौशल विश्लेषण के साथ अपनी करियर यात्रा को सशक्त बनाएं।",
+    "getStarted": "शुरू करें",
+    "learnMore": "और जानें"
+  },
+  "navigation": {
+    "home": "होम",
+    "dashboard": "डैशबोर्ड",
+    "resumeAnalyzer": "रिज्यूमे विश्लेषक",
+    "careerGuide": "करियर गाइड",
+    "roadmap": "रोडमैप",
+    "profile": "प्रोफाइल"
+  },
+  "resumeAnalyzer": {
+    "title": "रिज्यूमे विश्लेषक",
+    "subtitle": "AI-संचालित विश्लेषण के लिए अपना रिज्यूमे अपलोड करें",
+    "upload": "रिज्यूमे अपलोड करें",
+    "supportedFormats": "समर्थित प्रारूप: PDF, DOCX, DOC, TXT, PNG, JPG",
+    "dragDrop": "अपना रिज्यूमे यहाँ ड्रैग और ड्रॉप करें",
+    "analyzing": "आपके रिज्यूमे का विश्लेषण कर रहे हैं...",
+    "atsScore": "ATS स्कोर",
+    "skillsMatch": "कौशल मैच",
+    "missingSkills": "लापता कौशल",
+    "recommendations": "सुझाव",
+    "quickFixes": "त्वरित सुधार",
+    "generateRoadmap": "करियर रोडमैप बनाएं"
+  },
+  "careerScore": {
+    "title": "करियर स्वास्थ्य स्कोर",
+    "excellent": "उत्कृष्ट",
+    "good": "अच्छा",
+    "moderate": "मध्यम",
+    "needsUpskill": "स्किल अपग्रेड चाहिए",
+    "formula": "सूत्र: (ATS स्कोर + कौशल मैच + रोडमैप प्रगति) / 3"
+  },
+  "roadmap": {
+    "title": "करियर रोडमैप",
+    "generating": "रोडमैप बना रहे हैं...",
+    "shortTerm": "अल्पकालिक (0-6 महीने)",
+    "midTerm": "मध्यकालिक (6-18 महीने)",
+    "longTerm": "दीर्घकालिक (18+ महीने)",
+    "skills": "सीखने वाले कौशल",
+    "projects": "परियोजनाएं",
+    "certifications": "प्रमाणपत्र",
+    "resources": "संसाधन"
+  },
+  "dashboard": {
+    "title": "डैशबोर्ड",
+    "welcomeBack": "वापस स्वागत है",
+    "overview": "अवलोकन",
+    "recentActivity": "हाल की गतिविधि",
+    "skillProgress": "कौशल प्रगति",
+    "careerPaths": "करियर पाथ"
+  },
+  "export": {
+    "downloadReport": "करियर रिपोर्ट डाउनलोड करें",
+    "generatingPDF": "PDF बना रहे हैं...",
+    "pdfReady": "PDF डाउनलोड के लिए तैयार है"
+  }
+}

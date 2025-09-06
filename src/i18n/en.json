@@ -1,0 +1,102 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "Error occurred",
+    "success": "Success",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "submit": "Submit",
+    "close": "Close",
+    "confirm": "Confirm",
+    "yes": "Yes",
+    "no": "No"
+  },
+  "language": {
+    "select": "Choose your language",
+    "english": "English",
+    "hindi": "हिंदी",
+    "telugu": "తెలుగు",
+    "tooltip": "Choose your language — all AI replies will be in this language"
+  },
+  "auth": {
+    "signIn": "Sign In",
+    "signUp": "Sign Up",
+    "signOut": "Sign Out",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "name": "Full Name",
+    "forgotPassword": "Forgot Password?",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?",
+    "emailVerification": "Please verify your email",
+    "consent": "I consent to my resume being processed by AI",
+    "consentRequired": "Consent is required to proceed"
+  },
+  "hero": {
+    "title": "AI CAREER GUIDE",
+    "subtitle": "Your Future, Your Path",
+    "description": "Empower your career journey with AI-driven insights, personalized roadmaps, and comprehensive skill analysis.",
+    "getStarted": "Get Started",
+    "learnMore": "Learn More"
+  },
+  "navigation": {
+    "home": "Home",
+    "dashboard": "Dashboard",
+    "resumeAnalyzer": "Resume Analyzer",
+    "careerGuide": "Career Guide",
+    "roadmap": "Roadmap",
+    "profile": "Profile"
+  },
+  "resumeAnalyzer": {
+    "title": "Resume Analyzer",
+    "subtitle": "Upload your resume for AI-powered analysis",
+    "upload": "Upload Resume",
+    "supportedFormats": "Supported formats: PDF, DOCX, DOC, TXT, PNG, JPG",
+    "dragDrop": "Drag and drop your resume here",
+    "analyzing": "Analyzing your resume...",
+    "atsScore": "ATS Score",
+    "skillsMatch": "Skills Match",
+    "missingSkills": "Missing Skills",
+    "recommendations": "Recommendations",
+    "quickFixes": "Quick Fixes",
+    "generateRoadmap": "Generate Career Roadmap"
+  },
+  "careerScore": {
+    "title": "Career Health Score",
+    "excellent": "Excellent",
+    "good": "Good", 
+    "moderate": "Moderate",
+    "needsUpskill": "Needs Upskill",
+    "formula": "Formula: (ATS Score + Skills Match + Roadmap Progress) / 3"
+  },
+  "roadmap": {
+    "title": "Career Roadmap",
+    "generating": "Generating roadmap...",
+    "shortTerm": "Short Term (0-6 months)",
+    "midTerm": "Mid Term (6-18 months)",
+    "longTerm": "Long Term (18+ months)",
+    "skills": "Skills to Learn",
+    "projects": "Projects",
+    "certifications": "Certifications",
+    "resources": "Resources"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcomeBack": "Welcome back",
+    "overview": "Overview",
+    "recentActivity": "Recent Activity",
+    "skillProgress": "Skill Progress",
+    "careerPaths": "Career Paths"
+  },
+  "export": {
+    "downloadReport": "Download Career Report",
+    "generatingPDF": "Generating PDF...",
+    "pdfReady": "PDF is ready for download"
+  }
+}

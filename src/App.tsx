@@ -3,6 +3,9 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { LanguageProvider } from "@/contexts/LanguageContext";
+import { AuthProvider } from "@/contexts/AuthContext";
+import AppWrapper from "./components/AppWrapper";
 import Index from "./pages/Index";
 import CareerGuide from "./pages/CareerGuide";
 import { ResumeAnalyzerPage } from "./pages/ResumeAnalyzer";
@@ -14,21 +17,27 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/career-guide" element={<CareerGuide />} />
-          <Route path="/resume-analyzer" element={<ResumeAnalyzerPage />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/roadmap" element={<RoadmapPage />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
+    <LanguageProvider>
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <AppWrapper>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/career-guide" element={<CareerGuide />} />
+                <Route path="/resume-analyzer" element={<ResumeAnalyzerPage />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/roadmap" element={<RoadmapPage />} />
+                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </AppWrapper>
+          </BrowserRouter>
+        </TooltipProvider>
+      </AuthProvider>
+    </LanguageProvider>
   </QueryClientProvider>
 );
 
