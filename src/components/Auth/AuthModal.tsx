@@ -53,13 +53,17 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
     setError('');
 
     try {
-      await signIn(signInData.email, signInData.password);
-      toast({
-        title: t('common.success'),
-        description: 'Successfully signed in!',
-      });
-      resetForms();
-      onClose();
+      const { error } = await signIn(signInData.email, signInData.password);
+      if (error) {
+        setError(error.message);
+      } else {
+        toast({
+          title: t('common.success'),
+          description: 'Successfully signed in!',
+        });
+        resetForms();
+        onClose();
+      }
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -92,13 +96,17 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
     }
 
     try {
-      await signUp(signUpData.email, signUpData.password, signUpData.name, language, consent);
-      toast({
-        title: t('common.success'),
-        description: 'Account created! Please check your email for verification.',
-      });
-      resetForms();
-      onClose();
+      const { error } = await signUp(signUpData.email, signUpData.password, signUpData.name, language);
+      if (error) {
+        setError(error.message);
+      } else {
+        toast({
+          title: t('common.success'),
+          description: 'Account created! Please check your email for verification.',
+        });
+        resetForms();
+        onClose();
+      }
     } catch (err: any) {
       setError(err.message);
     } finally {

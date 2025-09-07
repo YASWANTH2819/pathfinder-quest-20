@@ -2,6 +2,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { FileText, MapPin, Sparkles, Target, Users, Zap } from 'lucide-react';
+import UserMenu from '@/components/UserMenu';
 import heroImage from '@/assets/hero-career-guide.jpg';
 
 const Index = () => {
@@ -14,12 +15,15 @@ const Index = () => {
             <div className="w-8 h-8 bg-gradient-to-r from-[hsl(var(--cyber-purple))] to-[hsl(var(--cyber-blue))] rounded-lg flex items-center justify-center animate-glow">
               <Sparkles className="w-5 h-5 text-white" />
             </div>
-            <span className="text-xl font-bold gradient-text-rainbow">CareerAI Guide</span>
+            <span className="text-xl font-bold gradient-text-rainbow">PathFinder</span>
           </div>
-          <div className="hidden md:flex space-x-6">
-            <a href="#features" className="text-foreground hover:text-[hsl(var(--cyber-blue))] transition-colors">Features</a>
-            <a href="#about" className="text-foreground hover:text-[hsl(var(--cyber-blue))] transition-colors">About</a>
-            <a href="#contact" className="text-foreground hover:text-[hsl(var(--cyber-blue))] transition-colors">Contact</a>
+          <div className="flex items-center space-x-6">
+            <div className="hidden md:flex space-x-6">
+              <a href="#features" className="text-foreground hover:text-[hsl(var(--cyber-blue))] transition-colors">Features</a>
+              <a href="#about" className="text-foreground hover:text-[hsl(var(--cyber-blue))] transition-colors">About</a>
+              <a href="#contact" className="text-foreground hover:text-[hsl(var(--cyber-blue))] transition-colors">Contact</a>
+            </div>
+            <UserMenu />
           </div>
         </div>
       </nav>

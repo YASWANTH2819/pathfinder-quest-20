@@ -1,5 +1,5 @@
 import { Language } from '@/types';
-import { supabase } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 
 interface AIServiceResponse {
   structuredData: any;

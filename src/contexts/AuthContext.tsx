@@ -1,32 +1,23 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '@/integrations/supabase/client';
+import { User as SupabaseUser, Session } from '@supabase/supabase-js';
 import { Language } from '@/types';
-
-// Initialize Supabase client with Lovable integration
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://placeholder.supabase.co';
-const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'placeholder-key';
-
-const supabase = createClient(supabaseUrl, supabaseKey);
 
 export interface User {
   id: string;
   email: string;
   name: string;
   language: Language;
-  emailVerified: boolean;
-  consentGiven: boolean;
-  createdAt: string;
-  updatedAt: string;
 }
 
 interface AuthContextType {
   user: User | null;
+  session: Session | null;
   loading: boolean;
-  signUp: (email: string, password: string, name: string, language: Language, consent: boolean) => Promise<void>;
-  signIn: (email: string, password: string) => Promise<void>;
+  signUp: (email: string, password: string, name: string, language: Language) => Promise<{ error: any }>;
+  signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   updateLanguage: (language: Language) => Promise<void>;
-  resendVerification: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -37,32 +28,34 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Get initial session
-    const getInitialSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (session?.user) {
-        await fetchUserProfile(session.user.id);
-      }
-      
-      setLoading(false);
-    };
-
-    getInitialSession();
-
-    // Listen for auth changes
+    // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        if (event === 'SIGNED_IN' && session?.user) {
-          await fetchUserProfile(session.user.id);
-        } else if (event === 'SIGNED_OUT') {
+        setSession(session);
+        if (session?.user) {
+          // Defer profile fetching to avoid blocking
+          setTimeout(() => {
+            fetchUserProfile(session.user.id);
+          }, 0);
+        } else {
           setUser(null);
         }
+        setLoading(false);
       }
     );
+
+    // THEN check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      if (session?.user) {
+        fetchUserProfile(session.user.id);
+      }
+      setLoading(false);
+    });
 
     return () => subscription.unsubscribe();
   }, []);
@@ -72,7 +65,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const { data, error } = await supabase
         .from('user_profiles')
         .select('*')
-        .eq('id', userId)
+        .eq('user_id', userId)
         .single();
 
       if (error) {
@@ -81,15 +74,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
 
       if (data) {
+        // Get user email from session
+        const { data: { user: authUser } } = await supabase.auth.getUser();
         setUser({
-          id: data.id,
-          email: data.email,
+          id: data.user_id,
+          email: authUser?.email || '',
           name: data.name,
-          language: data.language || 'en',
-          emailVerified: data.email_verified || false,
-          consentGiven: data.consent_given || false,
-          createdAt: data.created_at,
-          updatedAt: data.updated_at
+          language: (data.language as Language) || 'en'
         });
       }
     } catch (error) {
@@ -97,49 +88,26 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const signUp = async (email: string, password: string, name: string, language: Language, consent: boolean) => {
+  const signUp = async (email: string, password: string, name: string, language: Language) => {
     try {
-      if (!consent) {
-        throw new Error('Consent is required to proceed');
-      }
-
+      const redirectUrl = `${window.location.origin}/`;
+      
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
+          emailRedirectTo: redirectUrl,
           data: {
             name,
-            language,
-            consent_given: consent
+            language
           }
         }
       });
 
-      if (error) throw error;
-
-      if (data.user) {
-        // Create user profile in database
-        const { error: profileError } = await supabase
-          .from('user_profiles')
-          .insert({
-            id: data.user.id,
-            email,
-            name,
-            language,
-            consent_given: consent,
-            email_verified: false
-          });
-
-        if (profileError) {
-          console.error('Error creating user profile:', profileError);
-          throw new Error('Failed to create user profile');
-        }
-      }
-
-      // Send verification email is handled automatically by Supabase
+      return { error };
     } catch (error: any) {
       console.error('Error in signUp:', error);
-      throw new Error(error.message || 'Failed to create account');
+      return { error: new Error(error.message || 'Failed to create account') };
     }
   };
 
@@ -150,10 +118,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         password
       });
 
-      if (error) throw error;
+      return { error };
     } catch (error: any) {
       console.error('Error in signIn:', error);
-      throw new Error(error.message || 'Failed to sign in');
+      return { error: new Error(error.message || 'Failed to sign in') };
     }
   };
 
@@ -162,6 +130,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
       setUser(null);
+      setSession(null);
+      // Clear language selection flag to show language selector again
+      localStorage.removeItem('pf_lang_selected');
     } catch (error: any) {
       console.error('Error in signOut:', error);
       throw new Error(error.message || 'Failed to sign out');
@@ -174,8 +145,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       const { error } = await supabase
         .from('user_profiles')
-        .update({ language, updated_at: new Date().toISOString() })
-        .eq('id', user.id);
+        .update({ language })
+        .eq('user_id', user.id);
 
       if (error) throw error;
 
@@ -186,30 +157,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const resendVerification = async () => {
-    if (!user) throw new Error('User not authenticated');
-
-    try {
-      const { error } = await supabase.auth.resend({
-        type: 'signup',
-        email: user.email
-      });
-
-      if (error) throw error;
-    } catch (error: any) {
-      console.error('Error resending verification:', error);
-      throw new Error(error.message || 'Failed to resend verification email');
-    }
-  };
-
   const value: AuthContextType = {
     user,
+    session,
     loading,
     signUp,
     signIn,
     signOut,
-    updateLanguage,
-    resendVerification
+    updateLanguage
   };
 
   return (
@@ -226,5 +181,3 @@ export const useAuth = (): AuthContextType => {
   }
   return context;
 };
-
-export { supabase };

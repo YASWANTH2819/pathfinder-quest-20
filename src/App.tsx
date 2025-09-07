@@ -1,4 +1,3 @@
-// PathFinder App - Main entry point
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -7,7 +6,9 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import AppWrapper from "./components/AppWrapper";
+import ProtectedRoute from "./components/ProtectedRoute";
 import Index from "./pages/Index";
+import AuthPage from "./pages/AuthPage";
 import CareerGuide from "./pages/CareerGuide";
 import ResumeAnalyzer from "./pages/ResumeAnalyzer";
 import { Dashboard } from "./pages/Dashboard";
@@ -26,11 +27,32 @@ const App = () => (
           <BrowserRouter>
             <AppWrapper>
               <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/career-guide" element={<CareerGuide />} />
-                <Route path="/resume-analyzer" element={<ResumeAnalyzer />} />
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/roadmap" element={<RoadmapPage />} />
+                <Route path="/auth" element={<AuthPage />} />
+                <Route path="/" element={
+                  <ProtectedRoute>
+                    <Index />
+                  </ProtectedRoute>
+                } />
+                <Route path="/career-guide" element={
+                  <ProtectedRoute>
+                    <CareerGuide />
+                  </ProtectedRoute>
+                } />
+                <Route path="/resume-analyzer" element={
+                  <ProtectedRoute>
+                    <ResumeAnalyzer />
+                  </ProtectedRoute>
+                } />
+                <Route path="/dashboard" element={
+                  <ProtectedRoute>
+                    <Dashboard />
+                  </ProtectedRoute>
+                } />
+                <Route path="/roadmap" element={
+                  <ProtectedRoute>
+                    <RoadmapPage />
+                  </ProtectedRoute>
+                } />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
