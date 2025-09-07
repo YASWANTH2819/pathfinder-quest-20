@@ -97,6 +97,65 @@
   "export": {
     "downloadReport": "Download Career Report",
     "generatingPDF": "Generating PDF...",
-    "pdfReady": "PDF is ready for download"
+    "pdfReady": "PDF is ready for download",
+    "title": "Export Options",
+    "pdf": "Download PDF",
+    "csv": "Export CSV",
+    "success": "Export Successful",
+    "downloadStarted": "Your download has started",
+    "error": "Export Failed",
+    "errorDescription": "Failed to export. Please try again."
+  },
+  "upload": {
+    "title": "Upload Resume",
+    "dragDrop": "Drag and drop your resume here",
+    "selectFile": "Select File",
+    "supportedFormats": "Supported formats: PDF, DOC, DOCX, TXT, JPG, PNG",
+    "consentRequired": "Consent Required",
+    "consentDescription": "Please consent to AI processing before uploading",
+    "consentText": "I consent to my resume being processed by AI",
+    "emailVerificationRequired": "Email Verification Required",
+    "emailVerificationDescription": "Please verify your email before uploading resumes",
+    "processing": "Processing resume...",
+    "success": "Upload Successful",
+    "analysisComplete": "Resume analysis completed",
+    "score": "ATS Score",
+    "error": "Upload Failed",
+    "errorDescription": "Failed to process resume. Please try again.",
+    "invalidFileType": "Invalid file type. Please upload a supported format."
+  },
+  "score": {
+    "title": "Analysis Results",
+    "atsScore": "ATS Score",
+    "skillsMatch": "Skills Match",
+    "careerHealth": "Career Health",
+    "missingSkills": "Missing Skills",
+    "quickFixes": "Quick Fixes",
+    "recommendations": "Recommendations"
+  },
+  "roadmap": {
+    "title": "Career Roadmap Generator",
+    "goalLabel": "What is your career goal?",
+    "goalPlaceholder": "e.g., Become a full-stack developer, Get promoted to team lead, Switch to data science...",
+    "generate": "Generate Roadmap",
+    "generating": "Generating roadmap...",
+    "success": "Roadmap Generated",
+    "generated": "Your personalized career roadmap has been created",
+    "error": "Generation Failed",
+    "errorDescription": "Failed to generate roadmap. Please try again.",
+    "goalRequired": "Goal Required",
+    "goalRequiredDescription": "Please enter your career goal to generate a roadmap",
+    "yourRoadmap": "Your Career Roadmap",
+    "shortTerm": "0-6 Months",
+    "midTerm": "6-18 Months", 
+    "longTerm": "18+ Months",
+    "shortTermTitle": "Short Term Goals (0-6 Months)",
+    "midTermTitle": "Mid Term Goals (6-18 Months)",
+    "longTermTitle": "Long Term Goals (18+ Months)"
+  },
+  "pages": {
+    "resumeAnalyzer": {
+      "description": "Upload your resume and get instant AI-powered feedback on ATS compatibility, missing skills, and career recommendations."
+    }
   }
 }
