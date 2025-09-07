@@ -2,6 +2,7 @@ import { Language } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
 
 // AI Service for handling resume analysis, roadmap generation, and chat functionality
+
 interface AIServiceResponse {
   structuredData: any;
   localizedText: string;
