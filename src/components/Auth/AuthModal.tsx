@@ -102,7 +102,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
       } else {
         toast({
           title: t('common.success'),
-          description: 'Account created! Please check your email for verification.',
+          description: 'Account created successfully! You can now sign in.',
         });
         resetForms();
         onClose();

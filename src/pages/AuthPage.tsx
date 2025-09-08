@@ -88,7 +88,7 @@ const AuthPage = () => {
       if (error) {
         setError(error.message);
       } else {
-        setSuccess(t('auth.signupSuccess'));
+        setSuccess('Account created successfully! You can now login with your credentials.');
         setSignupData({ name: '', email: '', password: '', confirmPassword: '' });
         setTimeout(() => setActiveTab('login'), 2000);
       }
