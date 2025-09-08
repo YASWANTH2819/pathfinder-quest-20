@@ -8,7 +8,8 @@ import { CareerHealthGauge } from '@/components/CareerHealthGauge';
 import { EnhancedAnalytics } from '@/components/EnhancedAnalytics';
 import { LanguageToggle } from '@/components/LanguageToggle';
 import { useTranslation } from '@/hooks/useTranslation';
-import { DashboardData, Badge as BadgeType } from '@/types';
+import { PDFExporter } from '@/components/PDFExporter';
+import { DashboardData } from '@/types';
 
 // Mock data for demo
 const mockDashboardData: DashboardData = {
@@ -73,29 +74,46 @@ export const Dashboard: React.FC = () => {
   const [dashboardData, setDashboardData] = useState<DashboardData>(mockDashboardData);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Mock function to simulate PDF export
+  // Enhanced PDF export using PDFExporter
   const handleExportReport = async () => {
-    // In a real app, this would generate and download a PDF report
-    const reportData = {
-      ...dashboardData,
-      exportDate: new Date().toISOString(),
-      userProfile: JSON.parse(localStorage.getItem('career_profile_data') || '{}')
-    };
-    
-    console.log('Exporting career report:', reportData);
-    
-    // Simulate download
-    const blob = new Blob([JSON.stringify(reportData, null, 2)], { 
-      type: 'application/json' 
-    });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'career-report.json';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    try {
+      const profileData = JSON.parse(localStorage.getItem('career_profile_data') || '{}');
+      const exportData = {
+        name: profileData.name || 'User',
+        atsScore: dashboardData.careerHealthScore.atsScore,
+        careerHealthScore: dashboardData.careerHealthScore.overallScore,
+        skillsMatch: dashboardData.careerHealthScore.skillsMatchScore,
+        roadmapProgress: dashboardData.roadmapProgress.percentage,
+        resumeRating: `${dashboardData.careerHealthScore.atsScore}/100`,
+        keyStrengths: ['Leadership', 'Communication', 'Technical Skills'],
+        improvementAreas: ['Time Management', 'Presentation Skills'],
+        recommendedSkills: dashboardData.skillGapAnalysis.missingSkills || ['Node.js', 'Python', 'SQL'],
+        careerPath: dashboardData.skillGapAnalysis.targetRole || 'Software Engineer',
+        estimatedSalary: '$60,000 - $80,000'
+      };
+      
+      await PDFExporter.exportCareerReport(exportData);
+    } catch (error) {
+      console.error('Error exporting PDF report:', error);
+      // Fallback to JSON export
+      const reportData = {
+        ...dashboardData,
+        exportDate: new Date().toISOString(),
+        userProfile: JSON.parse(localStorage.getItem('career_profile_data') || '{}')
+      };
+      
+      const blob = new Blob([JSON.stringify(reportData, null, 2)], { 
+        type: 'application/json' 
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'career-report.json';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
   };
 
   const getBadgeIcon = (badgeCode: string) => {

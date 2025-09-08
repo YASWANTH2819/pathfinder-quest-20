@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { FileText, MapPin, Sparkles, Target, Users, Zap } from 'lucide-react';
+import { FileText, MapPin, Sparkles, Target, Users, Zap, BarChart3 } from 'lucide-react';
 import UserMenu from '@/components/UserMenu';
 import heroImage from '@/assets/hero-career-guide.jpg';
 
@@ -80,7 +80,7 @@ const Index = () => {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+        <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
           {/* Career Guide */}
           <Card className="glass-card p-8 hover:shadow-xl transition-all duration-300 group cursor-pointer hover:scale-105"
                 onClick={() => window.location.href = '/career-guide'}>
@@ -113,6 +113,24 @@ const Index = () => {
               <Button variant="cyber" className="w-full group-hover:scale-105 transition-transform">
                 <FileText className="w-4 h-4 mr-2" />
                 Analyze Resume
+              </Button>
+            </div>
+          </Card>
+
+          {/* Dashboard */}
+          <Card className="glass-card p-8 hover:shadow-xl transition-all duration-300 group cursor-pointer hover:scale-105"
+                onClick={() => window.location.href = '/dashboard'}>
+            <div className="text-center space-y-4">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-r from-[hsl(var(--cyber-green))] to-[hsl(var(--cyber-teal))] mb-4 animate-glow">
+                <BarChart3 className="w-8 h-8 text-white" />
+              </div>
+              <h3 className="text-2xl font-bold gradient-text">Dashboard</h3>
+              <p className="text-muted-foreground">
+                View your career progress, download reports, and track your journey with detailed analytics
+              </p>
+              <Button variant="cyber" className="w-full group-hover:scale-105 transition-transform">
+                <BarChart3 className="w-4 h-4 mr-2" />
+                View Dashboard
               </Button>
             </div>
           </Card>

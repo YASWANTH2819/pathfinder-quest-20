@@ -60,14 +60,19 @@ const UserMenu = () => {
         
         <DropdownMenuSeparator />
         
-        <DropdownMenuItem disabled className="cursor-default">
+        <DropdownMenuItem onClick={() => window.location.href = '/dashboard'}>
           <User className="mr-2 h-4 w-4" />
-          <span>Profile (Coming Soon)</span>
+          <span>Dashboard</span>
         </DropdownMenuItem>
         
-        <DropdownMenuItem disabled className="cursor-default">
+        <DropdownMenuItem onClick={() => window.location.href = '/career-guide'}>
           <Settings className="mr-2 h-4 w-4" />
-          <span>Settings (Coming Soon)</span>
+          <span>Career Guide</span>
+        </DropdownMenuItem>
+        
+        <DropdownMenuItem onClick={() => window.location.href = '/resume-analyzer'}>
+          <Settings className="mr-2 h-4 w-4" />
+          <span>Resume Analyzer</span>
         </DropdownMenuItem>
         
         <DropdownMenuItem disabled className="cursor-default">
