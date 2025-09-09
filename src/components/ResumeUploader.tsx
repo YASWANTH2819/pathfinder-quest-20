@@ -63,6 +63,20 @@ export const ResumeUploader: React.FC<ResumeUploaderProps> = ({
     });
   };
 
+  const validateResumeFile = (file: File): boolean => {
+    const resumeKeywords = [
+      'experience', 'education', 'skills', 'work', 'employment', 'resume', 'cv',
+      'qualification', 'certificate', 'achievement', 'project', 'internship',
+      'training', 'course', 'degree', 'university', 'college', 'company'
+    ];
+    
+    const fileName = file.name.toLowerCase();
+    return resumeKeywords.some(keyword => fileName.includes(keyword)) ||
+           fileName.includes('resume') || 
+           fileName.includes('cv') ||
+           file.size > 10000; // Basic size check - resumes are usually substantial
+  };
+
   const handleFileUpload = useCallback(async (file: File) => {
     if (!consent) {
       toast({
@@ -73,8 +87,16 @@ export const ResumeUploader: React.FC<ResumeUploaderProps> = ({
       return;
     }
 
-    // Skip email verification check for now as Supabase handles this internally
-    // We can add this check later when we implement proper email verification
+    // Validate that the file appears to be a resume
+    if (!validateResumeFile(file)) {
+      setError('Please upload a valid resume file. The file should contain your professional experience, education, and skills.');
+      toast({
+        title: 'Invalid File',
+        description: 'This doesn\'t appear to be a resume. Please upload your CV/resume document.',
+        variant: 'destructive'
+      });
+      return;
+    }
 
     setIsUploading(true);
     setProgress(0);
