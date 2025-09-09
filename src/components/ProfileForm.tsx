@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { Progress } from '@/components/ui/progress';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 
 interface ProfileData {
@@ -26,7 +27,7 @@ interface ProfileData {
   locationPreference: string;
   companyType: string;
   financialSupport: string;
-  resumeText: string;
+  resumeText?: string;
 }
 
 interface ProfileFormProps {
@@ -89,258 +90,307 @@ export const ProfileForm = ({ onComplete, onBack }: ProfileFormProps) => {
       case 1:
         return (
           <div className="space-y-6">
-            <h2 className="text-2xl font-bold gradient-text">Basic Profile</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Full Name *</Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => updateField('name', e.target.value)}
-                  placeholder="Enter your name"
-                  className="glass-card"
-                />
+            {/* Progress Header */}
+            <Card className="glass-card p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-2xl font-bold gradient-text-rainbow">Career Profile Setup</h2>
+                <span className="text-sm text-muted-foreground">Step 1 of 4</span>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="age">Age *</Label>
-                <Input
-                  id="age"
-                  type="number"
-                  value={formData.age}
-                  onChange={(e) => updateField('age', e.target.value)}
-                  placeholder="Enter your age"
-                  className="glass-card"
-                />
+              <div className="w-full bg-white/10 rounded-full h-2">
+                <div 
+                  className="h-2 rounded-full bg-gradient-to-r from-primary to-secondary transition-all duration-300"
+                  style={{ width: '25%' }}
+                ></div>
               </div>
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="country">Country/Region</Label>
-                <Input
-                  id="country"
-                  value={formData.country}
-                  onChange={(e) => updateField('country', e.target.value)}
-                  placeholder="Enter your country"
-                  className="glass-card"
-                />
+            </Card>
+
+            {/* Basic Profile Form */}
+            <Card className="glass-card p-6">
+              <h3 className="text-xl font-semibold mb-6 gradient-text-rainbow">Basic Profile</h3>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="name">Full Name *</Label>
+                  <Input
+                    id="name"
+                    value={formData.name}
+                    onChange={(e) => updateField('name', e.target.value)}
+                    placeholder="Enter your name"
+                    className="glass-card"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="age">Age *</Label>
+                  <Input
+                    id="age"
+                    value={formData.age}
+                    onChange={(e) => updateField('age', e.target.value)}
+                    placeholder="Enter your age"
+                    className="glass-card"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="country">Country/Region</Label>
+                  <Input
+                    id="country"
+                    value={formData.country}
+                    onChange={(e) => updateField('country', e.target.value)}
+                    placeholder="Enter your country"
+                    className="glass-card"
+                  />
+                </div>
               </div>
-            </div>
+            </Card>
           </div>
         );
 
       case 2:
         return (
           <div className="space-y-6">
-            <h2 className="text-2xl font-bold gradient-text">Education Background</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Education Level *</Label>
-                <Select value={formData.educationLevel} onValueChange={(value) => updateField('educationLevel', value)}>
-                  <SelectTrigger className="glass-card">
-                    <SelectValue placeholder="Select education level" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="10th">10th Grade</SelectItem>
-                    <SelectItem value="12th">12th Grade</SelectItem>
-                    <SelectItem value="diploma">Diploma</SelectItem>
-                    <SelectItem value="bachelor">Bachelor's Degree</SelectItem>
-                    <SelectItem value="master">Master's Degree</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
+            {/* Progress Header */}
+            <Card className="glass-card p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-2xl font-bold gradient-text-rainbow">Career Profile Setup</h2>
+                <span className="text-sm text-muted-foreground">Step 2 of 4</span>
               </div>
-              <div className="space-y-2">
-                <Label>Field of Study *</Label>
-                <Select value={formData.fieldOfStudy} onValueChange={(value) => updateField('fieldOfStudy', value)}>
-                  <SelectTrigger className="glass-card">
-                    <SelectValue placeholder="Select field" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="engineering">Engineering</SelectItem>
-                    <SelectItem value="commerce">Commerce</SelectItem>
-                    <SelectItem value="arts">Arts</SelectItem>
-                    <SelectItem value="science">Science</SelectItem>
-                    <SelectItem value="medical">Medical</SelectItem>
-                    <SelectItem value="law">Law</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="w-full bg-white/10 rounded-full h-2">
+                <div 
+                  className="h-2 rounded-full bg-gradient-to-r from-primary to-secondary transition-all duration-300"
+                  style={{ width: '50%' }}
+                ></div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="specialization">Specialization/Branch</Label>
-                <Input
-                  id="specialization"
-                  value={formData.specialization}
-                  onChange={(e) => updateField('specialization', e.target.value)}
-                  placeholder="e.g., CSE, Mechanical, Finance"
-                  className="glass-card"
-                />
+            </Card>
+
+            {/* Education Background Form */}
+            <Card className="glass-card p-6">
+              <h3 className="text-xl font-semibold mb-6 gradient-text-rainbow">Education Background</h3>
+              <div className="space-y-4">
+                <div>
+                  <Label>Education Level *</Label>
+                  <Select value={formData.educationLevel} onValueChange={(value) => updateField('educationLevel', value)}>
+                    <SelectTrigger className="glass-card">
+                      <SelectValue placeholder="Select education level" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="High School">High School</SelectItem>
+                      <SelectItem value="Diploma">Diploma</SelectItem>
+                      <SelectItem value="Bachelor's">Bachelor's Degree</SelectItem>
+                      <SelectItem value="Master's">Master's Degree</SelectItem>
+                      <SelectItem value="PhD">PhD</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="fieldOfStudy">Field of Study *</Label>
+                  <Input
+                    id="fieldOfStudy"
+                    value={formData.fieldOfStudy}
+                    onChange={(e) => updateField('fieldOfStudy', e.target.value)}
+                    placeholder="e.g., Computer Science, Engineering, Business"
+                    className="glass-card"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="specialization">Specialization</Label>
+                  <Input
+                    id="specialization"
+                    value={formData.specialization}
+                    onChange={(e) => updateField('specialization', e.target.value)}
+                    placeholder="e.g., Machine Learning, Web Development"
+                    className="glass-card"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="currentYear">Current Year/Experience Level</Label>
+                  <Input
+                    id="currentYear"
+                    value={formData.currentYear}
+                    onChange={(e) => updateField('currentYear', e.target.value)}
+                    placeholder="e.g., 3rd Year, Fresh Graduate, 2 Years Experience"
+                    className="glass-card"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="certifications">Certifications & Courses Completed</Label>
+                  <Textarea
+                    id="certifications"
+                    value={formData.certifications}
+                    onChange={(e) => updateField('certifications', e.target.value)}
+                    placeholder="List any certifications, online courses, or additional qualifications you have completed"
+                    className="glass-card"
+                    rows={4}
+                  />
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="currentYear">Current Year of Study</Label>
-                <Input
-                  id="currentYear"
-                  value={formData.currentYear}
-                  onChange={(e) => updateField('currentYear', e.target.value)}
-                  placeholder="e.g., 2nd Year, Final Year"
-                  className="glass-card"
-                />
-              </div>
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="certifications">Certifications/Courses Completed</Label>
-                <Textarea
-                  id="certifications"
-                  value={formData.certifications}
-                  onChange={(e) => updateField('certifications', e.target.value)}
-                  placeholder="List any certifications or courses you've completed"
-                  className="glass-card"
-                />
-              </div>
-            </div>
+            </Card>
           </div>
         );
 
       case 3:
         return (
           <div className="space-y-6">
-            <h2 className="text-2xl font-bold gradient-text">Skills & Interests</h2>
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="skills">Technical & Soft Skills *</Label>
-                <Textarea
-                  id="skills"
-                  value={formData.skills}
-                  onChange={(e) => updateField('skills', e.target.value)}
-                  placeholder="e.g., Java, Python, Leadership, Communication"
-                  className="glass-card"
-                />
+            {/* Progress Header */}
+            <Card className="glass-card p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-2xl font-bold gradient-text-rainbow">Career Profile Setup</h2>
+                <span className="text-sm text-muted-foreground">Step 3 of 4</span>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="interests">Subjects/Activities You Enjoy *</Label>
-                <Textarea
-                  id="interests"
-                  value={formData.interests}
-                  onChange={(e) => updateField('interests', e.target.value)}
-                  placeholder="What subjects or activities do you enjoy the most?"
-                  className="glass-card"
-                />
+              <div className="w-full bg-white/10 rounded-full h-2">
+                <div 
+                  className="h-2 rounded-full bg-gradient-to-r from-primary to-secondary transition-all duration-300"
+                  style={{ width: '75%' }}
+                ></div>
               </div>
-              <div className="space-y-2">
-                <Label>Preferred Work Environment *</Label>
-                <Select value={formData.workEnvironment} onValueChange={(value) => updateField('workEnvironment', value)}>
-                  <SelectTrigger className="glass-card">
-                    <SelectValue placeholder="Select work environment" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="coding">Coding/Technical</SelectItem>
-                    <SelectItem value="management">Management</SelectItem>
-                    <SelectItem value="creative">Creative</SelectItem>
-                    <SelectItem value="research">Research</SelectItem>
-                    <SelectItem value="business">Business</SelectItem>
-                    <SelectItem value="teaching">Teaching</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
+            </Card>
+
+            {/* Skills & Interests Form */}
+            <Card className="glass-card p-6">
+              <h3 className="text-xl font-semibold mb-6 gradient-text-rainbow">Skills & Interests</h3>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="skills">Technical & Soft Skills *</Label>
+                  <Textarea
+                    id="skills"
+                    value={formData.skills}
+                    onChange={(e) => updateField('skills', e.target.value)}
+                    placeholder="e.g., Java, Python, Leadership, Communication"
+                    className="glass-card"
+                    rows={4}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="interests">Subjects/Activities You Enjoy *</Label>
+                  <Textarea
+                    id="interests"
+                    value={formData.interests}
+                    onChange={(e) => updateField('interests', e.target.value)}
+                    placeholder="What subjects or activities do you enjoy the most?"
+                    className="glass-card"
+                    rows={4}
+                  />
+                </div>
+                <div>
+                  <Label>Preferred Work Environment *</Label>
+                  <Select value={formData.workEnvironment} onValueChange={(value) => updateField('workEnvironment', value)}>
+                    <SelectTrigger className="glass-card">
+                      <SelectValue placeholder="Select work environment" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Remote">Remote Work</SelectItem>
+                      <SelectItem value="In-Office">In-Office</SelectItem>
+                      <SelectItem value="Hybrid">Hybrid (Mix of both)</SelectItem>
+                      <SelectItem value="Flexible">Flexible/Varies</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-            </div>
+            </Card>
           </div>
         );
 
       case 4:
         return (
           <div className="space-y-6">
-            <h2 className="text-2xl font-bold gradient-text">Career Goals & Preferences</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Short-term Goals (1-2 years) *</Label>
-                <Select value={formData.shortTermGoals} onValueChange={(value) => updateField('shortTermGoals', value)}>
-                  <SelectTrigger className="glass-card">
-                    <SelectValue placeholder="Select short-term goal" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="internship">Internship</SelectItem>
-                    <SelectItem value="job">Job</SelectItem>
-                    <SelectItem value="higher-studies">Higher Studies</SelectItem>
-                    <SelectItem value="startup">Startup</SelectItem>
-                    <SelectItem value="certification">Certification</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
+            {/* Progress Header */}
+            <Card className="glass-card p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-2xl font-bold gradient-text-rainbow">Career Profile Setup</h2>
+                <span className="text-sm text-muted-foreground">Step 4 of 4</span>
               </div>
-              <div className="space-y-2">
-                <Label>Study or Job Preference *</Label>
-                <Select value={formData.studyOrJob} onValueChange={(value) => updateField('studyOrJob', value)}>
-                  <SelectTrigger className="glass-card">
-                    <SelectValue placeholder="Select preference" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="job">Direct Job</SelectItem>
-                    <SelectItem value="higher-studies">Higher Studies</SelectItem>
-                    <SelectItem value="both">Both Options</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="w-full bg-white/10 rounded-full h-2">
+                <div 
+                  className="h-2 rounded-full bg-gradient-to-r from-primary to-secondary transition-all duration-300"
+                  style={{ width: '100%' }}
+                ></div>
               </div>
-              <div className="space-y-2">
-                <Label>Location Preference</Label>
-                <Select value={formData.locationPreference} onValueChange={(value) => updateField('locationPreference', value)}>
-                  <SelectTrigger className="glass-card">
-                    <SelectValue placeholder="Select location" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="india">India</SelectItem>
-                    <SelectItem value="abroad">Abroad</SelectItem>
-                    <SelectItem value="remote">Remote</SelectItem>
-                    <SelectItem value="flexible">Flexible</SelectItem>
-                  </SelectContent>
-                </Select>
+            </Card>
+
+            {/* Career Goals & Preferences Form */}
+            <Card className="glass-card p-6">
+              <h3 className="text-xl font-semibold mb-6 gradient-text-rainbow">Career Goals & Preferences</h3>
+              <div className="space-y-4">
+                <div>
+                  <Label>Short-term Goals (1-2 years) *</Label>
+                  <Select value={formData.shortTermGoals} onValueChange={(value) => updateField('shortTermGoals', value)}>
+                    <SelectTrigger className="glass-card">
+                      <SelectValue placeholder="Select short-term goal" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Get Internship">Get an Internship</SelectItem>
+                      <SelectItem value="Graduate">Graduate Successfully</SelectItem>
+                      <SelectItem value="First Job">Land First Job</SelectItem>
+                      <SelectItem value="Skill Development">Develop New Skills</SelectItem>
+                      <SelectItem value="Career Switch">Switch Career Path</SelectItem>
+                      <SelectItem value="Promotion">Get Promoted</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Study or Job Preference *</Label>
+                  <Select value={formData.studyOrJob} onValueChange={(value) => updateField('studyOrJob', value)}>
+                    <SelectTrigger className="glass-card">
+                      <SelectValue placeholder="Select preference" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Continue Studies">Continue Studies</SelectItem>
+                      <SelectItem value="Start Working">Start Working</SelectItem>
+                      <SelectItem value="Both">Both (Work & Study)</SelectItem>
+                      <SelectItem value="Career Change">Career Change</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Location Preference</Label>
+                  <Select value={formData.locationPreference} onValueChange={(value) => updateField('locationPreference', value)}>
+                    <SelectTrigger className="glass-card">
+                      <SelectValue placeholder="Select location" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Local">Local/Current City</SelectItem>
+                      <SelectItem value="National">Anywhere in Country</SelectItem>
+                      <SelectItem value="International">International</SelectItem>
+                      <SelectItem value="Remote">Remote Work</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Company Type Preference</Label>
+                  <Select value={formData.companyType} onValueChange={(value) => updateField('companyType', value)}>
+                    <SelectTrigger className="glass-card">
+                      <SelectValue placeholder="Select company type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Startup">Startup</SelectItem>
+                      <SelectItem value="MNC">Multinational Corporation</SelectItem>
+                      <SelectItem value="Government">Government Sector</SelectItem>
+                      <SelectItem value="NGO">Non-Profit/NGO</SelectItem>
+                      <SelectItem value="Freelance">Freelancing</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="longTermGoals">Long-term Goals (5+ years) *</Label>
+                  <Textarea
+                    id="longTermGoals"
+                    value={formData.longTermGoals}
+                    onChange={(e) => updateField('longTermGoals', e.target.value)}
+                    placeholder="e.g., Software Engineer, Product Manager, Data Scientist"
+                    className="glass-card"
+                    rows={3}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="careerTransition">Career Transition Plans</Label>
+                  <Textarea
+                    id="careerTransition"
+                    value={formData.careerTransition}
+                    onChange={(e) => updateField('careerTransition', e.target.value)}
+                    placeholder="e.g., I am from Mechanical but want IT career"
+                    className="glass-card"
+                    rows={3}
+                  />
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label>Company Type Preference</Label>
-                <Select value={formData.companyType} onValueChange={(value) => updateField('companyType', value)}>
-                  <SelectTrigger className="glass-card">
-                    <SelectValue placeholder="Select company type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="startup">Startup</SelectItem>
-                    <SelectItem value="mnc">MNC</SelectItem>
-                    <SelectItem value="government">Government</SelectItem>
-                    <SelectItem value="research">Research Institute</SelectItem>
-                    <SelectItem value="any">Any</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="longTermGoals">Long-term Goals (5+ years) *</Label>
-                <Textarea
-                  id="longTermGoals"
-                  value={formData.longTermGoals}
-                  onChange={(e) => updateField('longTermGoals', e.target.value)}
-                  placeholder="e.g., Software Engineer, Product Manager, Data Scientist"
-                  className="glass-card"
-                />
-              </div>
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="careerTransition">Career Transition Plans</Label>
-                <Textarea
-                  id="careerTransition"
-                  value={formData.careerTransition}
-                  onChange={(e) => updateField('careerTransition', e.target.value)}
-                  placeholder="e.g., I am from Mechanical but want IT career"
-                  className="glass-card"
-                />
-              </div>
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="resumeText">Current Resume (Optional)</Label>
-                <Textarea
-                  id="resumeText"
-                  value={formData.resumeText}
-                  onChange={(e) => updateField('resumeText', e.target.value)}
-                  placeholder="Paste your current resume content here to get personalized AI suggestions based on your profile and experience..."
-                  className="glass-card min-h-[120px]"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Adding your resume helps the AI provide more accurate career guidance and recommendations.
-                </p>
-              </div>
-            </div>
+            </Card>
           </div>
         );
 
@@ -350,42 +400,36 @@ export const ProfileForm = ({ onComplete, onBack }: ProfileFormProps) => {
   };
 
   return (
-    <div className="min-h-screen p-4">
+    <div className="min-h-screen cyber-grid p-4">
       <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <Card className="glass-card p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h1 className="text-3xl font-bold gradient-text">Career Profile Setup</h1>
-              <div className="text-sm text-muted-foreground">
-                Step {currentStep} of {totalSteps}
-              </div>
-            </div>
-            {/* Progress Bar */}
-            <div className="w-full bg-[var(--glass-background)] rounded-full h-2">
-              <div 
-                className="h-2 bg-gradient-to-r from-[hsl(var(--cyber-purple))] to-[hsl(var(--cyber-blue))] rounded-full transition-all duration-500"
-                style={{ width: `${(currentStep / totalSteps) * 100}%` }}
-              />
-            </div>
-          </Card>
-        </div>
-
         {/* Form Content */}
-        <Card className="glass-card p-8 mb-6">
-          {renderStep()}
-        </Card>
+        {renderStep()}
 
         {/* Navigation */}
-        <div className="flex justify-between">
-          <Button variant="glass" onClick={prevStep}>
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            {currentStep === 1 ? 'Back to Home' : 'Previous'}
-          </Button>
-          <Button variant="cyber" onClick={nextStep}>
-            {currentStep === totalSteps ? 'Start AI Guidance' : 'Next'}
-            <ArrowRight className="w-4 h-4 ml-2" />
-          </Button>
+        <div className="flex justify-between mt-8">
+          {currentStep > 1 ? (
+            <Button variant="glass" onClick={prevStep} className="flex items-center">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Previous
+            </Button>
+          ) : (
+            <Button variant="glass" onClick={onBack} className="flex items-center">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Home
+            </Button>
+          )}
+          
+          {currentStep < 4 ? (
+            <Button variant="rainbow" onClick={nextStep} className="flex items-center ml-auto">
+              Next
+              <ArrowRight className="w-4 h-4 ml-2" />
+            </Button>
+          ) : (
+            <Button variant="rainbow" onClick={nextStep} className="flex items-center ml-auto">
+              Start Analysis
+              <ArrowRight className="w-4 h-4 ml-2" />
+            </Button>
+          )}
         </div>
       </div>
     </div>

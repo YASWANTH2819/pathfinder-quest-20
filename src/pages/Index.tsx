@@ -1,4 +1,6 @@
 import React from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { FileText, MapPin, Sparkles, Target, Users, Zap, BarChart3 } from 'lucide-react';
@@ -6,6 +8,17 @@ import UserMenu from '@/components/UserMenu';
 import heroImage from '@/assets/hero-career-guide.jpg';
 
 const Index = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  const handleGetStarted = () => {
+    if (user) {
+      navigate('/main');
+    } else {
+      navigate('/auth');
+    }
+  };
+
   return (
     <div className="min-h-screen cyber-grid">
       {/* Navigation */}

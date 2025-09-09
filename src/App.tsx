@@ -13,7 +13,7 @@ import Index from "./pages/Index";
 import AuthPage from "./pages/AuthPage";
 import CareerGuide from "./pages/CareerGuide";
 import ResumeAnalyzer from "./pages/ResumeAnalyzer";
-import { Dashboard } from "./pages/Dashboard";
+import Dashboard from "./pages/Dashboard";
 import { RoadmapPage } from "./pages/RoadmapPage";
 import NotFound from "./pages/NotFound";
 

@@ -1,11 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { HeroSection } from './HeroSection';
-import { ChatInterface } from './ChatInterface';
 import { ProfileForm } from './ProfileForm';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft, Home, FileText } from 'lucide-react';
+import { CareerAnalyzer } from './CareerAnalyzer';
 
 interface ProfileData {
   name: string;
@@ -31,7 +28,7 @@ interface ProfileData {
 
 export const CareerGuidePage = () => {
   const navigate = useNavigate();
-  const [currentView, setCurrentView] = useState<'hero' | 'form' | 'chat'>('hero');
+  const [currentView, setCurrentView] = useState<'hero' | 'form' | 'analyzer'>('hero');
   const [profileData, setProfileData] = useState<ProfileData | null>(null);
 
   const handleStartChat = () => {
@@ -40,7 +37,7 @@ export const CareerGuidePage = () => {
 
   const handleFormComplete = (data: ProfileData) => {
     setProfileData(data);
-    setCurrentView('chat');
+    setCurrentView('analyzer');
   };
 
   const handleBackToHome = () => {
@@ -59,38 +56,9 @@ export const CareerGuidePage = () => {
     return <ProfileForm onComplete={handleFormComplete} onBack={handleBackToHome} />;
   }
 
-  return (
-    <div className="min-h-screen cyber-grid flex flex-col">
-      {/* Chat Header */}
-      <div className="p-4 glass-card m-4 rounded-2xl shimmer">
-        <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <Button variant="rainbow" size="icon" onClick={handleBackToForm}>
-                <ArrowLeft className="w-5 h-5" />
-              </Button>
-              <div>
-                <h1 className="text-xl font-bold gradient-text-rainbow">AI Career Guide</h1>
-                <p className="text-sm text-muted-foreground">Chat with {profileData?.name || 'Student'}</p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-4">
-              <Button variant="glass" size="icon" onClick={() => navigate('/')} className="mr-2">
-                <Home className="w-5 h-5" />
-              </Button>
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 bg-[hsl(var(--cyber-green))] rounded-full animate-pulse"></div>
-                <span className="text-sm text-muted-foreground">Online</span>
-              </div>
-            </div>
-        </div>
-      </div>
+  if (currentView === 'analyzer' && profileData) {
+    return <CareerAnalyzer profileData={profileData} onBack={handleBackToForm} />;
+  }
 
-      {/* Chat Interface */}
-      <div className="flex-1 mx-4 mb-4">
-        <Card className="glass-card h-full">
-          <ChatInterface profileData={profileData} />
-        </Card>
-      </div>
-    </div>
-  );
+  return <HeroSection onStartChat={handleStartChat} />;
 };

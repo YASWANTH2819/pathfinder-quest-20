@@ -14,6 +14,165 @@ export type Database = {
   }
   public: {
     Tables: {
+      career_profiles: {
+        Row: {
+          age: string
+          career_health_score: number | null
+          career_transition: string | null
+          certifications: string | null
+          company_type: string | null
+          country: string
+          created_at: string
+          current_year: string | null
+          education_level: string | null
+          field_of_study: string | null
+          financial_support: string | null
+          id: string
+          interests: string | null
+          location_preference: string | null
+          long_term_goals: string | null
+          name: string
+          short_term_goals: string | null
+          skills: string | null
+          specialization: string | null
+          study_or_job: string | null
+          updated_at: string
+          user_id: string
+          work_environment: string | null
+        }
+        Insert: {
+          age: string
+          career_health_score?: number | null
+          career_transition?: string | null
+          certifications?: string | null
+          company_type?: string | null
+          country: string
+          created_at?: string
+          current_year?: string | null
+          education_level?: string | null
+          field_of_study?: string | null
+          financial_support?: string | null
+          id?: string
+          interests?: string | null
+          location_preference?: string | null
+          long_term_goals?: string | null
+          name: string
+          short_term_goals?: string | null
+          skills?: string | null
+          specialization?: string | null
+          study_or_job?: string | null
+          updated_at?: string
+          user_id: string
+          work_environment?: string | null
+        }
+        Update: {
+          age?: string
+          career_health_score?: number | null
+          career_transition?: string | null
+          certifications?: string | null
+          company_type?: string | null
+          country?: string
+          created_at?: string
+          current_year?: string | null
+          education_level?: string | null
+          field_of_study?: string | null
+          financial_support?: string | null
+          id?: string
+          interests?: string | null
+          location_preference?: string | null
+          long_term_goals?: string | null
+          name?: string
+          short_term_goals?: string | null
+          skills?: string | null
+          specialization?: string | null
+          study_or_job?: string | null
+          updated_at?: string
+          user_id?: string
+          work_environment?: string | null
+        }
+        Relationships: []
+      }
+      resumes: {
+        Row: {
+          ats_score: number | null
+          career_health: string | null
+          career_score: number | null
+          created_at: string
+          filename: string
+          id: string
+          overall_rating: number | null
+          parsed_data: Json | null
+          resume_text: string | null
+          skills_analysis: Json | null
+          suggestions: string[] | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ats_score?: number | null
+          career_health?: string | null
+          career_score?: number | null
+          created_at?: string
+          filename: string
+          id?: string
+          overall_rating?: number | null
+          parsed_data?: Json | null
+          resume_text?: string | null
+          skills_analysis?: Json | null
+          suggestions?: string[] | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ats_score?: number | null
+          career_health?: string | null
+          career_score?: number | null
+          created_at?: string
+          filename?: string
+          id?: string
+          overall_rating?: number | null
+          parsed_data?: Json | null
+          resume_text?: string | null
+          skills_analysis?: Json | null
+          suggestions?: string[] | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      roadmaps: {
+        Row: {
+          created_at: string
+          explanation: string | null
+          goal: string | null
+          id: string
+          profile_data: Json | null
+          roadmap_data: Json | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          explanation?: string | null
+          goal?: string | null
+          id?: string
+          profile_data?: Json | null
+          roadmap_data?: Json | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          explanation?: string | null
+          goal?: string | null
+          id?: string
+          profile_data?: Json | null
+          roadmap_data?: Json | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_profiles: {
         Row: {
           created_at: string
