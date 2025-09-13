@@ -94,56 +94,20 @@ const Index = () => {
         </div>
 
         <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-          {/* Career Guide */}
+          {/* Get Started Button */}
           <Card className="glass-card p-8 hover:shadow-xl transition-all duration-300 group cursor-pointer hover:scale-105"
-                onClick={() => window.location.href = '/career-guide'}>
+                onClick={handleGetStarted}>
             <div className="text-center space-y-4">
               <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-r from-[hsl(var(--primary))] to-[hsl(var(--primary-glow))] mb-4 animate-glow">
-                <MapPin className="w-8 h-8 text-white" />
+                <Sparkles className="w-8 h-8 text-white" />
               </div>
-              <h3 className="text-2xl font-bold gradient-text">Career Guide</h3>
+              <h3 className="text-2xl font-bold gradient-text">Get Started</h3>
               <p className="text-muted-foreground">
-                Get personalized career guidance, explore opportunities, and create your development roadmap
+                {user ? 'Access your career tools and analysis' : 'Sign up to begin your career journey'}
               </p>
               <Button variant="cyber" className="w-full group-hover:scale-105 transition-transform">
                 <Sparkles className="w-4 h-4 mr-2" />
-                Start Your Journey
-              </Button>
-            </div>
-          </Card>
-
-          {/* Resume Analyzer */}
-          <Card className="glass-card p-8 hover:shadow-xl transition-all duration-300 group cursor-pointer hover:scale-105"
-                onClick={() => window.location.href = '/resume-analyzer'}>
-            <div className="text-center space-y-4">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-r from-[hsl(var(--cyber-purple))] to-[hsl(var(--cyber-blue))] mb-4 animate-pulse-glow">
-                <FileText className="w-8 h-8 text-white" />
-              </div>
-              <h3 className="text-2xl font-bold gradient-text">Resume Analyzer</h3>
-              <p className="text-muted-foreground">
-                Get AI-powered analysis of your resume with ATS compatibility check and improvement suggestions
-              </p>
-              <Button variant="cyber" className="w-full group-hover:scale-105 transition-transform">
-                <FileText className="w-4 h-4 mr-2" />
-                Analyze Resume
-              </Button>
-            </div>
-          </Card>
-
-          {/* Dashboard */}
-          <Card className="glass-card p-8 hover:shadow-xl transition-all duration-300 group cursor-pointer hover:scale-105"
-                onClick={() => window.location.href = '/dashboard'}>
-            <div className="text-center space-y-4">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-r from-[hsl(var(--cyber-green))] to-[hsl(var(--cyber-teal))] mb-4 animate-glow">
-                <BarChart3 className="w-8 h-8 text-white" />
-              </div>
-              <h3 className="text-2xl font-bold gradient-text">Dashboard</h3>
-              <p className="text-muted-foreground">
-                View your career progress, download reports, and track your journey with detailed analytics
-              </p>
-              <Button variant="cyber" className="w-full group-hover:scale-105 transition-transform">
-                <BarChart3 className="w-4 h-4 mr-2" />
-                View Dashboard
+                {user ? 'Go to Dashboard' : 'Start Your Journey'}
               </Button>
             </div>
           </Card>

@@ -14,6 +14,7 @@ import AuthPage from "./pages/AuthPage";
 import CareerGuide from "./pages/CareerGuide";
 import ResumeAnalyzer from "./pages/ResumeAnalyzer";
 import Dashboard from "./pages/Dashboard";
+import MainPage from "./pages/MainPage";
 import { RoadmapPage } from "./pages/RoadmapPage";
 import NotFound from "./pages/NotFound";
 
@@ -43,6 +44,11 @@ const App = () => (
                 <Route path="/resume-analyzer" element={
                   <ProtectedRoute>
                     <ResumeAnalyzer />
+                  </ProtectedRoute>
+                } />
+                <Route path="/main" element={
+                  <ProtectedRoute>
+                    <MainPage />
                   </ProtectedRoute>
                 } />
                 <Route path="/dashboard" element={
