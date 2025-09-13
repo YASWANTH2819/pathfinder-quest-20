@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
 import { TrendingUp, BarChart3, PieChart as PieChartIcon, Target } from 'lucide-react';
-import { useTranslation } from '@/hooks/useTranslation';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface AnalyticsProps {
   healthScoreHistory: Array<{ date: string; score: number }>;
@@ -18,7 +18,7 @@ export const EnhancedAnalytics: React.FC<AnalyticsProps> = ({
   skillsProgress,
   className = ''
 }) => {
-  const { t } = useTranslation();
+  const { t } = useLanguage();
 
   // Color scheme for charts
   const colors = {

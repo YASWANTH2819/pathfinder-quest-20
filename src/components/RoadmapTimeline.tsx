@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { GraduationCap, Code, Briefcase, Target, Clock, CheckCircle2 } from 'lucide-react';
 import { RoadmapStep } from '@/types';
-import { useTranslation } from '@/hooks/useTranslation';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface RoadmapTimelineProps {
   steps: RoadmapStep[];
@@ -65,7 +65,7 @@ export const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({
   onStepComplete,
   className = ''
 }) => {
-  const { t } = useTranslation();
+  const { t } = useLanguage();
 
   const groupedSteps = steps.reduce((acc, step) => {
     const semester = step.semester || 1;

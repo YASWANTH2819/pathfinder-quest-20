@@ -6,7 +6,7 @@ import { Progress } from '@/components/ui/progress';
 import { ArrowLeft, Wand2, RefreshCw } from 'lucide-react';
 import { RoadmapTimeline } from '@/components/RoadmapTimeline';
 import { LanguageToggle } from '@/components/LanguageToggle';
-import { useTranslation } from '@/hooks/useTranslation';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { RoadmapStep } from '@/types';
 import { geminiService } from '@/services/geminiService';
 import { useToast } from '@/hooks/use-toast';
@@ -76,7 +76,7 @@ const mockRoadmapSteps: RoadmapStep[] = [
 ];
 
 export const RoadmapPage: React.FC = () => {
-  const { t } = useTranslation();
+  const { t } = useLanguage();
   const { toast } = useToast();
   const [roadmapSteps, setRoadmapSteps] = useState<RoadmapStep[]>(mockRoadmapSteps);
   const [isGenerating, setIsGenerating] = useState(false);
