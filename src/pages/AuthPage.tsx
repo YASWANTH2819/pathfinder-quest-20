@@ -50,7 +50,7 @@ const AuthPage = () => {
       if (error) {
         setError(error.message);
       } else {
-        navigate('/dashboard');
+        navigate('/main');
       }
     } catch (err: any) {
       setError(err.message || t('auth.loginError'));

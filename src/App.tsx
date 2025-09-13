@@ -17,6 +17,7 @@ import Dashboard from "./pages/Dashboard";
 import MainPage from "./pages/MainPage";
 import { RoadmapPage } from "./pages/RoadmapPage";
 import NotFound from "./pages/NotFound";
+import CareerHealthScore from "./components/CareerHealthScore";
 
 const queryClient = new QueryClient();
 
@@ -49,6 +50,11 @@ const App = () => (
                 <Route path="/main" element={
                   <ProtectedRoute>
                     <MainPage />
+                  </ProtectedRoute>
+                } />
+                <Route path="/career-health" element={
+                  <ProtectedRoute>
+                    <CareerHealthScore />
                   </ProtectedRoute>
                 } />
                 <Route path="/dashboard" element={
