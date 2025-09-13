@@ -112,31 +112,31 @@ export const CareerAnalyzer: React.FC<CareerAnalyzerProps> = ({ profileData, onB
             
             <div>
               <h2 className="text-3xl font-bold gradient-text-rainbow mb-2">
-                Ready for Analysis!
+                {t('analyzer.readyTitle')}
               </h2>
               <p className="text-muted-foreground">
-                Hello {profileData.name}! I've reviewed your profile and I'm excited to help guide your career journey.
+                {t('analyzer.readySubtitle').replace('{name}', profileData.name)}
               </p>
             </div>
 
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Based on your profile, I can provide personalized advice on:</h3>
+              <h3 className="text-lg font-semibold">{t('analyzer.basedOnProfile')}</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="flex items-center space-x-3 p-3 bg-white/5 rounded-lg">
                   <Target className="w-5 h-5 text-primary" />
-                  <span className="text-sm">Career Recommendations</span>
+                  <span className="text-sm">{t('analyzer.recommendations')}</span>
                 </div>
                 <div className="flex items-center space-x-3 p-3 bg-white/5 rounded-lg">
                   <BookOpen className="w-5 h-5 text-secondary" />
-                  <span className="text-sm">Skill Development</span>
+                  <span className="text-sm">{t('analyzer.skillDevelopment')}</span>
                 </div>
                 <div className="flex items-center space-x-3 p-3 bg-white/5 rounded-lg">
                   <TrendingUp className="w-5 h-5 text-accent" />
-                  <span className="text-sm">Learning Roadmaps</span>
+                  <span className="text-sm">{t('analyzer.learningRoadmaps')}</span>
                 </div>
                 <div className="flex items-center space-x-3 p-3 bg-white/5 rounded-lg">
                   <Briefcase className="w-5 h-5 text-primary" />
-                  <span className="text-sm">Job Platforms</span>
+                  <span className="text-sm">{t('analyzer.jobPlatforms')}</span>
                 </div>
               </div>
             </div>
@@ -147,7 +147,7 @@ export const CareerAnalyzer: React.FC<CareerAnalyzerProps> = ({ profileData, onB
               onClick={handleStartAnalysis}
               className="w-full"
             >
-              Start Career Analysis
+              {t('analyzer.startCareerAnalysis')}
             </Button>
           </div>
         </Card>
@@ -166,16 +166,16 @@ export const CareerAnalyzer: React.FC<CareerAnalyzerProps> = ({ profileData, onB
             
             <div>
               <h2 className="text-2xl font-bold gradient-text-rainbow mb-2">
-                Analyzing Your Profile
+                {t('analyzer.analysisTitle')}
               </h2>
               <p className="text-muted-foreground">
-                AI is processing your career data...
+                {t('analyzer.analysisSubtitle')}
               </p>
             </div>
 
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span>Analyzing skills match</span>
+                <span>{t('analyzer.analyzingSkills')}</span>
                 <span>85%</span>
               </div>
               <Progress value={85} className="h-2" />
@@ -202,17 +202,17 @@ export const CareerAnalyzer: React.FC<CareerAnalyzerProps> = ({ profileData, onB
               <CheckCircle className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-bold gradient-text-rainbow">AI Career Guide</h1>
-              <p className="text-sm text-muted-foreground">Analysis Complete - Chat with {profileData.name}</p>
+              <h1 className="text-xl font-bold gradient-text-rainbow">{t('analyzer.careerGuideTitle')}</h1>
+              <p className="text-sm text-muted-foreground">{t('analyzer.analysisComplete')} {profileData.name}</p>
             </div>
           </div>
           <div className="flex items-center space-x-4">
             <Badge variant="secondary" className="bg-green-500/20 text-green-400">
-              Career Score: {careerScore}
+              {t('analyzer.careerScore')}: {careerScore}
             </Badge>
             <div className="flex items-center space-x-2">
               <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-              <span className="text-sm text-muted-foreground">Online</span>
+              <span className="text-sm text-muted-foreground">{t('analyzer.online')}</span>
             </div>
           </div>
         </div>

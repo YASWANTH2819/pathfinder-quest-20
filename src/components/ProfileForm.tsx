@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -36,6 +37,7 @@ interface ProfileFormProps {
 }
 
 export const ProfileForm = ({ onComplete, onBack }: ProfileFormProps) => {
+  const { t } = useLanguage();
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<ProfileData>({
     name: '',
@@ -93,8 +95,8 @@ export const ProfileForm = ({ onComplete, onBack }: ProfileFormProps) => {
             {/* Progress Header */}
             <Card className="glass-card p-6">
               <div className="flex justify-between items-center mb-4">
-                <h2 className="text-2xl font-bold gradient-text-rainbow">Career Profile Setup</h2>
-                <span className="text-sm text-muted-foreground">Step 1 of 4</span>
+                <h2 className="text-2xl font-bold gradient-text-rainbow">{t('profile.title')}</h2>
+                <span className="text-sm text-muted-foreground">{t('profile.step')} 1 {t('profile.of')} 4</span>
               </div>
               <div className="w-full bg-white/10 rounded-full h-2">
                 <div 
@@ -106,35 +108,35 @@ export const ProfileForm = ({ onComplete, onBack }: ProfileFormProps) => {
 
             {/* Basic Profile Form */}
             <Card className="glass-card p-6">
-              <h3 className="text-xl font-semibold mb-6 gradient-text-rainbow">Basic Profile</h3>
+              <h3 className="text-xl font-semibold mb-6 gradient-text-rainbow">{t('profile.basicProfile')}</h3>
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="name">Full Name *</Label>
+                  <Label htmlFor="name">{t('profile.fullName')} *</Label>
                   <Input
                     id="name"
                     value={formData.name}
                     onChange={(e) => updateField('name', e.target.value)}
-                    placeholder="Enter your name"
+                    placeholder={t('profile.placeholders.name')}
                     className="glass-card"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="age">Age *</Label>
+                  <Label htmlFor="age">{t('profile.age')} *</Label>
                   <Input
                     id="age"
                     value={formData.age}
                     onChange={(e) => updateField('age', e.target.value)}
-                    placeholder="Enter your age"
+                    placeholder={t('profile.placeholders.age')}
                     className="glass-card"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="country">Country/Region</Label>
+                  <Label htmlFor="country">{t('profile.country')}</Label>
                   <Input
                     id="country"
                     value={formData.country}
                     onChange={(e) => updateField('country', e.target.value)}
-                    placeholder="Enter your country"
+                    placeholder={t('profile.placeholders.country')}
                     className="glass-card"
                   />
                 </div>
@@ -149,8 +151,8 @@ export const ProfileForm = ({ onComplete, onBack }: ProfileFormProps) => {
             {/* Progress Header */}
             <Card className="glass-card p-6">
               <div className="flex justify-between items-center mb-4">
-                <h2 className="text-2xl font-bold gradient-text-rainbow">Career Profile Setup</h2>
-                <span className="text-sm text-muted-foreground">Step 2 of 4</span>
+                <h2 className="text-2xl font-bold gradient-text-rainbow">{t('profile.title')}</h2>
+                <span className="text-sm text-muted-foreground">{t('profile.step')} 2 {t('profile.of')} 4</span>
               </div>
               <div className="w-full bg-white/10 rounded-full h-2">
                 <div 
@@ -410,23 +412,23 @@ export const ProfileForm = ({ onComplete, onBack }: ProfileFormProps) => {
           {currentStep > 1 ? (
             <Button variant="glass" onClick={prevStep} className="flex items-center">
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Previous
+              {t('profile.previous')}
             </Button>
           ) : (
             <Button variant="glass" onClick={onBack} className="flex items-center">
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Home
+              {t('profile.backToHome')}
             </Button>
           )}
           
           {currentStep < 4 ? (
             <Button variant="rainbow" onClick={nextStep} className="flex items-center ml-auto">
-              Next
+              {t('profile.next')}
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           ) : (
             <Button variant="rainbow" onClick={nextStep} className="flex items-center ml-auto">
-              Start Analysis
+              {t('profile.startAnalysis')}
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           )}

@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { ArrowRight, Sparkles, Target, Users, Zap, Home } from 'lucide-react';
@@ -11,6 +12,7 @@ interface HeroSectionProps {
 
 export const HeroSection = ({ onStartChat }: HeroSectionProps) => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   
   return (
     <div className="min-h-screen cyber-grid">
@@ -21,17 +23,12 @@ export const HeroSection = ({ onStartChat }: HeroSectionProps) => {
             <div className="w-8 h-8 bg-gradient-to-r from-[hsl(var(--cyber-purple))] to-[hsl(var(--cyber-blue))] rounded-lg flex items-center justify-center animate-glow">
               <Sparkles className="w-5 h-5 text-white" />
             </div>
-            <span className="text-xl font-bold gradient-text-rainbow">CareerAI Guide</span>
+            <span className="text-xl font-bold gradient-text-rainbow">{t('nav.careerGuide')}</span>
           </div>
           <div className="flex items-center space-x-4">
             <Button variant="glass" size="icon" onClick={() => navigate('/')}>
               <Home className="w-5 h-5" />
             </Button>
-            <div className="hidden md:flex space-x-6">
-              <a href="#features" className="text-foreground hover:text-[hsl(var(--cyber-blue))] transition-colors">Features</a>
-              <a href="#about" className="text-foreground hover:text-[hsl(var(--cyber-blue))] transition-colors">About</a>
-              <a href="#contact" className="text-foreground hover:text-[hsl(var(--cyber-blue))] transition-colors">Contact</a>
-            </div>
           </div>
         </div>
       </nav>
@@ -42,13 +39,10 @@ export const HeroSection = ({ onStartChat }: HeroSectionProps) => {
           <div className="space-y-8">
             <div className="space-y-4">
               <h1 className="text-4xl md:text-6xl font-bold leading-tight text-textmain">
-                Discover Your{' '}
-                <span className="gradient-text-rainbow animate-shimmer">Perfect Career</span>{' '}
-                Path
+                <span className="gradient-text-rainbow animate-shimmer">{t('hero.title')}</span>
               </h1>
               <p className="text-xl text-foreground leading-relaxed">
-                AI-powered career guidance that understands your unique potential. 
-                Say goodbye to career confusion and hello to your dream future! ✨
+                {t('hero.subtitle')}
               </p>
             </div>
 
@@ -59,28 +53,9 @@ export const HeroSection = ({ onStartChat }: HeroSectionProps) => {
                 onClick={onStartChat}
                 className="text-lg px-8 py-4 h-auto animate-float"
               >
-                Start Your Journey
+                {t('hero.startChat')}
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
-              <Button variant="rainbow" size="lg" className="text-lg px-8 py-4 h-auto">
-                Watch Demo
-              </Button>
-            </div>
-
-            {/* Quick Stats */}
-            <div className="grid grid-cols-3 gap-4 pt-8">
-              <div className="text-center">
-                <div className="text-2xl font-bold gradient-text-rainbow">10K+</div>
-                <div className="text-sm text-foreground">Students Guided</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold gradient-text-rainbow">95%</div>
-                <div className="text-sm text-foreground">Success Rate</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold gradient-text-rainbow">500+</div>
-                <div className="text-sm text-foreground">Career Paths</div>
-              </div>
             </div>
           </div>
 
@@ -100,11 +75,8 @@ export const HeroSection = ({ onStartChat }: HeroSectionProps) => {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-5xl font-bold mb-4 text-textmain">
-              Why Choose <span className="gradient-text-rainbow">CareerAI Guide</span>?
+              <span className="gradient-text-rainbow">{t('nav.careerGuide')}</span>
             </h2>
-            <p className="text-xl text-foreground">
-              Revolutionary features designed to unlock your potential
-            </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
@@ -112,9 +84,9 @@ export const HeroSection = ({ onStartChat }: HeroSectionProps) => {
               <div className="w-12 h-12 bg-gradient-to-r from-[hsl(var(--cyber-purple))] to-[hsl(var(--cyber-blue))] rounded-lg flex items-center justify-center mb-6 animate-glow">
                 <Target className="w-6 h-6 text-white" />
               </div>
-              <h3 className="text-xl font-bold mb-4 gradient-text">Personalized Guidance</h3>
+              <h3 className="text-xl font-bold mb-4 gradient-text">{t('hero.features.guidance')}</h3>
               <p className="text-foreground">
-                Get tailored career recommendations based on your unique skills, interests, and goals.
+                {t('hero.subtitle')}
               </p>
             </Card>
 
@@ -122,9 +94,9 @@ export const HeroSection = ({ onStartChat }: HeroSectionProps) => {
               <div className="w-12 h-12 bg-gradient-to-r from-[hsl(var(--cyber-green))] to-[hsl(var(--cyber-teal))] rounded-lg flex items-center justify-center mb-6 animate-pulse-glow">
                 <Zap className="w-6 h-6 text-white" />
               </div>
-              <h3 className="text-xl font-bold mb-4 gradient-text">AI-Powered Insights</h3>
+              <h3 className="text-xl font-bold mb-4 gradient-text">{t('hero.features.analysis')}</h3>
               <p className="text-foreground">
-                Advanced AI analyzes market trends and provides real-time career insights.
+                {t('hero.features.analysis')}
               </p>
             </Card>
 
@@ -132,9 +104,9 @@ export const HeroSection = ({ onStartChat }: HeroSectionProps) => {
               <div className="w-12 h-12 bg-gradient-to-r from-[hsl(var(--cyber-pink))] to-[hsl(var(--cyber-purple))] rounded-lg flex items-center justify-center mb-6 animate-rainbow">
                 <Users className="w-6 h-6 text-white" />
               </div>
-              <h3 className="text-xl font-bold mb-4 gradient-text">Community Support</h3>
+              <h3 className="text-xl font-bold mb-4 gradient-text">{t('hero.features.roadmap')}</h3>
               <p className="text-foreground">
-                Connect with peers and mentors in your field of interest.
+                {t('hero.features.roadmap')}
               </p>
             </Card>
           </div>
