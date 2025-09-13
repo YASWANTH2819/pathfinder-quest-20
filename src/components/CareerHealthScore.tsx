@@ -18,7 +18,6 @@ import {
   Star,
   ArrowLeft
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 import jsPDF from 'jspdf';
 import { toast } from '@/hooks/use-toast';
 
@@ -30,9 +29,12 @@ interface CareerHealthData {
   status: 'Excellent' | 'Good' | 'Fair' | 'Needs Improvement';
 }
 
-export default function CareerHealthScore() {
+interface CareerHealthScoreProps {
+  onBack?: () => void;
+}
+
+export default function CareerHealthScore({ onBack }: CareerHealthScoreProps) {
   const { user } = useAuth();
-  const navigate = useNavigate();
   const [healthData, setHealthData] = useState<CareerHealthData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -247,7 +249,7 @@ export default function CareerHealthScore() {
           <p className="text-muted-foreground mb-6">
             Complete your career analysis and upload your resume to get your health score.
           </p>
-          <Button onClick={() => navigate('/main')} className="w-full">
+          <Button onClick={onBack} className="w-full">
             Go Back to Dashboard
           </Button>
         </Card>
@@ -272,35 +274,37 @@ export default function CareerHealthScore() {
   };
 
   return (
-    <div className="min-h-screen cyber-grid">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="p-4 glass-card m-4 rounded-2xl">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <Button variant="outline" size="icon" onClick={() => navigate('/main')}>
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
-            <div>
-              <h1 className="text-2xl font-bold text-foreground flex items-center">
-                <Heart className="w-6 h-6 mr-2 text-primary" />
-                Career Health Score
-              </h1>
-              <p className="text-sm text-muted-foreground">Your comprehensive career assessment</p>
+      <div className="bg-white border-b border-border shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <Button variant="outline" size="icon" onClick={onBack}>
+                <ArrowLeft className="w-5 h-5" />
+              </Button>
+              <div>
+                <h1 className="text-2xl font-bold text-foreground flex items-center">
+                  <Heart className="w-6 h-6 mr-2 text-primary" />
+                  Career Health Score
+                </h1>
+                <p className="text-sm text-muted-foreground">Your comprehensive career assessment</p>
+              </div>
             </div>
-          </div>
-          <div className="flex items-center space-x-4">
-            <Button onClick={downloadReport} variant="outline">
-              <Download className="w-4 h-4 mr-2" />
-              Download Report
-            </Button>
+            <div className="flex items-center space-x-4">
+              <Button onClick={downloadReport} variant="outline">
+                <Download className="w-4 h-4 mr-2" />
+                Download Report
+              </Button>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="p-4 space-y-6">
+      <div className="max-w-7xl mx-auto px-4 py-8 space-y-6">
         {/* Health Score Overview */}
-        <Card className="glass-card p-8 text-center">
+        <Card className="bg-white p-8 text-center shadow-sm">
           <div className="space-y-4">
             <div className="w-24 h-24 mx-auto bg-gradient-to-r from-primary via-secondary to-accent rounded-full flex items-center justify-center">
               <Heart className="w-12 h-12 text-white" />
@@ -324,7 +328,7 @@ export default function CareerHealthScore() {
         {/* Breakdown */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Career Analysis */}
-          <Card className="glass-card p-6">
+          <Card className="bg-white p-6 shadow-sm">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-foreground flex items-center">
                 <TrendingUp className="w-5 h-5 mr-2 text-primary" />
@@ -355,7 +359,7 @@ export default function CareerHealthScore() {
             ) : (
               <div className="text-center py-4">
                 <p className="text-muted-foreground mb-4">Complete your career analysis to improve your score</p>
-                <Button variant="outline" size="sm" onClick={() => navigate('/main')}>
+                <Button variant="outline" size="sm" onClick={onBack}>
                   Start Career Analysis
                 </Button>
               </div>
@@ -363,7 +367,7 @@ export default function CareerHealthScore() {
           </Card>
 
           {/* Resume Analysis */}
-          <Card className="glass-card p-6">
+          <Card className="bg-white p-6 shadow-sm">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-foreground flex items-center">
                 <FileText className="w-5 h-5 mr-2 text-secondary" />
@@ -394,7 +398,7 @@ export default function CareerHealthScore() {
             ) : (
               <div className="text-center py-4">
                 <p className="text-muted-foreground mb-4">Upload your resume to get detailed analysis</p>
-                <Button variant="outline" size="sm" onClick={() => navigate('/main')}>
+                <Button variant="outline" size="sm" onClick={onBack}>
                   Analyze Resume
                 </Button>
               </div>
@@ -403,7 +407,7 @@ export default function CareerHealthScore() {
         </div>
 
         {/* Suggestions */}
-        <Card className="glass-card p-6">
+        <Card className="bg-white p-6 shadow-sm">
           <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
             <Target className="w-5 h-5 mr-2 text-accent" />
             Improvement Suggestions

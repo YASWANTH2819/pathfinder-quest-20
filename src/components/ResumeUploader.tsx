@@ -63,18 +63,43 @@ export const ResumeUploader: React.FC<ResumeUploaderProps> = ({
     });
   };
 
-  const validateResumeFile = (file: File): boolean => {
-    const resumeKeywords = [
-      'experience', 'education', 'skills', 'work', 'employment', 'resume', 'cv',
-      'qualification', 'certificate', 'achievement', 'project', 'internship',
-      'training', 'course', 'degree', 'university', 'college', 'company'
-    ];
-    
+  const validateResumeFile = async (file: File): Promise<boolean> => {
+    // Check file name for resume indicators
     const fileName = file.name.toLowerCase();
-    return resumeKeywords.some(keyword => fileName.includes(keyword)) ||
-           fileName.includes('resume') || 
-           fileName.includes('cv') ||
-           file.size > 10000; // Basic size check - resumes are usually substantial
+    const resumeNameIndicators = ['resume', 'cv', 'curriculum'];
+    
+    const hasResumeInName = resumeNameIndicators.some(indicator => 
+      fileName.includes(indicator)
+    );
+    
+    // If file name clearly indicates it's a resume, accept it
+    if (hasResumeInName) {
+      return true;
+    }
+    
+    // For other files, check content briefly
+    try {
+      const textContent = await extractTextFromFile(file);
+      const contentLower = textContent.toLowerCase();
+      
+      // Check for key resume sections
+      const resumeSections = [
+        'experience', 'education', 'skills', 'work history', 
+        'employment', 'qualification', 'objective', 'summary',
+        'achievements', 'projects', 'certifications'
+      ];
+      
+      const sectionMatches = resumeSections.filter(section => 
+        contentLower.includes(section)
+      );
+      
+      // Must have at least 3 resume sections to be considered a valid resume
+      return sectionMatches.length >= 3;
+      
+    } catch (error) {
+      // If we can't extract content, fall back to basic checks
+      return fileName.includes('resume') || fileName.includes('cv') || file.size > 15000;
+    }
   };
 
   const handleFileUpload = useCallback(async (file: File) => {
@@ -88,11 +113,12 @@ export const ResumeUploader: React.FC<ResumeUploaderProps> = ({
     }
 
     // Validate that the file appears to be a resume
-    if (!validateResumeFile(file)) {
-      setError('Please upload a valid resume file. The file should contain your professional experience, education, and skills.');
+    const isValidResume = await validateResumeFile(file);
+    if (!isValidResume) {
+      setError('Please upload a valid resume file. The file should be your CV/resume containing professional experience, education, and skills.');
       toast({
-        title: 'Invalid File',
-        description: 'This doesn\'t appear to be a resume. Please upload your CV/resume document.',
+        title: 'Please Upload Resume',
+        description: 'This doesn\'t appear to be a resume. Please upload your CV/resume document with your professional information.',
         variant: 'destructive'
       });
       return;
