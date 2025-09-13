@@ -49,6 +49,15 @@ All colors MUST be HSL.
     --gray-50: 210 20% 98%;
     --gray-100: 210 20% 95%;
     
+    /* Cyber Theme Colors */
+    --cyber-purple: 262 83% 58%;
+    --cyber-blue: 217 91% 60%;
+    --cyber-green: 142 76% 47%;
+    --cyber-teal: 178 100% 41%;
+    --cyber-pink: 330 81% 60%;
+    --cyber-yellow: 60 100% 50%;
+    --cyber-orange: 25 100% 50%;
+    
     /* Professional Gradients */
     --gradient-primary: linear-gradient(135deg, hsl(217 91% 60%), hsl(217 91% 75%));
     --gradient-secondary: linear-gradient(135deg, hsl(262 83% 58%), hsl(262 83% 73%));
@@ -57,6 +66,7 @@ All colors MUST be HSL.
     --gradient-success: linear-gradient(135deg, hsl(142 76% 47%), hsl(142 76% 62%));
     --gradient-shine: linear-gradient(135deg, hsl(217 91% 60%), hsl(262 83% 58%));
     --gradient-professional: linear-gradient(135deg, hsl(217 91% 60%), hsl(262 83% 58%), hsl(142 76% 47%));
+    --gradient-rainbow: linear-gradient(135deg, hsl(217 91% 60%), hsl(262 83% 58%), hsl(142 76% 47%), hsl(217 91% 60%));
     
     /* Modern Glass Effects */
     --glass-background: hsl(0 0% 100% / 0.8);

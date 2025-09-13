@@ -41,12 +41,12 @@ export const HeroSection = ({ onStartChat }: HeroSectionProps) => {
         <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
           <div className="space-y-8">
             <div className="space-y-4">
-              <h1 className="text-4xl md:text-6xl font-bold leading-tight">
+              <h1 className="text-4xl md:text-6xl font-bold leading-tight text-textmain">
                 Discover Your{' '}
                 <span className="gradient-text-rainbow animate-shimmer">Perfect Career</span>{' '}
                 Path
               </h1>
-              <p className="text-xl text-muted-foreground leading-relaxed">
+              <p className="text-xl text-foreground leading-relaxed">
                 AI-powered career guidance that understands your unique potential. 
                 Say goodbye to career confusion and hello to your dream future! ✨
               </p>
@@ -71,15 +71,15 @@ export const HeroSection = ({ onStartChat }: HeroSectionProps) => {
             <div className="grid grid-cols-3 gap-4 pt-8">
               <div className="text-center">
                 <div className="text-2xl font-bold gradient-text-rainbow">10K+</div>
-                <div className="text-sm text-muted-foreground">Students Guided</div>
+                <div className="text-sm text-foreground">Students Guided</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold gradient-text-rainbow">95%</div>
-                <div className="text-sm text-muted-foreground">Success Rate</div>
+                <div className="text-sm text-foreground">Success Rate</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold gradient-text-rainbow">500+</div>
-                <div className="text-sm text-muted-foreground">Career Paths</div>
+                <div className="text-sm text-foreground">Career Paths</div>
               </div>
             </div>
           </div>
@@ -99,10 +99,10 @@ export const HeroSection = ({ onStartChat }: HeroSectionProps) => {
       <section id="features" className="py-20 px-4">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-5xl font-bold mb-4">
+            <h2 className="text-3xl md:text-5xl font-bold mb-4 text-textmain">
               Why Choose <span className="gradient-text-rainbow">CareerAI Guide</span>?
             </h2>
-            <p className="text-xl text-muted-foreground">
+            <p className="text-xl text-foreground">
               Revolutionary features designed to unlock your potential
             </p>
           </div>
@@ -113,7 +113,7 @@ export const HeroSection = ({ onStartChat }: HeroSectionProps) => {
                 <Target className="w-6 h-6 text-white" />
               </div>
               <h3 className="text-xl font-bold mb-4 gradient-text">Personalized Guidance</h3>
-              <p className="text-muted-foreground">
+              <p className="text-foreground">
                 Get tailored career recommendations based on your unique skills, interests, and goals.
               </p>
             </Card>
@@ -123,7 +123,7 @@ export const HeroSection = ({ onStartChat }: HeroSectionProps) => {
                 <Zap className="w-6 h-6 text-white" />
               </div>
               <h3 className="text-xl font-bold mb-4 gradient-text">AI-Powered Insights</h3>
-              <p className="text-muted-foreground">
+              <p className="text-foreground">
                 Advanced AI analyzes market trends and provides real-time career insights.
               </p>
             </Card>
@@ -133,7 +133,7 @@ export const HeroSection = ({ onStartChat }: HeroSectionProps) => {
                 <Users className="w-6 h-6 text-white" />
               </div>
               <h3 className="text-xl font-bold mb-4 gradient-text">Community Support</h3>
-              <p className="text-muted-foreground">
+              <p className="text-foreground">
                 Connect with peers and mentors in your field of interest.
               </p>
             </Card>
