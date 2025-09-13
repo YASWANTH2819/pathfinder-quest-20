@@ -10,10 +10,12 @@ import {
   FileText,
   Heart
 } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function MainPage() {
   const { signOut } = useAuth();
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   const handleSignOut = async () => {
     try {
@@ -37,7 +39,7 @@ export default function MainPage() {
             </div>
             <Button variant="outline" size="sm" onClick={handleSignOut} className="border-white text-white hover:bg-white hover:text-primary">
               <LogOut className="w-4 h-4 mr-2" />
-              Sign Out
+              {t('common.signOut')}
             </Button>
           </div>
         </div>
@@ -56,9 +58,9 @@ export default function MainPage() {
               <div className="w-20 h-20 mx-auto bg-primary rounded-full flex items-center justify-center mb-6 group-hover:bg-secondary transition-colors duration-300">
                 <Brain className="w-10 h-10 text-white" />
               </div>
-              <h2 className="text-2xl font-bold text-textmain">Career Guide</h2>
+              <h2 className="text-2xl font-bold text-textmain">{t('nav.careerGuide')}</h2>
               <p className="text-gray-600 leading-relaxed">
-                Get personalized career recommendations and roadmaps tailored to your goals
+                {t('main.careerGuideDesc')}
               </p>
             </div>
           </Card>
@@ -72,9 +74,9 @@ export default function MainPage() {
               <div className="w-20 h-20 mx-auto bg-primary rounded-full flex items-center justify-center mb-6 group-hover:bg-secondary transition-colors duration-300">
                 <FileText className="w-10 h-10 text-white" />
               </div>
-              <h2 className="text-2xl font-bold text-textmain">Resume Analyzer</h2>
+              <h2 className="text-2xl font-bold text-textmain">{t('nav.resumeAnalyzer')}</h2>
               <p className="text-gray-600 leading-relaxed">
-                Upload and analyze your resume for ATS compatibility and optimization
+                {t('main.resumeAnalyzerDesc')}
               </p>
             </div>
           </Card>
@@ -88,9 +90,9 @@ export default function MainPage() {
               <div className="w-20 h-20 mx-auto bg-primary rounded-full flex items-center justify-center mb-6 group-hover:bg-secondary transition-colors duration-300">
                 <Heart className="w-10 h-10 text-white" />
               </div>
-              <h2 className="text-2xl font-bold text-textmain">Career Health Score</h2>
+              <h2 className="text-2xl font-bold text-textmain">{t('dashboard.careerHealthScore')}</h2>
               <p className="text-gray-600 leading-relaxed">
-                View your comprehensive career health analysis and get insights
+                {t('main.careerHealthDesc')}
               </p>
             </div>
           </Card>

@@ -16,7 +16,13 @@
       "analyze": "Analyze",
       "generate": "Generate",
       "download": "Download",
-      "upload": "Upload"
+      "upload": "Upload",
+      "signOut": "Sign Out"
+    },
+    "main": {
+      "careerGuideDesc": "Get personalized career guidance and insights",
+      "resumeAnalyzerDesc": "Analyze and improve your resume with AI",
+      "careerHealthDesc": "Assess your career health and progress"
     },
     "dashboard": {
       "title": "Career Dashboard",
@@ -69,7 +75,13 @@
       "analyze": "विश्लेषण करें",
       "generate": "उत्पन्न करें",
       "download": "डाउनलोड करें",
-      "upload": "अपलोड करें"
+      "upload": "अपलोड करें",
+      "signOut": "साइन आउट"
+    },
+    "main": {
+      "careerGuideDesc": "व्यक्तिगत करियर मार्गदर्शन और अंतर्दृष्टि प्राप्त करें",
+      "resumeAnalyzerDesc": "AI के साथ अपने रिज्यूमे का विश्लेषण और सुधार करें",
+      "careerHealthDesc": "अपने करियर स्वास्थ्य और प्रगति का आकलन करें"
     },
     "dashboard": {
       "title": "करियर डैशबोर्ड",
@@ -122,7 +134,13 @@
       "analyze": "విశ్లేషించండి",
       "generate": "జనరేట్ చేయండి",
       "download": "డౌన్‌లోడ్ చేయండి",
-      "upload": "అప్‌లోడ్ చేయండి"
+      "upload": "అప్‌లోడ్ చేయండి",
+      "signOut": "సైన్ అవుట్"
+    },
+    "main": {
+      "careerGuideDesc": "వ్యక్తిగత కెరీర్ మార్గదర్శకత్వం మరియు అంతర్దృష్టులను పొందండి",
+      "resumeAnalyzerDesc": "AI తో మీ రెజ్యూమేను విశ్లేషించండి మరియు మెరుగుపరచండి",
+      "careerHealthDesc": "మీ కెరీర్ ఆరోగ్యం మరియు ప్రగతిని అంచనా వేయండి"
     },
     "dashboard": {
       "title": "కెరీర్ డ్యాష్‌బోర్డ్",
