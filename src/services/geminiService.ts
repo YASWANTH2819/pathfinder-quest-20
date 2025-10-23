@@ -46,7 +46,14 @@ export class GeminiService {
     return this.apiKey;
   }
 
-  private createCareerPrompt(profileData: ProfileData | null, userMessage: string): string {
+  private createCareerPrompt(profileData: ProfileData | null, userMessage: string, language: string = 'en'): string {
+    const languageInstructions = {
+      en: 'Respond in English.',
+      hi: 'कृपया हिंदी में जवाब दें। Use Devanagari script for Hindi.',
+      te: 'దయచేసి తెలుగులో సమాధానం ఇవ్వండి। Use Telugu script for Telugu.'
+    };
+    
+    const languageInstruction = languageInstructions[language as keyof typeof languageInstructions] || languageInstructions.en;
     const profileContext = profileData ? `
 User Profile:
 - Name: ${profileData.name}
@@ -66,7 +73,9 @@ User Profile:
 ${profileData.resumeText ? `\nCurrent Resume Content:\n${profileData.resumeText}` : ''}
 ` : '';
 
-    return `You are a specialized AI Career Guidance Assistant for students and professionals. You MUST ONLY provide information related to career development and education. 
+    return `${languageInstruction}
+
+You are a specialized AI Career Guidance Assistant for students and professionals. You MUST ONLY provide information related to career development and education. 
 
 CORE SERVICES YOU PROVIDE:
 
@@ -119,13 +128,13 @@ User Message: ${userMessage}
 Provide a helpful, detailed response focused ONLY on career guidance and education. Include specific recommendations, links to platforms, and actionable steps.`;
   }
 
-  async generateCareerResponse(profileData: ProfileData | null, userMessage: string): Promise<string> {
+  async generateCareerResponse(profileData: ProfileData | null, userMessage: string, language: string = 'en'): Promise<string> {
     if (!this.apiKey || this.apiKey === 'YOUR_GEMINI_API_KEY_HERE') {
       throw new Error('Please add your Gemini API key in src/services/geminiService.ts');
     }
 
     try {
-      const prompt = this.createCareerPrompt(profileData, userMessage);
+      const prompt = this.createCareerPrompt(profileData, userMessage, language);
       
       const response = await fetch(`${this.baseUrl}?key=${this.apiKey}`, {
         method: 'POST',
@@ -164,7 +173,7 @@ Provide a helpful, detailed response focused ONLY on career guidance and educati
     }
   }
 
-  async analyzeResume(resumeText: string, profileData: ProfileData | null): Promise<string> {
+  async analyzeResume(resumeText: string, profileData: ProfileData | null, language: string = 'en'): Promise<string> {
     if (!this.apiKey || this.apiKey === 'YOUR_GEMINI_API_KEY_HERE') {
       throw new Error('Please add your Gemini API key in src/services/geminiService.ts');
     }
@@ -179,7 +188,17 @@ Target Profile Context:
 - Company Type: ${profileData.companyType}
 ` : '';
 
-    const prompt = `You are an expert ATS-friendly resume analyzer. Provide a comprehensive analysis of this resume with the following structure:
+    const languageInstructions = {
+      en: 'Respond in English.',
+      hi: 'कृपया हिंदी में जवाब दें। Use Devanagari script for Hindi.',
+      te: 'దయచేసి తెలుగులో సమాధానం ఇవ్వండి। Use Telugu script for Telugu.'
+    };
+    
+    const languageInstruction = languageInstructions[language as keyof typeof languageInstructions] || languageInstructions.en;
+
+    const prompt = `${languageInstruction}
+
+You are an expert ATS-friendly resume analyzer. Provide a comprehensive analysis of this resume with the following structure:
 
 ## 📊 **RESUME RATING: X/10**
 Rate the overall effectiveness of this resume (1-10 scale).

@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { FileText, Loader2, Upload, X } from 'lucide-react';
 import { geminiService } from '@/services/geminiService';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface ProfileData {
   name: string;
@@ -35,6 +36,7 @@ interface ResumeAnalyzerProps {
 }
 
 export const ResumeAnalyzer = ({ profileData, onAnalysisComplete }: ResumeAnalyzerProps) => {
+  const { language } = useLanguage();
   const [resumeText, setResumeText] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
@@ -46,7 +48,7 @@ export const ResumeAnalyzer = ({ profileData, onAnalysisComplete }: ResumeAnalyz
     
     setIsAnalyzing(true);
     try {
-      const analysis = await geminiService.analyzeResume(resumeText, profileData);
+      const analysis = await geminiService.analyzeResume(resumeText, profileData, language);
       onAnalysisComplete(`📋 **Resume Analysis Results:**\n\n${analysis}`);
     } catch (error) {
       onAnalysisComplete(`❌ **Error analyzing resume:** ${error instanceof Error ? error.message : 'Unknown error'}`);

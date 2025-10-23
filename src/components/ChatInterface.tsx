@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Send, Bot, User, Mic, MicOff, FileText, Loader2 } from 'lucide-react';
 import { geminiService } from '@/services/geminiService';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface Message {
   id: string;
@@ -39,6 +40,7 @@ interface ChatInterfaceProps {
 }
 
 export const ChatInterface = ({ profileData }: ChatInterfaceProps) => {
+  const { language } = useLanguage();
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -74,7 +76,7 @@ export const ChatInterface = ({ profileData }: ChatInterfaceProps) => {
     setIsLoading(true);
 
     try {
-      const aiResponse = await geminiService.generateCareerResponse(profileData, userInput);
+      const aiResponse = await geminiService.generateCareerResponse(profileData, userInput, language);
       
       const aiMessage: Message = {
         id: Date.now().toString(),

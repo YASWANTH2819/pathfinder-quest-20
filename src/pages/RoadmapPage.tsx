@@ -76,7 +76,7 @@ const mockRoadmapSteps: RoadmapStep[] = [
 ];
 
 export const RoadmapPage: React.FC = () => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { toast } = useToast();
   const [roadmapSteps, setRoadmapSteps] = useState<RoadmapStep[]>(mockRoadmapSteps);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -145,7 +145,7 @@ export const RoadmapPage: React.FC = () => {
         Focus on practical, actionable steps for Indian students entering ${profileData.fieldOfStudy}.
       `;
 
-      const generatedRoadmap = await geminiService.generateCareerResponse(profileData, roadmapPrompt);
+      const generatedRoadmap = await geminiService.generateCareerResponse(profileData, roadmapPrompt, language);
       
       // Parse the response and create roadmap steps
       // This is a simplified version - in reality you'd parse the JSON response
