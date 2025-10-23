@@ -10,6 +10,8 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { RoadmapStep } from '@/types';
 import { geminiService } from '@/services/geminiService';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 // Mock roadmap data for demo
 const mockRoadmapSteps: RoadmapStep[] = [
@@ -78,8 +80,41 @@ const mockRoadmapSteps: RoadmapStep[] = [
 export const RoadmapPage: React.FC = () => {
   const { t, language } = useLanguage();
   const { toast } = useToast();
+  const { user } = useAuth();
   const [roadmapSteps, setRoadmapSteps] = useState<RoadmapStep[]>(mockRoadmapSteps);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [profileData, setProfileData] = useState<any>(null);
+  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+
+  // Fetch profile data from database
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (!user?.id) {
+        setIsLoadingProfile(false);
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase
+          .from('career_profiles')
+          .select('*')
+          .eq('user_id', user.id)
+          .single();
+
+        if (error && error.code !== 'PGRST116') {
+          console.error('Error fetching profile:', error);
+        } else if (data) {
+          setProfileData(data);
+        }
+      } catch (error) {
+        console.error('Error fetching profile:', error);
+      } finally {
+        setIsLoadingProfile(false);
+      }
+    };
+
+    fetchProfile();
+  }, [user?.id]);
 
   const completedSteps = roadmapSteps.filter(step => step.isCompleted).length;
   const progressPercentage = Math.round((completedSteps / roadmapSteps.length) * 100);
@@ -93,30 +128,24 @@ export const RoadmapPage: React.FC = () => {
       )
     );
 
-    // Update career health score in localStorage (mock implementation)
-    const profileData = JSON.parse(localStorage.getItem('career_profile_data') || '{}');
-    if (profileData) {
-      // This would trigger a health score recalculation in a real app
-      toast({
-        title: isCompleted ? "Step Completed!" : "Step Marked Incomplete",
-        description: isCompleted 
-          ? "Your career health score has been updated." 
-          : "Your progress has been adjusted.",
-      });
-    }
+    toast({
+      title: isCompleted ? "Step Completed!" : "Step Marked Incomplete",
+      description: isCompleted 
+        ? "Your career health score has been updated." 
+        : "Your progress has been adjusted.",
+    });
   };
 
   const generateRoadmap = async () => {
     setIsGenerating(true);
     try {
-      const profileData = JSON.parse(localStorage.getItem('career_profile_data') || '{}');
-      
-      if (!profileData.name) {
+      if (!profileData?.name) {
         toast({
           title: "Profile Required",
           description: "Please complete your career profile first.",
           variant: "destructive"
         });
+        setIsGenerating(false);
         return;
       }
 
@@ -142,7 +171,7 @@ export const RoadmapPage: React.FC = () => {
           }
         ]
         
-        Focus on practical, actionable steps for Indian students entering ${profileData.fieldOfStudy}.
+        Focus on practical, actionable steps for Indian students entering ${profileData.field_of_study || profileData.fieldOfStudy}.
       `;
 
       const generatedRoadmap = await geminiService.generateCareerResponse(profileData, roadmapPrompt, language);
