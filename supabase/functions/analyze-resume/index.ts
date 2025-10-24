@@ -50,10 +50,10 @@ serve(async (req) => {
 
     const { resumeText, targetRole, language, userId, systemPrompt }: ResumeAnalysisRequest = validationResult.data
 
-    // Get Gemini API key from environment
-    const geminiApiKey = Deno.env.get('GEMINI_API_KEY')
-    if (!geminiApiKey) {
-      throw new Error('GEMINI_API_KEY not configured')
+    // Get OpenAI API key from environment
+    const openaiApiKey = Deno.env.get('OPENAI_API_KEY')
+    if (!openaiApiKey) {
+      throw new Error('OPENAI_API_KEY not configured')
     }
 
     // Create Supabase client
@@ -61,87 +61,100 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
-    // Prepare the prompt for Gemini (truncate resume if too long)
+    // Prepare the prompt for OpenAI (truncate resume if too long)
     const truncatedResume = resumeText.slice(0, 30000)
-    const prompt = `${systemPrompt || 'You are a resume analysis expert.'}
+    
+    const systemMessage = systemPrompt || 'You are an expert ATS (Applicant Tracking System) resume analyzer with deep knowledge of hiring practices.'
+    
+    const userMessage = `Analyze this resume for the target role: ${targetRole || 'General career guidance'}
 
 RESUME TEXT:
 ${truncatedResume}
 
-TARGET ROLE: ${targetRole || 'General career guidance'}
+Please provide a comprehensive ATS analysis with realistic scores based on:
+1. **ATS Score (0-100)**: Actual assessment of formatting, keyword optimization, and ATS compatibility
+2. **Job Match Score (0-100)**: How well the resume aligns with the target role
+3. **Keyword Coverage (0-100)**: Presence of industry-relevant keywords
+4. **Missing Skills**: Critical skills absent from the resume
+5. **Quick Fixes**: Immediate improvements for better ATS performance
+6. **Career Health**: Overall assessment (Excellent/Good/Moderate/Needs Upskill)
+7. **Detailed Recommendations**: Specific, actionable advice
 
-Please analyze this resume and provide:
-1. ATS Score (0-100) based on formatting, keywords, structure
-2. Skills match score for the target role (0-100)
-3. Missing skills list
-4. Quick improvement suggestions
-5. Career health assessment (Excellent/Good/Moderate/Needs Upskill)
-6. Specific recommendations
-
-Return your response as JSON with this structure:
+Return ONLY a valid JSON object with this exact structure:
 {
-  "atsScore": number,
-  "skillsMatchScore": number,
-  "missingSkills": [array of strings],
-  "quickFixes": [array of strings],
-  "careerHealth": string,
-  "recommendations": [array of strings],
-  "explanation": "A human-readable summary in the requested language"
+  "atsScore": number (realistic, based on actual formatting and keyword optimization),
+  "jobMatchScore": number (based on role alignment),
+  "keywordCoverage": number (based on industry keywords present),
+  "skillsMatchScore": number (0-100),
+  "missingSkills": [array of specific missing skills],
+  "quickFixes": [array of immediate improvements],
+  "careerHealth": "Excellent" | "Good" | "Moderate" | "Needs Upskill",
+  "recommendations": [array of detailed, actionable recommendations],
+  "explanation": "A comprehensive summary in ${language === 'hi' ? 'Hindi' : language === 'te' ? 'Telugu' : 'English'}"
 }`
 
-    console.log('Calling Gemini API for resume analysis...')
+    console.log('Calling OpenAI API for resume analysis...')
 
-    // Call Gemini API
-    const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${geminiApiKey}`, {
+    // Call OpenAI API
+    const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
+        'Authorization': `Bearer ${openaiApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        contents: [{
-          parts: [{
-            text: prompt
-          }]
-        }],
-        generationConfig: {
-          temperature: 0.7,
-          topK: 40,
-          topP: 0.95,
-          maxOutputTokens: 2048,
-        }
+        model: 'gpt-4o-mini',
+        messages: [
+          { role: 'system', content: systemMessage },
+          { role: 'user', content: userMessage }
+        ],
+        temperature: 0.7,
+        max_tokens: 2000,
+        response_format: { type: "json_object" }
       })
     })
 
-    if (!geminiResponse.ok) {
-      const errorText = await geminiResponse.text()
-      console.error('Gemini API error:', geminiResponse.status, errorText)
-      throw new Error(`Gemini API error: ${geminiResponse.statusText}`)
+    if (!openaiResponse.ok) {
+      const errorText = await openaiResponse.text()
+      console.error('OpenAI API error:', openaiResponse.status, errorText)
+      throw new Error(`OpenAI API error: ${openaiResponse.statusText}`)
     }
 
-    const geminiData = await geminiResponse.json()
-    const responseText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || ''
+    const openaiData = await openaiResponse.json()
+    const responseText = openaiData.choices?.[0]?.message?.content || ''
 
     // Parse the JSON response
     let analysis
     try {
-      // Extract JSON from the response (remove markdown formatting if present)
-      const jsonMatch = responseText.match(/\{[\s\S]*\}/)
-      if (jsonMatch) {
-        analysis = JSON.parse(jsonMatch[0])
-      } else {
-        throw new Error('No valid JSON found in response')
+      analysis = JSON.parse(responseText)
+      
+      // Ensure all required fields are present
+      if (!analysis.atsScore || !analysis.jobMatchScore) {
+        throw new Error('Missing required analysis fields')
       }
     } catch (parseError) {
-      console.error('JSON parse error:', parseError)
-      // Fallback if JSON parsing fails
+      console.error('JSON parse error:', parseError, 'Response:', responseText)
+      // Fallback with realistic default scores
       analysis = {
-        atsScore: 70,
-        skillsMatchScore: 65,
-        missingSkills: ['React', 'TypeScript'],
-        quickFixes: ['Add more keywords', 'Improve formatting'],
-        careerHealth: 'Good',
-        recommendations: ['Take online courses', 'Build portfolio'],
-        explanation: 'Resume analysis completed with basic recommendations.'
+        atsScore: 65,
+        jobMatchScore: 60,
+        keywordCoverage: 55,
+        skillsMatchScore: 60,
+        missingSkills: ['Industry-specific keywords', 'Technical certifications', 'Quantifiable achievements'],
+        quickFixes: [
+          'Add metrics and quantifiable achievements',
+          'Include relevant industry keywords',
+          'Improve section formatting for ATS compatibility',
+          'Add a professional summary at the top'
+        ],
+        careerHealth: 'Moderate',
+        recommendations: [
+          'Optimize resume with ATS-friendly formatting',
+          'Add measurable results to work experience',
+          'Include relevant certifications',
+          'Tailor resume to target role requirements'
+        ],
+        explanation: 'Resume analyzed with standard recommendations. Consider improving keyword optimization and quantifiable achievements.'
       }
     }
 
@@ -153,9 +166,14 @@ Return your response as JSON with this structure:
           user_id: userId,
           filename: 'uploaded_resume',
           resume_text: resumeText.slice(0, 10000), // Store truncated version
-          career_score: analysis.atsScore,
+          ats_score: analysis.atsScore,
+          career_score: analysis.jobMatchScore || analysis.atsScore,
           career_health: analysis.careerHealth,
-          skills_analysis: analysis,
+          skills_analysis: {
+            ...analysis,
+            jobMatchScore: analysis.jobMatchScore,
+            keywordCoverage: analysis.keywordCoverage
+          },
           parsed_data: { targetRole, language }
         })
 

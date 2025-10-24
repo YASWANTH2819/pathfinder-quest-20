@@ -9,6 +9,8 @@ interface CareerScoreProps {
   analysis: {
     structuredData: {
       atsScore: number;
+      jobMatchScore?: number;
+      keywordCoverage?: number;
       skillsMatchScore: number;
       missingSkills: string[];
       quickFixes: string[];
@@ -47,34 +49,52 @@ export const CareerScoreDisplay: React.FC<CareerScoreProps> = ({ analysis }) => 
 
   return (
     <div className="space-y-6">
-      {/* Overall Scores */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card>
+      {/* Overall Scores - 3 Metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card className="glass-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('score.atsScore')}</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">ATS Score</CardTitle>
+            <TrendingUp className="h-4 w-4 text-blue-500" />
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              <div className={`text-2xl font-bold ${getScoreColor(structuredData.atsScore)}`}>
+              <div className={`text-3xl font-bold ${getScoreColor(structuredData.atsScore)}`}>
                 {structuredData.atsScore}%
               </div>
               <Progress value={structuredData.atsScore} className="h-2" />
+              <p className="text-xs text-muted-foreground">Applicant Tracking System compatibility</p>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="glass-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('score.skillsMatch')}</CardTitle>
-            <Award className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Job Match</CardTitle>
+            <Award className="h-4 w-4 text-purple-500" />
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              <div className={`text-2xl font-bold ${getScoreColor(structuredData.skillsMatchScore)}`}>
-                {structuredData.skillsMatchScore}%
+              <div className={`text-3xl font-bold ${getScoreColor(structuredData.jobMatchScore || structuredData.skillsMatchScore)}`}>
+                {structuredData.jobMatchScore || structuredData.skillsMatchScore}%
               </div>
-              <Progress value={structuredData.skillsMatchScore} className="h-2" />
+              <Progress value={structuredData.jobMatchScore || structuredData.skillsMatchScore} className="h-2" />
+              <p className="text-xs text-muted-foreground">Alignment with target role</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="glass-card">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Keyword Coverage</CardTitle>
+            <BookOpen className="h-4 w-4 text-emerald-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              <div className={`text-3xl font-bold ${getScoreColor(structuredData.keywordCoverage || structuredData.skillsMatchScore)}`}>
+                {structuredData.keywordCoverage || structuredData.skillsMatchScore}%
+              </div>
+              <Progress value={structuredData.keywordCoverage || structuredData.skillsMatchScore} className="h-2" />
+              <p className="text-xs text-muted-foreground">Industry-relevant keywords present</p>
             </div>
           </CardContent>
         </Card>

@@ -15,6 +15,7 @@ import CareerGuide from "./pages/CareerGuide";
 import ResumeAnalyzer from "./pages/ResumeAnalyzer";
 import Dashboard from "./pages/Dashboard";
 import MainPage from "./pages/MainPage";
+import MainDashboard from "./pages/MainDashboard";
 import { RoadmapPage } from "./pages/RoadmapPage";
 import NotFound from "./pages/NotFound";
 import CareerHealthScore from "./components/CareerHealthScore";
@@ -48,6 +49,11 @@ const App = () => (
                   </ProtectedRoute>
                 } />
                 <Route path="/main" element={
+                  <ProtectedRoute>
+                    <MainDashboard />
+                  </ProtectedRoute>
+                } />
+                <Route path="/career-growth" element={
                   <ProtectedRoute>
                     <MainPage />
                   </ProtectedRoute>

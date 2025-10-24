@@ -69,6 +69,22 @@
     "roadmap": "Roadmap",
     "profile": "Profile"
   },
+  "main": {
+    "welcome": "Welcome back",
+    "subtitle": "Choose your path to career excellence",
+    "resumeAnalyzer": "📄 Resume Analyzer",
+    "resumeAnalyzerDesc": "Analyze and improve your resume with AI-powered ATS feedback.",
+    "careerHealth": "💖 Career Health Score",
+    "careerHealthDesc": "Visualize your career performance and growth analytics.",
+    "careerGrowthPath": "🚀 Career Growth Path",
+    "careerGrowthDesc": "Track your daily learning, complete modules, and earn streak badges.",
+    "careerGuide": "🧠 Career Guidance",
+    "careerGuideDesc": "Get adaptive career recommendations based on your performance.",
+    "explore": "Explore",
+    "successRate": "Success Rate",
+    "studentsGuided": "Students Guided",
+    "careerPaths": "Career Paths"
+  },
   "resumeAnalyzer": {
     "title": "Resume Analyzer",
     "subtitle": "Upload your resume for AI-powered analysis",
