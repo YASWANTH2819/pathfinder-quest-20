@@ -1,9 +1,18 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
+
+// Validation schema
+const chatRequestSchema = z.object({
+  message: z.string().trim().min(1, 'Message cannot be empty').max(2000, 'Message too long (max 2000 characters)'),
+  language: z.string().max(10).optional(),
+  context: z.any().optional(),
+  systemPrompt: z.string().max(1000).optional()
+})
 
 interface ChatRequest {
   message: string
@@ -18,7 +27,25 @@ serve(async (req) => {
   }
 
   try {
-    const { message, language, context, systemPrompt }: ChatRequest = await req.json()
+    // Parse and validate input
+    const rawData = await req.json()
+    const validationResult = chatRequestSchema.safeParse(rawData)
+    
+    if (!validationResult.success) {
+      console.error('Validation error:', validationResult.error.errors)
+      return new Response(
+        JSON.stringify({ 
+          error: 'Invalid input',
+          details: validationResult.error.errors[0].message
+        }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      )
+    }
+
+    const { message, language, context, systemPrompt }: ChatRequest = validationResult.data
 
     // Get Gemini API key from environment
     const geminiApiKey = Deno.env.get('GEMINI_API_KEY')
@@ -26,14 +53,17 @@ serve(async (req) => {
       throw new Error('GEMINI_API_KEY not configured')
     }
 
-    // Prepare the prompt for Gemini
-    const prompt = `${systemPrompt}
+    // Prepare the prompt for Gemini (limit context size)
+    const contextString = context ? JSON.stringify(context).slice(0, 5000) : ''
+    const prompt = `${systemPrompt || 'You are a helpful assistant.'}
 
-${context ? `CONTEXT: ${JSON.stringify(context)}` : ''}
+${contextString ? `CONTEXT: ${contextString}` : ''}
 
 USER MESSAGE: ${message}
 
 Please provide a helpful career guidance response in the requested language.`
+
+    console.log('Calling Gemini API for chat...')
 
     // Call Gemini API
     const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${geminiApiKey}`, {
@@ -57,11 +87,15 @@ Please provide a helpful career guidance response in the requested language.`
     })
 
     if (!geminiResponse.ok) {
+      const errorText = await geminiResponse.text()
+      console.error('Gemini API error:', geminiResponse.status, errorText)
       throw new Error(`Gemini API error: ${geminiResponse.statusText}`)
     }
 
     const geminiData = await geminiResponse.json()
-    const response = geminiData.candidates[0].content.parts[0].text
+    const response = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || 'No response generated'
+
+    console.log('Successfully generated chat response')
 
     return new Response(
       JSON.stringify({

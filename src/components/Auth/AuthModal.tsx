@@ -149,6 +149,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                   value={signInData.email}
                   onChange={(e) => setSignInData(prev => ({ ...prev, email: e.target.value }))}
                   required
+                  maxLength={255}
                   className="glass-card"
                 />
               </div>
@@ -196,6 +197,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                   value={signUpData.name}
                   onChange={(e) => setSignUpData(prev => ({ ...prev, name: e.target.value }))}
                   required
+                  maxLength={100}
                   className="glass-card"
                 />
               </div>
@@ -211,6 +213,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                   value={signUpData.email}
                   onChange={(e) => setSignUpData(prev => ({ ...prev, email: e.target.value }))}
                   required
+                  maxLength={255}
                   className="glass-card"
                 />
               </div>

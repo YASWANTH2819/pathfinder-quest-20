@@ -8,7 +8,6 @@ import { RoadmapTimeline } from '@/components/RoadmapTimeline';
 import { LanguageToggle } from '@/components/LanguageToggle';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { RoadmapStep } from '@/types';
-import { geminiService } from '@/services/geminiService';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -149,60 +148,54 @@ export const RoadmapPage: React.FC = () => {
         return;
       }
 
-      // Generate roadmap using Gemini
-      const roadmapPrompt = `
-        Based on this profile: ${JSON.stringify(profileData)}
-        
-        Generate a detailed career roadmap with specific steps for the next 3 semesters.
-        Each step should have:
-        - Clear title and description
-        - Type: skill, project, internship, or prep
-        - Semester assignment (1, 2, or 3)
-        - Recommended resources
-        
-        Format as JSON array with this structure:
-        [
-          {
-            "title": "Step title",
-            "description": "Detailed description",
-            "type": "skill|project|internship|prep",
-            "semester": 1,
-            "recommendedResources": ["Resource 1", "Resource 2"]
-          }
-        ]
-        
-        Focus on practical, actionable steps for Indian students entering ${profileData.field_of_study || profileData.fieldOfStudy}.
-      `;
+      // Call edge function to generate roadmap
+      const { data, error } = await supabase.functions.invoke('generate-roadmap', {
+        body: {
+          profileData: profileData,
+          goal: `Career roadmap for ${profileData.field_of_study || profileData.fieldOfStudy}`,
+          language: language,
+          userId: user?.id,
+          systemPrompt: 'You are a career guidance expert. Create detailed, actionable roadmaps for Indian students.'
+        }
+      });
 
-      const generatedRoadmap = await geminiService.generateCareerResponse(profileData, roadmapPrompt, language);
-      
-      // Parse the response and create roadmap steps
-      // This is a simplified version - in reality you'd parse the JSON response
-      const newSteps: RoadmapStep[] = [
-        {
-          id: Date.now().toString(),
-          userId: 'user1',
-          title: 'Updated Learning Path',
-          description: 'AI-generated roadmap based on your current profile',
-          type: 'skill',
-          semester: 1,
+      if (error) {
+        throw new Error(error.message || 'Failed to generate roadmap');
+      }
+
+      if (data?.roadmap) {
+        // Convert the AI-generated roadmap to our RoadmapStep format
+        const allSteps: any[] = [
+          ...(data.roadmap.shortTerm || []),
+          ...(data.roadmap.midTerm || []),
+          ...(data.roadmap.longTerm || [])
+        ];
+
+        const newSteps: RoadmapStep[] = allSteps.map((step, index) => ({
+          id: `${Date.now()}-${index}`,
+          userId: user?.id || 'guest',
+          title: step.task || step.title || 'Career Step',
+          description: step.description || '',
+          type: step.type || 'skill',
+          semester: Math.floor(index / 2) + 1, // Distribute across semesters
           isCompleted: false,
-          recommendedResources: ['Generated Resource'],
+          recommendedResources: step.resources || [],
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
-        }
-      ];
+        }));
 
-      setRoadmapSteps(prev => [...prev, ...newSteps]);
-      
-      toast({
-        title: "Roadmap Generated!",
-        description: "Your personalized career roadmap has been updated.",
-      });
+        setRoadmapSteps(newSteps);
+        
+        toast({
+          title: "Roadmap Generated!",
+          description: data.explanation || "Your personalized career roadmap has been created.",
+        });
+      }
     } catch (error) {
+      console.error('Roadmap generation error:', error);
       toast({
         title: "Generation Failed",
-        description: "Failed to generate roadmap. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to generate roadmap. Please try again.",
         variant: "destructive"
       });
     } finally {

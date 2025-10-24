@@ -35,7 +35,13 @@ export class GeminiService {
   private baseUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
 
   constructor() {
-    this.apiKey = 'AIzaSyAvA6SVqhuayY8lPh3puSTaXpXi8MR2ANU';
+    // DEPRECATED: This class is no longer recommended for direct use.
+    // Please use Supabase edge functions instead:
+    // - supabase.functions.invoke('chat-with-ai') for chat
+    // - supabase.functions.invoke('analyze-resume') for resume analysis
+    // - supabase.functions.invoke('generate-roadmap') for roadmap generation
+    // API keys should NEVER be stored in client-side code.
+    this.apiKey = '';
   }
 
   setApiKey(key: string) {

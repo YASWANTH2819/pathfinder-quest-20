@@ -3,8 +3,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Send, Bot, User, Mic, MicOff, FileText, Loader2 } from 'lucide-react';
-import { geminiService } from '@/services/geminiService';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface Message {
   id: string;
@@ -41,6 +42,7 @@ interface ChatInterfaceProps {
 
 export const ChatInterface = ({ profileData }: ChatInterfaceProps) => {
   const { language } = useLanguage();
+  const { toast } = useToast();
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -63,24 +65,46 @@ export const ChatInterface = ({ profileData }: ChatInterfaceProps) => {
   const handleSendMessage = async () => {
     if (!inputValue.trim() || isLoading) return;
 
+    // Validate message length
+    const trimmedInput = inputValue.trim();
+    if (trimmedInput.length > 2000) {
+      toast({
+        title: 'Message too long',
+        description: 'Please keep your message under 2000 characters.',
+        variant: 'destructive'
+      });
+      return;
+    }
+
     const newMessage: Message = {
       id: Date.now().toString(),
-      content: inputValue,
+      content: trimmedInput,
       sender: 'user',
       timestamp: new Date()
     };
 
     setMessages(prev => [...prev, newMessage]);
-    const userInput = inputValue;
     setInputValue('');
     setIsLoading(true);
 
     try {
-      const aiResponse = await geminiService.generateCareerResponse(profileData, userInput, language);
+      // Call edge function instead of direct API call
+      const { data, error } = await supabase.functions.invoke('chat-with-ai', {
+        body: {
+          message: trimmedInput,
+          language: language,
+          context: profileData,
+          systemPrompt: 'You are a helpful career guidance AI assistant for Indian students. Provide practical, actionable advice tailored to the Indian job market and education system.'
+        }
+      });
+
+      if (error) {
+        throw new Error(error.message || 'Failed to get AI response');
+      }
       
       const aiMessage: Message = {
         id: Date.now().toString(),
-        content: aiResponse,
+        content: data.response || 'I apologize, but I could not generate a response. Please try again.',
         sender: 'ai',
         timestamp: new Date()
       };
@@ -180,6 +204,7 @@ export const ChatInterface = ({ profileData }: ChatInterfaceProps) => {
             onKeyPress={(e) => e.key === 'Enter' && !isLoading && handleSendMessage()}
             placeholder={isLoading ? "AI is thinking..." : "Ask about careers, skills, roadmaps, resume help..."}
             disabled={isLoading}
+            maxLength={2000}
             className="flex-1 glass-card"
           />
           <Button

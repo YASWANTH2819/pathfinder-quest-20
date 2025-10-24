@@ -1,10 +1,20 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
+
+// Validation schema
+const resumeAnalysisSchema = z.object({
+  resumeText: z.string().min(50, 'Resume text too short').max(50000, 'Resume text too large (max 50KB)'),
+  targetRole: z.string().max(200).optional(),
+  language: z.string().max(10),
+  userId: z.string().uuid().optional(),
+  systemPrompt: z.string().max(1000).optional()
+})
 
 interface ResumeAnalysisRequest {
   resumeText: string
@@ -20,7 +30,25 @@ serve(async (req) => {
   }
 
   try {
-    const { resumeText, targetRole, language, userId, systemPrompt }: ResumeAnalysisRequest = await req.json()
+    // Parse and validate input
+    const rawData = await req.json()
+    const validationResult = resumeAnalysisSchema.safeParse(rawData)
+    
+    if (!validationResult.success) {
+      console.error('Validation error:', validationResult.error.errors)
+      return new Response(
+        JSON.stringify({ 
+          error: 'Invalid input',
+          details: validationResult.error.errors[0].message
+        }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      )
+    }
+
+    const { resumeText, targetRole, language, userId, systemPrompt }: ResumeAnalysisRequest = validationResult.data
 
     // Get Gemini API key from environment
     const geminiApiKey = Deno.env.get('GEMINI_API_KEY')
@@ -33,11 +61,12 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
-    // Prepare the prompt for Gemini
-    const prompt = `${systemPrompt}
+    // Prepare the prompt for Gemini (truncate resume if too long)
+    const truncatedResume = resumeText.slice(0, 30000)
+    const prompt = `${systemPrompt || 'You are a resume analysis expert.'}
 
 RESUME TEXT:
-${resumeText}
+${truncatedResume}
 
 TARGET ROLE: ${targetRole || 'General career guidance'}
 
@@ -59,6 +88,8 @@ Return your response as JSON with this structure:
   "recommendations": [array of strings],
   "explanation": "A human-readable summary in the requested language"
 }`
+
+    console.log('Calling Gemini API for resume analysis...')
 
     // Call Gemini API
     const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${geminiApiKey}`, {
@@ -82,11 +113,13 @@ Return your response as JSON with this structure:
     })
 
     if (!geminiResponse.ok) {
+      const errorText = await geminiResponse.text()
+      console.error('Gemini API error:', geminiResponse.status, errorText)
       throw new Error(`Gemini API error: ${geminiResponse.statusText}`)
     }
 
     const geminiData = await geminiResponse.json()
-    const responseText = geminiData.candidates[0].content.parts[0].text
+    const responseText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || ''
 
     // Parse the JSON response
     let analysis
@@ -99,6 +132,7 @@ Return your response as JSON with this structure:
         throw new Error('No valid JSON found in response')
       }
     } catch (parseError) {
+      console.error('JSON parse error:', parseError)
       // Fallback if JSON parsing fails
       analysis = {
         atsScore: 70,
@@ -118,7 +152,7 @@ Return your response as JSON with this structure:
         .insert({
           user_id: userId,
           filename: 'uploaded_resume',
-          resume_text: resumeText,
+          resume_text: resumeText.slice(0, 10000), // Store truncated version
           career_score: analysis.atsScore,
           career_health: analysis.careerHealth,
           skills_analysis: analysis,
@@ -129,6 +163,8 @@ Return your response as JSON with this structure:
         console.error('Error storing resume analysis:', insertError)
       }
     }
+
+    console.log('Successfully analyzed resume')
 
     return new Response(
       JSON.stringify({
