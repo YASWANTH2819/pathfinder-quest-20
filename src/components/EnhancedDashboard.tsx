@@ -239,7 +239,7 @@ export const EnhancedDashboard = ({ data, onExportPDF }: EnhancedDashboardProps)
               }
             ]}
             onStepComplete={(stepId, isCompleted) => {
-              console.log(`Step ${stepId} completed: ${isCompleted}`);
+              // Step completion tracked
             }}
           />
         </TabsContent>
