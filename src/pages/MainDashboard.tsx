@@ -16,21 +16,21 @@ export default function MainDashboard() {
   const dashboardCards = [
     {
       id: 1,
+      title: t('main.careerGuide') || 'Career Guidance',
+      description: t('main.careerGuideDesc') || 'Get adaptive career recommendations based on your performance.',
+      icon: Brain,
+      gradient: 'from-emerald-500 to-teal-500',
+      path: '/career-guide',
+      bgGlow: 'bg-emerald-500/20'
+    },
+    {
+      id: 2,
       title: t('main.resumeAnalyzer') || 'Resume Analyzer',
       description: t('main.resumeAnalyzerDesc') || 'Analyze and improve your resume with AI-powered ATS feedback.',
       icon: FileText,
       gradient: 'from-blue-500 to-cyan-500',
       path: '/resume-analyzer',
       bgGlow: 'bg-blue-500/20'
-    },
-    {
-      id: 2,
-      title: t('main.careerHealth') || 'Career Health Score',
-      description: t('main.careerHealthDesc') || 'Visualize your career performance and growth analytics.',
-      icon: Heart,
-      gradient: 'from-pink-500 to-rose-500',
-      path: '/career-health',
-      bgGlow: 'bg-pink-500/20'
     },
     {
       id: 3,
@@ -43,12 +43,12 @@ export default function MainDashboard() {
     },
     {
       id: 4,
-      title: t('main.careerGuide') || 'Career Guidance',
-      description: t('main.careerGuideDesc') || 'Get adaptive career recommendations based on your performance.',
-      icon: Brain,
-      gradient: 'from-emerald-500 to-teal-500',
-      path: '/career-guide',
-      bgGlow: 'bg-emerald-500/20'
+      title: t('main.careerHealth') || 'Career Health Score',
+      description: t('main.careerHealthDesc') || 'Visualize your career performance and growth analytics.',
+      icon: Heart,
+      gradient: 'from-pink-500 to-rose-500',
+      path: '/career-health',
+      bgGlow: 'bg-pink-500/20'
     }
   ];
 
