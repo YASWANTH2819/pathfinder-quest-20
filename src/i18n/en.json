@@ -107,17 +107,6 @@
     "needsUpskill": "Needs Upskill",
     "formula": "Formula: (ATS Score + Skills Match + Roadmap Progress) / 3"
   },
-  "roadmap": {
-    "title": "Career Roadmap",
-    "generating": "Generating roadmap...",
-    "shortTerm": "Short Term (0-6 months)",
-    "midTerm": "Mid Term (6-18 months)",
-    "longTerm": "Long Term (18+ months)",
-    "skills": "Skills to Learn",
-    "projects": "Projects",
-    "certifications": "Certifications",
-    "resources": "Resources"
-  },
   "dashboard": {
     "title": "Dashboard",
     "welcomeBack": "Welcome back",
@@ -166,11 +155,24 @@
     "recommendations": "Recommendations"
   },
   "roadmap": {
-    "title": "Career Roadmap Generator",
+    "title": "Career Growth Path",
+    "subtitle": "Your personalized path to success",
+    "generateRoadmap": "Generate AI Roadmap",
+    "noCareerOptions": "No Career Options Yet",
+    "completeGuidance": "Please complete the Career Guidance module first to get personalized career recommendations.",
+    "goToGuidance": "Go to Career Guidance",
+    "selectCareer": "Select Your Career Path",
+    "selectCareerDesc": "Choose a career to start your personalized learning journey",
+    "keySkills": "Key Skills",
+    "startPath": "Start this Path",
+    "generating": "Generating...",
+    "careerSelected": "Career Path Selected!",
+    "roadmapGenerated": "Your personalized roadmap is ready!",
+    "milestones": "milestones",
+    "milestoneComplete": "Milestone Complete!",
     "goalLabel": "What is your career goal?",
     "goalPlaceholder": "e.g., Become a full-stack developer, Get promoted to team lead, Switch to data science...",
     "generate": "Generate Roadmap",
-    "generating": "Generating roadmap...",
     "success": "Roadmap Generated",
     "generated": "Your personalized career roadmap has been created",
     "error": "Generation Failed",
@@ -183,7 +185,11 @@
     "longTerm": "18+ Months",
     "shortTermTitle": "Short Term Goals (0-6 Months)",
     "midTermTitle": "Mid Term Goals (6-18 Months)",
-    "longTermTitle": "Long Term Goals (18+ Months)"
+    "longTermTitle": "Long Term Goals (18+ Months)",
+    "skills": "Skills to Learn",
+    "projects": "Projects",
+    "certifications": "Certifications",
+    "resources": "Resources"
   },
   "pages": {
     "resumeAnalyzer": {

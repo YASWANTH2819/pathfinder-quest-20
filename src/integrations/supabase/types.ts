@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      career_options: {
+        Row: {
+          career_name: string
+          created_at: string
+          description: string | null
+          id: string
+          match_percentage: number | null
+          rationale: string | null
+          required_skills: string[] | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          career_name: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          match_percentage?: number | null
+          rationale?: string | null
+          required_skills?: string[] | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          career_name?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          match_percentage?: number | null
+          rationale?: string | null
+          required_skills?: string[] | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       career_profiles: {
         Row: {
           age: string
@@ -91,6 +127,53 @@ export type Database = {
           work_environment?: string | null
         }
         Relationships: []
+      }
+      career_progress: {
+        Row: {
+          created_at: string
+          id: string
+          last_activity_date: string | null
+          roadmap_data: Json | null
+          selected_career_id: string | null
+          selected_career_name: string | null
+          streak_count: number | null
+          updated_at: string
+          user_id: string
+          xp: number | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_activity_date?: string | null
+          roadmap_data?: Json | null
+          selected_career_id?: string | null
+          selected_career_name?: string | null
+          streak_count?: number | null
+          updated_at?: string
+          user_id: string
+          xp?: number | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_activity_date?: string | null
+          roadmap_data?: Json | null
+          selected_career_id?: string | null
+          selected_career_name?: string | null
+          streak_count?: number | null
+          updated_at?: string
+          user_id?: string
+          xp?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "career_progress_selected_career_id_fkey"
+            columns: ["selected_career_id"]
+            isOneToOne: false
+            referencedRelation: "career_options"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       resumes: {
         Row: {
