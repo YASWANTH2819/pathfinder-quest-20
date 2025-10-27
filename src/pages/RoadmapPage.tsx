@@ -637,19 +637,374 @@ export const RoadmapPage: React.FC = () => {
     );
   }
 
+  const level = getLevel(progress.xp);
+  const overallProgress = calculateOverallProgress();
+
   return (
-    <div className="min-h-screen cyber-grid">
-      <div className="container mx-auto px-4 py-8">
-        <Button variant="glass" size="icon" onClick={() => navigate('/main')} className="mb-6">
+    <div className="min-h-screen cyber-grid relative overflow-hidden">
+      {/* Particle Background */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {[...Array(40)].map((_, i) => (
+          <motion.div
+            key={i}
+            className="absolute w-1 h-1 bg-primary/30 rounded-full"
+            animate={{
+              x: [Math.random() * window.innerWidth, Math.random() * window.innerWidth],
+              y: [Math.random() * window.innerHeight, Math.random() * window.innerHeight],
+              opacity: [0, 1, 0],
+            }}
+            transition={{
+              duration: Math.random() * 15 + 15,
+              repeat: Infinity,
+              ease: "linear"
+            }}
+            style={{
+              left: Math.random() * 100 + '%',
+              top: Math.random() * 100 + '%',
+            }}
+          />
+        ))}
+      </div>
+
+      {/* Achievement Popup */}
+      <AnimatePresence>
+        {showAchievement && (
+          <motion.div
+            initial={{ y: -100, opacity: 0, scale: 0.8 }}
+            animate={{ y: 20, opacity: 1, scale: 1 }}
+            exit={{ y: -100, opacity: 0, scale: 0.8 }}
+            className="fixed top-0 left-1/2 -translate-x-1/2 z-50"
+          >
+            <Card className="glass-card border-2 border-primary shadow-[0_0_40px_rgba(var(--primary),0.6)] bg-gradient-to-br from-primary/20 to-purple-500/20">
+              <CardContent className="p-4 flex items-center gap-3">
+                <motion.div
+                  animate={{ rotate: [0, 360] }}
+                  transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                >
+                  <Trophy className="w-8 h-8 text-primary drop-shadow-[0_0_15px_rgba(var(--primary),1)]" />
+                </motion.div>
+                <div>
+                  <p className="font-orbitron font-bold text-lg gradient-text">
+                    {t('roadmap.achievementUnlocked') || 'Achievement Unlocked!'}
+                  </p>
+                  <p className="text-sm text-muted-foreground">{showAchievement}</p>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <div className="container mx-auto px-4 py-8 relative z-10">
+        <Button
+          variant="glass"
+          size="icon"
+          onClick={() => navigate('/main')}
+          className="mb-6 hover:scale-110 transition-transform"
+        >
           <ArrowLeft className="w-5 h-5" />
         </Button>
-        
-        <h1 className="text-4xl font-orbitron font-bold gradient-text mb-4">{progress.selectedCareerName}</h1>
-        <p className="text-muted-foreground italic mb-6">"{getMotivationalQuote(progress.xp, t)}"</p>
-        
-        <div className="text-center text-muted-foreground py-12">
-          Your gamified roadmap progress continues here with all existing features intact.
+
+        {/* Header */}
+        <motion.div
+          initial={{ y: -20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          className="mb-8 text-center"
+        >
+          <h1 className="text-5xl font-orbitron font-bold gradient-text mb-2 drop-shadow-[0_0_20px_rgba(var(--primary),0.5)]">
+            {progress.selectedCareerName}
+          </h1>
+          <p className="text-muted-foreground text-lg italic">
+            "{getMotivationalQuote(progress.xp, t)}"
+          </p>
+        </motion.div>
+
+        {/* Hero Stats Section */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          {/* XP & Level */}
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.1 }}
+          >
+            <Card className="glass-card border-2 border-primary/30 hover:border-primary/60 transition-all shadow-[0_0_20px_rgba(var(--primary),0.2)] hover:shadow-[0_0_30px_rgba(var(--primary),0.4)]">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <motion.div
+                      animate={{ scale: [1, 1.2, 1] }}
+                      transition={{ duration: 2, repeat: Infinity }}
+                    >
+                      <Zap className="w-6 h-6 text-primary drop-shadow-[0_0_10px_rgba(var(--primary),0.8)]" />
+                    </motion.div>
+                    <span className="font-orbitron font-bold text-lg">{level.title}</span>
+                  </div>
+                  <span className="text-2xl font-bold gradient-text">{progress.xp} XP</span>
+                </div>
+                <Progress value={(level.progress / 500) * 100} className="h-3" />
+                <p className="text-xs text-muted-foreground mt-2 text-center">
+                  {level.progress} / 500 XP {t('roadmap.toNextLevel') || 'to next level'}
+                </p>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          {/* Streak Counter */}
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.2 }}
+          >
+            <Card className="glass-card border-2 border-orange-500/30 hover:border-orange-500/60 transition-all shadow-[0_0_20px_rgba(251,146,60,0.2)] hover:shadow-[0_0_30px_rgba(251,146,60,0.4)]">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-center gap-3 mb-2">
+                  <motion.div
+                    animate={progress.streakCount >= 7 ? {
+                      scale: [1, 1.3, 1],
+                      rotate: [0, 10, -10, 0]
+                    } : {}}
+                    transition={{ duration: 2, repeat: Infinity }}
+                  >
+                    <Flame className={`w-10 h-10 ${progress.streakCount >= 7 ? 'text-orange-500 drop-shadow-[0_0_20px_rgba(251,146,60,1)]' : 'text-orange-400'}`} />
+                  </motion.div>
+                  <span className="text-4xl font-bold gradient-text">{progress.streakCount}</span>
+                </div>
+                <p className="text-center font-orbitron font-semibold text-lg">
+                  {t('roadmap.dayStreak') || 'Day Streak'}
+                </p>
+                <p className="text-xs text-muted-foreground text-center mt-1">
+                  {t('roadmap.keepGoing') || 'Keep learning daily!'}
+                </p>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          {/* Overall Progress */}
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.3 }}
+          >
+            <Card className="glass-card border-2 border-green-500/30 hover:border-green-500/60 transition-all shadow-[0_0_20px_rgba(34,197,94,0.2)] hover:shadow-[0_0_30px_rgba(34,197,94,0.4)]">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-6 h-6 text-green-500" />
+                    <span className="font-orbitron font-bold text-lg">{t('roadmap.progress') || 'Progress'}</span>
+                  </div>
+                  <span className="text-2xl font-bold gradient-text">{overallProgress}%</span>
+                </div>
+                <Progress value={overallProgress} className="h-3" />
+                <p className="text-xs text-muted-foreground mt-2 text-center">
+                  {t('roadmap.completionRate') || 'Path completion rate'}
+                </p>
+              </CardContent>
+            </Card>
+          </motion.div>
         </div>
+
+        {/* Trophy Wall */}
+        <motion.div
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.4 }}
+          className="mb-8"
+        >
+          <Card className="glass-card border-2 border-primary/20">
+            <CardHeader>
+              <CardTitle className="font-orbitron gradient-text flex items-center gap-2">
+                <Trophy className="w-6 h-6" />
+                {t('roadmap.trophyWall') || 'Trophy Wall'}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {['starter', 'consistent', 'crusher', 'pathfinder'].map((badgeId, index) => {
+                  const badge = getBadgeInfo(badgeId);
+                  const earned = badges.includes(badgeId);
+                  return (
+                    <motion.div
+                      key={badgeId}
+                      initial={{ scale: 0, rotate: -180 }}
+                      animate={{ scale: 1, rotate: 0 }}
+                      transition={{ delay: 0.5 + index * 0.1, type: "spring" }}
+                      whileHover={{ scale: earned ? 1.1 : 1, rotate: earned ? [0, -5, 5, 0] : 0 }}
+                      className={`relative group ${earned ? '' : 'opacity-40 grayscale'}`}
+                    >
+                      <div className={`absolute -inset-1 bg-gradient-to-r ${earned ? 'from-primary via-purple-500 to-primary opacity-50 blur-lg' : 'opacity-0'} rounded-lg transition-opacity`} />
+                      <Card className={`relative border-2 ${earned ? 'border-primary/50 shadow-[0_0_20px_rgba(var(--primary),0.3)]' : 'border-muted'} transition-all bg-gradient-to-br from-card to-${earned ? 'primary' : 'muted'}/10`}>
+                        <CardContent className="p-4 text-center">
+                          <motion.div
+                            animate={earned ? { rotate: [0, 360] } : {}}
+                            transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                            className="text-4xl mb-2"
+                          >
+                            {badge.icon}
+                          </motion.div>
+                          <p className={`font-orbitron font-bold text-sm ${badge.color}`}>
+                            {badge.title}
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {badge.desc}
+                          </p>
+                          {earned && (
+                            <motion.div
+                              initial={{ scale: 0 }}
+                              animate={{ scale: 1 }}
+                              className="absolute -top-2 -right-2"
+                            >
+                              <div className="bg-green-500 rounded-full p-1 shadow-[0_0_15px_rgba(34,197,94,0.8)]">
+                                <Check className="w-3 h-3 text-white" />
+                              </div>
+                            </motion.div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Milestones Section */}
+        <motion.div
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.6 }}
+        >
+          <h2 className="text-3xl font-orbitron font-bold gradient-text mb-6 flex items-center gap-2">
+            <Target className="w-8 h-8" />
+            {t('roadmap.yourJourney') || 'Your Learning Journey'}
+          </h2>
+
+          <div className="space-y-6">
+            {progress.roadmapData.milestones.map((milestone, index) => {
+              const completedTasks = milestone.tasks.filter(t => t.isCompleted).length;
+              const totalTasks = milestone.tasks.length;
+              const milestoneProgress = (completedTasks / totalTasks) * 100;
+              const isExpanded = expandedMilestone === milestone.id;
+              const isCompleted = completedTasks === totalTasks;
+
+              return (
+                <motion.div
+                  key={milestone.id}
+                  initial={{ x: -50, opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  transition={{ delay: 0.7 + index * 0.1 }}
+                >
+                  <div className="relative group">
+                    <div className={`absolute -inset-0.5 bg-gradient-to-r ${isCompleted ? 'from-green-500 via-emerald-500 to-green-500' : 'from-primary via-purple-500 to-primary'} rounded-lg opacity-30 group-hover:opacity-60 blur transition duration-500`} />
+                    <Card className={`relative glass-card border-2 ${isCompleted ? 'border-green-500/50' : 'border-primary/30'} transition-all`}>
+                      <CardHeader
+                        className="cursor-pointer"
+                        onClick={() => setExpandedMilestone(isExpanded ? null : milestone.id)}
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3 mb-2">
+                              <div className={`w-10 h-10 rounded-full ${isCompleted ? 'bg-green-500' : 'bg-primary/20'} flex items-center justify-center border-2 ${isCompleted ? 'border-green-500' : 'border-primary'} shadow-[0_0_15px_rgba(var(--primary),0.5)]`}>
+                                {isCompleted ? (
+                                  <CheckCircle2 className="w-6 h-6 text-white" />
+                                ) : (
+                                  <span className="font-bold text-primary">{index + 1}</span>
+                                )}
+                              </div>
+                              <div>
+                                <CardTitle className="text-xl font-orbitron gradient-text">
+                                  {milestone.title}
+                                </CardTitle>
+                                <CardDescription className="text-sm mt-1">
+                                  {milestone.description}
+                                </CardDescription>
+                              </div>
+                            </div>
+                            
+                            <div className="mt-4 space-y-2">
+                              <div className="flex items-center justify-between text-sm">
+                                <span className="text-muted-foreground">
+                                  {completedTasks} / {totalTasks} {t('roadmap.tasksCompleted') || 'tasks completed'}
+                                </span>
+                                <Badge variant="secondary" className="bg-primary/20 border-primary/30">
+                                  +{milestone.xpReward} XP
+                                </Badge>
+                              </div>
+                              <Progress value={milestoneProgress} className="h-2" />
+                            </div>
+                          </div>
+                          
+                          <motion.div
+                            animate={{ rotate: isExpanded ? 180 : 0 }}
+                            transition={{ duration: 0.3 }}
+                          >
+                            <ChevronDown className="w-6 h-6 text-muted-foreground" />
+                          </motion.div>
+                        </div>
+                      </CardHeader>
+
+                      <AnimatePresence>
+                        {isExpanded && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.3 }}
+                          >
+                            <CardContent>
+                              <div className="space-y-3">
+                                {milestone.tasks.map((task, taskIndex) => (
+                                  <motion.div
+                                    key={task.id}
+                                    initial={{ x: -20, opacity: 0 }}
+                                    animate={{ x: 0, opacity: 1 }}
+                                    transition={{ delay: taskIndex * 0.05 }}
+                                  >
+                                    <div className={`flex items-start gap-3 p-4 rounded-lg border-2 ${task.isCompleted ? 'border-green-500/30 bg-green-500/5' : 'border-primary/20 bg-card/50'} transition-all hover:border-primary/50`}>
+                                      <Checkbox
+                                        checked={task.isCompleted}
+                                        onCheckedChange={() => handleTaskComplete(milestone.id, task.id, task.isCompleted)}
+                                        className="mt-1"
+                                      />
+                                      
+                                      <div className="flex-1">
+                                        <div className="flex items-start gap-2 mb-1">
+                                          <div className={`p-1.5 rounded ${task.isCompleted ? 'bg-green-500/20' : 'bg-primary/20'}`}>
+                                            {getTaskIcon(task.type)}
+                                          </div>
+                                          <div className="flex-1">
+                                            <p className={`font-semibold ${task.isCompleted ? 'line-through text-muted-foreground' : ''}`}>
+                                              {task.title}
+                                            </p>
+                                            <p className="text-sm text-muted-foreground mt-1">
+                                              {task.description}
+                                            </p>
+                                          </div>
+                                        </div>
+                                      </div>
+                                      
+                                      <Badge 
+                                        variant="outline" 
+                                        className={`${task.isCompleted ? 'bg-green-500/20 border-green-500/50' : 'bg-primary/10 border-primary/30'}`}
+                                      >
+                                        <Zap className="w-3 h-3 mr-1" />
+                                        +{task.xpReward} XP
+                                      </Badge>
+                                    </div>
+                                  </motion.div>
+                                ))}
+                              </div>
+                            </CardContent>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </Card>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        </motion.div>
       </div>
     </div>
   );

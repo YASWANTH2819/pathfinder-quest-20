@@ -189,7 +189,39 @@
     "skills": "सीखने के लिए कौशल",
     "projects": "परियोजनाएं",
     "certifications": "प्रमाणपत्र",
-    "resources": "संसाधन"
+    "resources": "संसाधन",
+    "toNextLevel": "अगले स्तर तक",
+    "dayStreak": "दिनों की श्रृंखला",
+    "keepGoing": "रोज सीखते रहें!",
+    "progress": "प्रगति",
+    "completionRate": "पथ पूर्णता दर",
+    "trophyWall": "ट्रॉफी दीवार",
+    "yourJourney": "आपकी सीखने की यात्रा",
+    "tasksCompleted": "कार्य पूर्ण",
+    "achievementUnlocked": "उपलब्धि अनलॉक!",
+    "level": {
+      "explorer": "खोजकर्ता",
+      "achiever": "उपलब्धिकर्ता",
+      "master": "निपुण",
+      "legend": "महान"
+    },
+    "badges": {
+      "starter": "शुरुआती",
+      "starterDesc": "पहला मील का पत्थर",
+      "consistent": "निरंतर शिक्षार्थी",
+      "consistentDesc": "7-दिन की श्रृंखला",
+      "crusher": "लक्ष्य विजेता",
+      "crusherDesc": "सभी मील के पत्थर",
+      "pathfinder": "पाथफाइंडर प्रो",
+      "pathfinderDesc": "अधिकतम XP तक पहुंचा"
+    },
+    "quotes": {
+      "beginner": "हर विशेषज्ञ एक बार शुरुआती था। अपनी यात्रा शुरू करें!",
+      "learner": "आप बहुत अच्छी प्रगति कर रहे हैं! आगे बढ़ते रहें।",
+      "achiever": "आपका समर्पण रंग ला रहा है! आप अजेय बन रहे हैं।",
+      "master": "महारत पहुंच में है। आपका भविष्य आपका शुक्रगुजार होगा।",
+      "legend": "आप एक महान व्यक्ति बनने की राह पर हैं! दूसरों को प्रेरित करें।"
+    }
   },
   "pages": {
     "resumeAnalyzer": {

@@ -189,7 +189,39 @@
     "skills": "Skills to Learn",
     "projects": "Projects",
     "certifications": "Certifications",
-    "resources": "Resources"
+    "resources": "Resources",
+    "toNextLevel": "to next level",
+    "dayStreak": "Day Streak",
+    "keepGoing": "Keep learning daily!",
+    "progress": "Progress",
+    "completionRate": "Path completion rate",
+    "trophyWall": "Trophy Wall",
+    "yourJourney": "Your Learning Journey",
+    "tasksCompleted": "tasks completed",
+    "achievementUnlocked": "Achievement Unlocked!",
+    "level": {
+      "explorer": "Explorer",
+      "achiever": "Achiever",
+      "master": "Master",
+      "legend": "Legend"
+    },
+    "badges": {
+      "starter": "Starter",
+      "starterDesc": "First milestone",
+      "consistent": "Consistent Learner",
+      "consistentDesc": "7-day streak",
+      "crusher": "Goal Crusher",
+      "crusherDesc": "All milestones",
+      "pathfinder": "Pathfinder Pro",
+      "pathfinderDesc": "Max XP reached"
+    },
+    "quotes": {
+      "beginner": "Every expert was once a beginner. Start your journey!",
+      "learner": "You're making great progress! Keep pushing forward.",
+      "achiever": "Your dedication is paying off! You're becoming unstoppable.",
+      "master": "Mastery is within reach. Your future self will thank you.",
+      "legend": "You're a legend in the making! Inspire others with your journey."
+    }
   },
   "pages": {
     "resumeAnalyzer": {
