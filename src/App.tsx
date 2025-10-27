@@ -55,7 +55,7 @@ const App = () => (
                 } />
                 <Route path="/career-growth" element={
                   <ProtectedRoute>
-                    <MainPage />
+                    <RoadmapPage />
                   </ProtectedRoute>
                 } />
                 <Route path="/career-health" element={
