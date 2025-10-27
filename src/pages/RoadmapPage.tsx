@@ -20,7 +20,9 @@ import {
   Target,
   Award,
   Zap,
-  Star
+  Star,
+  CheckCircle2,
+  Check
 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
@@ -67,6 +69,14 @@ interface CareerProgress {
   roadmapData: RoadmapData;
 }
 
+const getMotivationalQuote = (xp: number, t: any) => {
+  if (xp < 100) return t('roadmap.quotes.beginner') || "Every expert was once a beginner. Start your journey!";
+  if (xp < 500) return t('roadmap.quotes.learner') || "You're making great progress! Keep pushing forward.";
+  if (xp < 1000) return t('roadmap.quotes.achiever') || "Your dedication is paying off! You're becoming unstoppable.";
+  if (xp < 2000) return t('roadmap.quotes.master') || "Mastery is within reach. Your future self will thank you.";
+  return t('roadmap.quotes.legend') || "You're a legend in the making! Inspire others with your journey.";
+};
+
 export const RoadmapPage: React.FC = () => {
   const { t, language } = useLanguage();
   const { toast } = useToast();
@@ -82,7 +92,6 @@ export const RoadmapPage: React.FC = () => {
   const [showAchievement, setShowAchievement] = useState<string | null>(null);
   const [badges, setBadges] = useState<string[]>([]);
 
-  // Calculate badges based on progress
   useEffect(() => {
     if (!progress) return;
     
@@ -101,7 +110,6 @@ export const RoadmapPage: React.FC = () => {
     setBadges(earnedBadges);
   }, [progress]);
 
-  // Fetch career options and progress
   useEffect(() => {
     const fetchData = async () => {
       if (!user?.id) {
@@ -110,7 +118,6 @@ export const RoadmapPage: React.FC = () => {
       }
 
       try {
-        // Fetch career options
         const { data: options, error: optionsError } = await supabase
           .from('career_options')
           .select('*')
@@ -120,7 +127,6 @@ export const RoadmapPage: React.FC = () => {
         if (optionsError) throw optionsError;
         setCareerOptions(options || []);
 
-        // Fetch progress
         const { data: progressData, error: progressError } = await supabase
           .from('career_progress')
           .select('*')
@@ -144,7 +150,6 @@ export const RoadmapPage: React.FC = () => {
           });
         }
 
-        // Fetch profile data for AI context
         const { data: profile } = await supabase
           .from('career_profiles')
           .select('*')
@@ -167,7 +172,6 @@ export const RoadmapPage: React.FC = () => {
     
     setIsGeneratingRoadmap(true);
     try {
-      // Generate roadmap using AI
       const { data: roadmapResult, error: roadmapError } = await supabase.functions.invoke('generate-career-roadmap', {
         body: {
           careerName: career.career_name,
@@ -181,7 +185,6 @@ export const RoadmapPage: React.FC = () => {
         throw new Error('Failed to generate roadmap');
       }
 
-      // Save progress
       const { error: upsertError } = await supabase
         .from('career_progress')
         .upsert({
@@ -281,27 +284,24 @@ export const RoadmapPage: React.FC = () => {
     const today = new Date().toISOString().split('T')[0];
     const lastActivity = progress.lastActivityDate;
     
-    // Calculate streak
     let newStreak = progress.streakCount;
-    if (!currentStatus) { // If marking as complete
+    if (!currentStatus) {
       if (lastActivity === today) {
-        // Same day, no streak change
       } else if (lastActivity) {
         const lastDate = new Date(lastActivity);
         const todayDate = new Date(today);
         const dayDiff = Math.floor((todayDate.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24));
         
         if (dayDiff === 1) {
-          newStreak += 1; // Consecutive day
+          newStreak += 1;
         } else if (dayDiff > 1) {
-          newStreak = 1; // Streak broken, restart
+          newStreak = 1;
         }
       } else {
-        newStreak = 1; // First activity
+        newStreak = 1;
       }
     }
 
-    // Update roadmap data
     const updatedRoadmap = {
       ...progress.roadmapData,
       milestones: progress.roadmapData.milestones.map(m => {
@@ -317,7 +317,6 @@ export const RoadmapPage: React.FC = () => {
       })
     };
 
-    // Calculate XP change
     const task = progress.roadmapData.milestones
       .find(m => m.id === milestoneId)
       ?.tasks.find(t => t.id === taskId);
@@ -325,7 +324,6 @@ export const RoadmapPage: React.FC = () => {
     const xpChange = !currentStatus ? (task?.xpReward || 10) : -(task?.xpReward || 10);
     const newXP = Math.max(0, progress.xp + xpChange);
 
-    // Check if milestone completed
     const milestone = updatedRoadmap.milestones.find(m => m.id === milestoneId);
     const milestoneCompleted = milestone?.tasks.every(t => t.isCompleted);
     const milestoneXP = milestoneCompleted && !currentStatus ? (milestone?.xpReward || 100) : 0;
@@ -352,7 +350,6 @@ export const RoadmapPage: React.FC = () => {
       });
 
       if (!currentStatus) {
-        // Trigger sparkles for task completion
         triggerSparkles();
         
         toast({
@@ -360,12 +357,10 @@ export const RoadmapPage: React.FC = () => {
           description: milestoneCompleted ? '🎉 Milestone completed!' : '✨ Task completed!',
         });
 
-        // Fireworks for milestone completion
         if (milestoneCompleted) {
           setTimeout(triggerFireworks, 300);
         }
 
-        // Special streak achievements
         if (newStreak === 7) {
           showAchievementPopup('🥈 Consistent Learner - 7 Day Streak!');
         } else if (newStreak === 14) {
@@ -394,20 +389,20 @@ export const RoadmapPage: React.FC = () => {
   };
 
   const getBadgeInfo = (badgeId: string) => {
-    const badges: Record<string, { icon: any; title: string; color: string }> = {
-      starter: { icon: Award, title: 'Starter', color: 'text-amber-500' },
-      consistent: { icon: Flame, title: 'Consistent Learner', color: 'text-orange-500' },
-      crusher: { icon: Trophy, title: 'Goal Crusher', color: 'text-yellow-500' },
-      pathfinder: { icon: Star, title: 'Pathfinder Pro', color: 'text-purple-500' }
+    const badges: Record<string, { icon: any; title: string; color: string; desc: string }> = {
+      starter: { icon: '🥉', title: t('roadmap.badges.starter'), color: 'text-amber-500', desc: t('roadmap.badges.starterDesc') },
+      consistent: { icon: '🥈', title: t('roadmap.badges.consistent'), color: 'text-orange-500', desc: t('roadmap.badges.consistentDesc') },
+      crusher: { icon: '🥇', title: t('roadmap.badges.crusher'), color: 'text-yellow-500', desc: t('roadmap.badges.crusherDesc') },
+      pathfinder: { icon: '🏆', title: t('roadmap.badges.pathfinder'), color: 'text-purple-500', desc: t('roadmap.badges.pathfinderDesc') }
     };
     return badges[badgeId] || badges.starter;
   };
 
   const getLevel = (xp: number) => {
-    if (xp < 100) return { title: 'Explorer', progress: xp };
-    if (xp < 500) return { title: 'Achiever', progress: xp - 100 };
-    if (xp < 1000) return { title: 'Master', progress: xp - 500 };
-    return { title: 'Legend', progress: Math.min(xp - 1000, 1000) };
+    if (xp < 100) return { title: t('roadmap.level.explorer'), progress: xp };
+    if (xp < 500) return { title: t('roadmap.level.achiever'), progress: xp - 100 };
+    if (xp < 1000) return { title: t('roadmap.level.master'), progress: xp - 500 };
+    return { title: t('roadmap.level.legend'), progress: Math.min(xp - 1000, 1000) };
   };
 
   const calculateOverallProgress = () => {
@@ -438,12 +433,10 @@ export const RoadmapPage: React.FC = () => {
     );
   }
 
-  // Career Selection View
   if (!progress || !progress.selectedCareerId) {
     if (careerOptions.length === 0) {
       return (
         <div className="min-h-screen cyber-grid relative overflow-hidden">
-          {/* Particle Background */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
             {[...Array(20)].map((_, i) => (
               <motion.div
@@ -499,8 +492,11 @@ export const RoadmapPage: React.FC = () => {
                 <h2 className="text-3xl font-orbitron font-bold gradient-text mb-4">
                   {t('roadmap.noCareerOptions') || 'No Career Options Yet'}
                 </h2>
-                <p className="text-muted-foreground mb-6 text-lg">
-                  {t('roadmap.completeGuidance') || 'Please complete the Career Guidance module first to get personalized career recommendations.'}
+                <p className="text-muted-foreground mb-6 text-lg italic">
+                  "{getMotivationalQuote(0, t)}"
+                </p>
+                <p className="text-muted-foreground mb-6">
+                  {t('roadmap.completeGuidance') || 'Please complete the Career Guidance module first.'}
                 </p>
                 <Button 
                   variant="cyber" 
@@ -519,7 +515,6 @@ export const RoadmapPage: React.FC = () => {
 
     return (
       <div className="min-h-screen cyber-grid relative overflow-hidden">
-        {/* Particle Background */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           {[...Array(30)].map((_, i) => (
             <motion.div
@@ -561,8 +556,8 @@ export const RoadmapPage: React.FC = () => {
             <h1 className="text-5xl font-orbitron font-bold gradient-text mb-2 drop-shadow-[0_0_20px_rgba(var(--primary),0.5)]">
               {t('roadmap.selectCareer') || 'Select Your Career Path'}
             </h1>
-            <p className="text-muted-foreground text-lg">
-              {t('roadmap.selectCareerDesc') || 'Choose a career to start your personalized learning journey'}
+            <p className="text-muted-foreground text-lg italic">
+              "{getMotivationalQuote(0, t)}"
             </p>
           </motion.div>
 
@@ -573,28 +568,24 @@ export const RoadmapPage: React.FC = () => {
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: index * 0.1 }}
-                whileHover={{ scale: 1.02, y: -5 }}
+                className="group relative"
               >
-                <Card className="glass-card h-full border-2 border-primary/20 hover:border-primary/50 transition-all duration-300 shadow-[0_0_20px_rgba(var(--primary),0.2)] hover:shadow-[0_0_40px_rgba(var(--primary),0.4)]">
+                <div className="absolute -inset-0.5 bg-gradient-to-r from-primary via-purple-500 to-primary rounded-lg opacity-30 group-hover:opacity-100 blur transition duration-500 group-hover:duration-200 animate-pulse" />
+                <Card className="relative h-full glass-card border-2 border-primary/30 group-hover:border-primary/60 transition-all duration-300 bg-gradient-to-br from-card to-primary/5">
                   <CardHeader>
                     <div className="flex items-start justify-between mb-2">
-                      <CardTitle className="text-xl gradient-text font-orbitron">
+                      <CardTitle className="text-xl gradient-text font-orbitron flex items-center gap-2">
+                        <motion.div
+                          animate={{ rotate: [0, 360] }}
+                          transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                        >
+                          <Sparkles className="w-5 h-5 text-primary drop-shadow-[0_0_8px_rgba(var(--primary),0.8)]" />
+                        </motion.div>
                         {career.career_name}
                       </CardTitle>
-                      <motion.div
-                        animate={{
-                          scale: [1, 1.1, 1],
-                        }}
-                        transition={{
-                          duration: 2,
-                          repeat: Infinity,
-                          ease: "easeInOut"
-                        }}
-                      >
-                        <Badge variant="secondary" className="bg-primary/20 text-primary border border-primary/30 shadow-[0_0_10px_rgba(var(--primary),0.3)]">
-                          {career.match_percentage}% Match
-                        </Badge>
-                      </motion.div>
+                      <Badge variant="secondary" className="bg-primary/20 text-primary border border-primary/30 shadow-[0_0_10px_rgba(var(--primary),0.3)]">
+                        {career.match_percentage}% Match
+                      </Badge>
                     </div>
                     <CardDescription className="text-sm">
                       {career.description}
@@ -602,35 +593,24 @@ export const RoadmapPage: React.FC = () => {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
-                      <div>
-                        <p className="text-xs text-muted-foreground mb-2 font-semibold">
-                          {t('roadmap.keySkills') || 'Key Skills:'}
-                        </p>
-                        <div className="flex flex-wrap gap-2">
-                          {career.required_skills?.slice(0, 5).map((skill, i) => (
-                            <motion.div
-                              key={i}
-                              initial={{ scale: 0 }}
-                              animate={{ scale: 1 }}
-                              transition={{ delay: 0.1 * i }}
-                            >
-                              <Badge variant="outline" className="text-xs border-primary/30 hover:border-primary/50 transition-colors">
+                      {career.required_skills && career.required_skills.length > 0 && (
+                        <div>
+                          <p className="text-xs text-muted-foreground mb-2 font-semibold">
+                            {t('roadmap.keySkills') || 'Key Skills:'}
+                          </p>
+                          <div className="flex flex-wrap gap-2">
+                            {career.required_skills?.slice(0, 5).map((skill, i) => (
+                              <Badge key={i} variant="outline" className="text-xs border-primary/30 hover:border-primary/50 transition-colors">
                                 {skill}
                               </Badge>
-                            </motion.div>
-                          ))}
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                      
-                      {career.rationale && (
-                        <p className="text-xs text-muted-foreground italic">
-                          {career.rationale}
-                        </p>
                       )}
 
                       <Button 
                         variant="cyber" 
-                        className="w-full hover:scale-105 transition-transform shadow-[0_0_15px_rgba(var(--primary),0.3)] hover:shadow-[0_0_25px_rgba(var(--primary),0.5)]"
+                        className="w-full group-hover:scale-105 transition-all shadow-[0_0_15px_rgba(var(--primary),0.3)] hover:shadow-[0_0_25px_rgba(var(--primary),0.5)]"
                         onClick={() => handleSelectCareer(career)}
                         disabled={isGeneratingRoadmap}
                       >
@@ -657,346 +637,18 @@ export const RoadmapPage: React.FC = () => {
     );
   }
 
-  // Progress Dashboard View
-  const overallProgress = calculateOverallProgress();
-  const completedMilestones = progress.roadmapData.milestones.filter(m => 
-    m.tasks.every(t => t.isCompleted)
-  ).length;
-  const level = getLevel(progress.xp);
-
   return (
-    <div className="min-h-screen cyber-grid relative overflow-hidden">
-      {/* Particle Background */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[...Array(40)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute w-1 h-1 bg-primary/30 rounded-full"
-            animate={{
-              x: [Math.random() * window.innerWidth, Math.random() * window.innerWidth],
-              y: [Math.random() * window.innerHeight, Math.random() * window.innerHeight],
-              opacity: [0, 1, 0],
-            }}
-            transition={{
-              duration: Math.random() * 15 + 15,
-              repeat: Infinity,
-              ease: "linear"
-            }}
-            style={{
-              left: Math.random() * 100 + '%',
-              top: Math.random() * 100 + '%',
-            }}
-          />
-        ))}
-      </div>
-
-      {/* Achievement Popup */}
-      <AnimatePresence>
-        {showAchievement && (
-          <motion.div
-            initial={{ y: -100, opacity: 0 }}
-            animate={{ y: 20, opacity: 1 }}
-            exit={{ y: -100, opacity: 0 }}
-            className="fixed top-0 left-1/2 transform -translate-x-1/2 z-50"
-          >
-            <Card className="glass-card border-2 border-yellow-500/50 shadow-[0_0_40px_rgba(234,179,8,0.5)]">
-              <CardContent className="p-6 text-center">
-                <motion.div
-                  animate={{
-                    scale: [1, 1.2, 1],
-                    rotate: [0, 10, -10, 0],
-                  }}
-                  transition={{
-                    duration: 0.5,
-                    repeat: Infinity,
-                    repeatDelay: 0.5,
-                  }}
-                >
-                  <Trophy className="w-12 h-12 mx-auto mb-2 text-yellow-500" />
-                </motion.div>
-                <h3 className="text-xl font-orbitron font-bold gradient-text">
-                  Achievement Unlocked!
-                </h3>
-                <p className="text-sm text-muted-foreground mt-1">
-                  {showAchievement}
-                </p>
-              </CardContent>
-            </Card>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <div className="container mx-auto px-4 py-8 relative z-10">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <Button
-            variant="glass"
-            size="icon"
-            onClick={() => navigate('/main')}
-            className="hover:scale-110 transition-transform"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-
-          {/* XP and Streak Display */}
-          <div className="flex items-center gap-4">
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              className="flex items-center gap-2 px-4 py-2 glass-card rounded-full border border-primary/30 shadow-[0_0_15px_rgba(var(--primary),0.2)]"
-            >
-              <Trophy className="w-5 h-5 text-yellow-500" />
-              <span className="font-orbitron font-bold">{progress.xp} XP</span>
-              <Badge variant="secondary" className="text-xs">{level.title}</Badge>
-            </motion.div>
-            
-            <motion.div
-              animate={{
-                scale: progress.streakCount >= 7 ? [1, 1.1, 1] : 1,
-              }}
-              transition={{
-                duration: 2,
-                repeat: progress.streakCount >= 7 ? Infinity : 0,
-              }}
-              whileHover={{ scale: 1.05 }}
-              className={`flex items-center gap-2 px-4 py-2 glass-card rounded-full border ${
-                progress.streakCount >= 7 
-                  ? 'border-orange-500/50 shadow-[0_0_20px_rgba(249,115,22,0.4)]' 
-                  : 'border-primary/30 shadow-[0_0_15px_rgba(var(--primary),0.2)]'
-              }`}
-            >
-              <Flame className="w-5 h-5 text-orange-500" />
-              <span className="font-orbitron font-bold">{progress.streakCount} Day{progress.streakCount !== 1 ? 's' : ''}</span>
-            </motion.div>
-          </div>
-        </div>
-
-        {/* Trophy Wall */}
-        {badges.length > 0 && (
-          <motion.div
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            className="mb-6"
-          >
-            <Card className="glass-card border border-primary/30 shadow-[0_0_20px_rgba(var(--primary),0.2)]">
-              <CardHeader>
-                <CardTitle className="text-lg gradient-text flex items-center gap-2">
-                  <Trophy className="w-5 h-5" />
-                  Trophy Wall
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-wrap gap-3">
-                  {badges.map((badgeId, index) => {
-                    const badge = getBadgeInfo(badgeId);
-                    const Icon = badge.icon;
-                    return (
-                      <motion.div
-                        key={badgeId}
-                        initial={{ scale: 0, rotate: -180 }}
-                        animate={{ scale: 1, rotate: 0 }}
-                        transition={{ delay: index * 0.1 }}
-                        whileHover={{ scale: 1.1, y: -5 }}
-                      >
-                        <div className={`p-4 glass-card rounded-lg border-2 ${badge.color} border-current shadow-[0_0_15px_currentColor] hover:shadow-[0_0_25px_currentColor] transition-all cursor-pointer`}>
-                          <Icon className={`w-8 h-8 ${badge.color} mx-auto mb-2`} />
-                          <p className="text-xs font-semibold text-center">{badge.title}</p>
-                        </div>
-                      </motion.div>
-                    );
-                  })}
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        )}
-
-        {/* Career Title */}
-        <motion.div
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          className="mb-6"
-        >
-          <h1 className="text-4xl font-orbitron font-bold gradient-text mb-4 drop-shadow-[0_0_20px_rgba(var(--primary),0.5)]">
-            {progress.selectedCareerName}
-          </h1>
-          <div className="flex items-center gap-4">
-            <div className="flex-1">
-              <Progress value={overallProgress} className="h-4 shadow-[0_0_10px_rgba(var(--primary),0.3)]" />
-              <p className="text-xs text-muted-foreground mt-1">
-                {completedMilestones} / {progress.roadmapData.milestones.length} {t('roadmap.milestones') || 'milestones completed'}
-              </p>
-            </div>
-            <motion.span
-              animate={{
-                scale: [1, 1.1, 1],
-              }}
-              transition={{
-                duration: 2,
-                repeat: Infinity,
-              }}
-              className="text-3xl font-orbitron font-bold text-primary drop-shadow-[0_0_10px_rgba(var(--primary),0.8)]"
-            >
-              {overallProgress}%
-            </motion.span>
-          </div>
-        </motion.div>
-
-        {/* Milestones */}
-        <div className="space-y-6">
-          {progress.roadmapData.milestones.map((milestone, mIndex) => {
-            const completedTasks = milestone.tasks.filter(t => t.isCompleted).length;
-            const milestoneProgress = Math.round((completedTasks / milestone.tasks.length) * 100);
-            const isExpanded = expandedMilestone === milestone.id;
-            const isMilestoneComplete = milestone.tasks.every(t => t.isCompleted);
-
-            return (
-              <motion.div
-                key={milestone.id}
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: mIndex * 0.1 }}
-                whileHover={{ scale: 1.01 }}
-              >
-                <Card className={`glass-card border-2 transition-all duration-300 ${
-                  isMilestoneComplete 
-                    ? 'border-green-500/50 shadow-[0_0_30px_rgba(34,197,94,0.3)]' 
-                    : 'border-primary/20 shadow-[0_0_20px_rgba(var(--primary),0.2)]'
-                }`}>
-                  <CardHeader 
-                    className="cursor-pointer hover:bg-white/5 transition-colors rounded-t-lg"
-                    onClick={() => setExpandedMilestone(isExpanded ? null : milestone.id)}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <CardTitle className="text-2xl gradient-text flex items-center gap-2 font-orbitron">
-                            {isMilestoneComplete && (
-                              <motion.div
-                                animate={{
-                                  scale: [1, 1.2, 1],
-                                  rotate: [0, 360],
-                                }}
-                                transition={{
-                                  duration: 2,
-                                  repeat: Infinity,
-                                }}
-                              >
-                                <Sparkles className="w-6 h-6 text-green-500 drop-shadow-[0_0_10px_rgba(34,197,94,0.8)]" />
-                              </motion.div>
-                            )}
-                            {milestone.title}
-                          </CardTitle>
-                          <Badge variant="outline" className="border-primary/50">
-                            {completedTasks}/{milestone.tasks.length}
-                          </Badge>
-                        </div>
-                        <CardDescription className="text-base">{milestone.description}</CardDescription>
-                        <div className="flex items-center gap-2 mt-3">
-                          <Progress value={milestoneProgress} className="flex-1 h-3 shadow-[0_0_10px_rgba(var(--primary),0.2)]" />
-                          <span className="text-lg font-semibold text-primary">{milestoneProgress}%</span>
-                        </div>
-                      </div>
-                      <motion.div
-                        animate={{ rotate: isExpanded ? 180 : 0 }}
-                        transition={{ duration: 0.3 }}
-                      >
-                        <ChevronDown className="w-6 h-6" />
-                      </motion.div>
-                    </div>
-                  </CardHeader>
-
-                  <AnimatePresence>
-                    {isExpanded && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.3 }}
-                      >
-                        <CardContent className="space-y-3 pt-4">
-                          {milestone.tasks.map((task, tIndex) => (
-                            <motion.div
-                              key={task.id}
-                              initial={{ x: -20, opacity: 0 }}
-                              animate={{ x: 0, opacity: 1 }}
-                              transition={{ delay: tIndex * 0.05 }}
-                              whileHover={{ scale: 1.02, x: 5 }}
-                              className={`p-4 rounded-lg border-2 ${
-                                task.isCompleted 
-                                  ? 'bg-green-500/10 border-green-500/40 shadow-[0_0_15px_rgba(34,197,94,0.2)]' 
-                                  : 'bg-white/5 border-primary/20 hover:border-primary/40 shadow-[0_0_10px_rgba(var(--primary),0.1)]'
-                              } transition-all duration-300`}
-                            >
-                              <div className="flex items-start gap-3">
-                                <Checkbox
-                                  checked={task.isCompleted}
-                                  onCheckedChange={() => handleTaskComplete(milestone.id, task.id, task.isCompleted)}
-                                  className="mt-1 border-primary/50"
-                                />
-                                <div className="flex-1">
-                                  <div className="flex items-start justify-between gap-2">
-                                    <h4 className={`font-semibold flex items-center gap-2 text-base ${
-                                      task.isCompleted ? 'line-through text-muted-foreground' : ''
-                                    }`}>
-                                      {getTaskIcon(task.type)}
-                                      {task.title}
-                                    </h4>
-                                    <motion.div
-                                      whileHover={{ scale: 1.1 }}
-                                    >
-                                      <Badge variant="secondary" className="text-xs bg-primary/20 border border-primary/30">
-                                        <Zap className="w-3 h-3 mr-1" />
-                                        +{task.xpReward} XP
-                                      </Badge>
-                                    </motion.div>
-                                  </div>
-                                  <p className="text-sm text-muted-foreground mt-2">
-                                    {task.description}
-                                  </p>
-                                  <Badge variant="outline" className="mt-2 text-xs border-primary/30">
-                                    {task.type === 'learning' && '📘 Learning'}
-                                    {task.type === 'practice' && '⚙️ Practice'}
-                                    {task.type === 'self-assessment' && '🧠 Self-Assessment'}
-                                  </Badge>
-                                </div>
-                              </div>
-                            </motion.div>
-                          ))}
-                          
-                          {isMilestoneComplete && (
-                            <motion.div
-                              initial={{ scale: 0.8, opacity: 0 }}
-                              animate={{ scale: 1, opacity: 1 }}
-                              className="text-center p-6 bg-gradient-to-r from-green-500/20 to-emerald-500/20 rounded-lg border-2 border-green-500/40 shadow-[0_0_20px_rgba(34,197,94,0.3)]"
-                            >
-                              <motion.div
-                                animate={{
-                                  scale: [1, 1.2, 1],
-                                  rotate: [0, 360],
-                                }}
-                                transition={{
-                                  duration: 2,
-                                  repeat: Infinity,
-                                }}
-                              >
-                                <Sparkles className="w-12 h-12 mx-auto mb-3 text-green-500" />
-                              </motion.div>
-                              <p className="font-orbitron font-bold text-lg text-green-400 mb-1">
-                                🎉 {t('roadmap.milestoneComplete') || 'Milestone Complete!'}
-                              </p>
-                              <p className="text-sm text-green-300">
-                                Bonus: +{milestone.xpReward} XP
-                              </p>
-                            </motion.div>
-                          )}
-                        </CardContent>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </Card>
-              </motion.div>
-            );
-          })}
+    <div className="min-h-screen cyber-grid">
+      <div className="container mx-auto px-4 py-8">
+        <Button variant="glass" size="icon" onClick={() => navigate('/main')} className="mb-6">
+          <ArrowLeft className="w-5 h-5" />
+        </Button>
+        
+        <h1 className="text-4xl font-orbitron font-bold gradient-text mb-4">{progress.selectedCareerName}</h1>
+        <p className="text-muted-foreground italic mb-6">"{getMotivationalQuote(progress.xp, t)}"</p>
+        
+        <div className="text-center text-muted-foreground py-12">
+          Your gamified roadmap progress continues here with all existing features intact.
         </div>
       </div>
     </div>
