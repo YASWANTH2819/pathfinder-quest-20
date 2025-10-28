@@ -50,10 +50,10 @@ serve(async (req) => {
 
     const { profileData, goal, language, userId, systemPrompt }: RoadmapRequest = validationResult.data
 
-    // Get Gemini API key from environment
-    const geminiApiKey = Deno.env.get('GEMINI_API_KEY')
-    if (!geminiApiKey) {
-      throw new Error('GEMINI_API_KEY not configured')
+    // Get OpenAI API key from environment
+    const openaiApiKey = Deno.env.get('OPENAI_API_KEY')
+    if (!openaiApiKey) {
+      throw new Error('OPENAI_API_KEY not configured')
     }
 
     // Create Supabase client
@@ -61,16 +61,15 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
-    // Prepare the prompt for Gemini (limit profile data size)
+    // Prepare the prompt for OpenAI (limit profile data size)
     const profileString = profileData ? JSON.stringify(profileData).slice(0, 5000) : 'No profile data provided'
-    const prompt = `${systemPrompt || 'You are a career roadmap expert.'}
-
-PROFILE DATA:
+    const systemMessage = `${systemPrompt || 'You are a career roadmap expert.'} Consider the Indian job market and education system.`
+    const userMessage = `PROFILE DATA:
 ${profileString}
 
 CAREER GOAL: ${goal}
 
-Please create a comprehensive career roadmap with specific, actionable steps. Consider the Indian job market and education system.
+Please create a comprehensive career roadmap with specific, actionable steps.
 
 Return your response as JSON with this structure:
 {
@@ -88,37 +87,35 @@ Return your response as JSON with this structure:
   "explanation": "A comprehensive summary in the requested language explaining the roadmap and rationale"
 }`
 
-    console.log('Calling Gemini API for roadmap generation...')
+    console.log('Calling OpenAI API for roadmap generation...')
 
-    // Call Gemini API
-    const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${geminiApiKey}`, {
+    // Call OpenAI API
+    const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
+        'Authorization': `Bearer ${openaiApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        contents: [{
-          parts: [{
-            text: prompt
-          }]
-        }],
-        generationConfig: {
-          temperature: 0.7,
-          topK: 40,
-          topP: 0.95,
-          maxOutputTokens: 3000,
-        }
+        model: 'gpt-4o-mini',
+        messages: [
+          { role: 'system', content: systemMessage },
+          { role: 'user', content: userMessage }
+        ],
+        max_tokens: 3000,
+        temperature: 0.7,
+        response_format: { type: "json_object" }
       })
     })
 
-    if (!geminiResponse.ok) {
-      const errorText = await geminiResponse.text()
-      console.error('Gemini API error:', geminiResponse.status, errorText)
-      throw new Error(`Gemini API error: ${geminiResponse.statusText}`)
+    if (!openaiResponse.ok) {
+      const errorText = await openaiResponse.text()
+      console.error('OpenAI API error:', openaiResponse.status, errorText)
+      throw new Error(`OpenAI API error: ${openaiResponse.statusText}`)
     }
 
-    const geminiData = await geminiResponse.json()
-    const responseText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || ''
+    const openaiData = await openaiResponse.json()
+    const responseText = openaiData.choices?.[0]?.message?.content || ''
 
     // Parse the JSON response
     let roadmap
