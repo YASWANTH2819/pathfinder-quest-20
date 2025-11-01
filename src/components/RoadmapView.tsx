@@ -18,6 +18,7 @@ import {
 import { DailyMCQ } from './DailyMCQ';
 import { BadgeDisplay } from './BadgeDisplay';
 import { StreakTracker } from './StreakTracker';
+import { WeeklyAssignment } from './WeeklyAssignment';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -55,7 +56,7 @@ interface RoadmapStep {
 export const RoadmapView: React.FC<RoadmapViewProps> = ({ career, progress, onBack }) => {
   const { user } = useAuth();
   const [currentProgress, setCurrentProgress] = useState(progress);
-  const [activeView, setActiveView] = useState<'roadmap' | 'quiz' | 'badges'>('roadmap');
+  const [activeView, setActiveView] = useState<'roadmap' | 'quiz' | 'assignment' | 'badges'>('roadmap');
   
   const roadmapData = currentProgress.roadmap_data || {};
   const steps = roadmapData.steps || [];
@@ -197,11 +198,11 @@ export const RoadmapView: React.FC<RoadmapViewProps> = ({ career, progress, onBa
         </Card>
 
         {/* View Tabs */}
-        <div className="flex space-x-2 border-b border-primary/20 pb-2">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 border-b border-primary/20 pb-2">
           <Button
             variant={activeView === 'roadmap' ? 'default' : 'ghost'}
             onClick={() => setActiveView('roadmap')}
-            className="flex-1"
+            className="w-full"
           >
             <Target className="w-4 h-4 mr-2" />
             Roadmap
@@ -209,15 +210,23 @@ export const RoadmapView: React.FC<RoadmapViewProps> = ({ career, progress, onBa
           <Button
             variant={activeView === 'quiz' ? 'default' : 'ghost'}
             onClick={() => setActiveView('quiz')}
-            className="flex-1"
+            className="w-full"
           >
             <Zap className="w-4 h-4 mr-2" />
             Daily Quiz
           </Button>
           <Button
+            variant={activeView === 'assignment' ? 'default' : 'ghost'}
+            onClick={() => setActiveView('assignment')}
+            className="w-full"
+          >
+            <BookOpen className="w-4 h-4 mr-2" />
+            Assignment
+          </Button>
+          <Button
             variant={activeView === 'badges' ? 'default' : 'ghost'}
             onClick={() => setActiveView('badges')}
-            className="flex-1"
+            className="w-full"
           >
             <Trophy className="w-4 h-4 mr-2" />
             Badges
@@ -314,8 +323,19 @@ export const RoadmapView: React.FC<RoadmapViewProps> = ({ career, progress, onBa
 
         {activeView === 'quiz' && user && (
           <div className="space-y-4">
-            <h3 className="text-xl font-semibold gradient-text-rainbow">Today's Challenge</h3>
+            <h3 className="text-xl font-semibold gradient-text-rainbow">Today's Challenge - 10 Questions</h3>
             <DailyMCQ 
+              userId={user.id}
+              careerName={career.career_name}
+              onXPEarned={handleXPEarned}
+            />
+          </div>
+        )}
+
+        {activeView === 'assignment' && user && (
+          <div className="space-y-4">
+            <h3 className="text-xl font-semibold gradient-text-rainbow">Weekly Assignment</h3>
+            <WeeklyAssignment
               userId={user.id}
               careerName={career.career_name}
               onXPEarned={handleXPEarned}

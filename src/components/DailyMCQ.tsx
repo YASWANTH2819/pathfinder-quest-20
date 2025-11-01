@@ -3,8 +3,8 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { motion, AnimatePresence } from 'framer-motion';
-import { CheckCircle, XCircle, Zap, Trophy, Clock } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { CheckCircle2, XCircle, Trophy, Sparkles } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { ConfettiEffect } from './ConfettiEffect';
@@ -13,8 +13,8 @@ interface MCQ {
   id: string;
   question: string;
   options: string[];
-  correct_answer: string;
-  xp_reward: number;
+  correctAnswer: string;
+  xpReward: number;
   difficulty: string;
 }
 
@@ -25,239 +25,316 @@ interface DailyMCQProps {
 }
 
 export const DailyMCQ = ({ userId, careerName, onXPEarned }: DailyMCQProps) => {
-  const [currentMCQ, setCurrentMCQ] = useState<MCQ | null>(null);
-  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
-  const [isAnswered, setIsAnswered] = useState(false);
-  const [isCorrect, setIsCorrect] = useState(false);
+  const [mcqList, setMcqList] = useState<MCQ[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [answers, setAnswers] = useState<Record<number, string>>({});
+  const [showResults, setShowResults] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showConfetti, setShowConfetti] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(60);
-  const [timerActive, setTimerActive] = useState(true);
+  const [score, setScore] = useState(0);
 
   useEffect(() => {
-    fetchDailyMCQ();
+    fetchDailyMCQs();
   }, [careerName]);
 
-  useEffect(() => {
-    if (!timerActive || timeLeft <= 0) return;
-
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          setTimerActive(false);
-          if (!isAnswered) {
-            toast.error('Time\'s up!');
-          }
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [timerActive, timeLeft, isAnswered]);
-
-  const fetchDailyMCQ = async () => {
+  const fetchDailyMCQs = async () => {
     try {
-      // Fetch a random MCQ for this career
+      setLoading(true);
+      
       const { data, error } = await supabase
         .from('daily_mcqs')
         .select('*')
         .eq('career_name', careerName)
-        .limit(1);
+        .limit(10);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching MCQs:', error);
+        toast.error('Failed to load today\'s quiz');
+        return;
+      }
 
       if (data && data.length > 0) {
-        // Pick a random question from the results
-        const randomIndex = Math.floor(Math.random() * data.length);
-        setCurrentMCQ({
-          ...data[randomIndex],
-          options: data[randomIndex].options as string[]
-        });
+        const shuffled = data.sort(() => 0.5 - Math.random()).slice(0, 10);
+        setMcqList(shuffled.map(mcq => ({
+          id: mcq.id,
+          question: mcq.question,
+          options: mcq.options as string[],
+          correctAnswer: mcq.correct_answer,
+          xpReward: mcq.xp_reward,
+          difficulty: mcq.difficulty
+        })));
       }
     } catch (error) {
-      console.error('Error fetching MCQ:', error);
-      toast.error('Failed to load today\'s quiz');
+      console.error('Error:', error);
+      toast.error('Something went wrong');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleAnswerSelect = async (answer: string) => {
-    if (isAnswered || timeLeft === 0) return;
+  const handleAnswerSelect = (questionIndex: number, answer: string) => {
+    if (showResults) return;
+    
+    setAnswers(prev => ({
+      ...prev,
+      [questionIndex]: answer
+    }));
+  };
 
-    setSelectedAnswer(answer);
-    setIsAnswered(true);
-    setTimerActive(false);
+  const handleSubmitQuiz = async () => {
+    let correctCount = 0;
+    const totalXP = mcqList.reduce((total, mcq, index) => {
+      const isCorrect = answers[index] === mcq.correctAnswer;
+      if (isCorrect) {
+        correctCount++;
+        return total + mcq.xpReward;
+      }
+      return total;
+    }, 0);
 
-    const correct = answer === currentMCQ?.correct_answer;
-    setIsCorrect(correct);
+    setScore(correctCount);
+    setShowResults(true);
+    
+    // Show fireworks for completion
+    setShowConfetti(true);
+    setTimeout(() => setShowConfetti(false), 5000);
+    
+    if (onXPEarned) {
+      onXPEarned(totalXP);
+    }
 
-    if (correct) {
-      setShowConfetti(true);
-      setTimeout(() => setShowConfetti(false), 3000);
-      
-      const xpEarned = currentMCQ?.xp_reward || 10;
-      onXPEarned(xpEarned);
-      
-      toast.success(`🎉 Correct! +${xpEarned} XP`);
-
-      // Save response
-      await supabase.from('user_mcq_responses').insert({
+    // Save all responses
+    try {
+      const responses = mcqList.map((mcq, index) => ({
         user_id: userId,
-        mcq_id: currentMCQ?.id,
-        selected_answer: answer,
-        is_correct: true,
-        xp_earned: xpEarned
-      });
-    } else {
-      toast.error('❌ Incorrect. Keep learning!');
+        mcq_id: mcq.id,
+        selected_answer: answers[index] || '',
+        is_correct: answers[index] === mcq.correctAnswer,
+        xp_earned: answers[index] === mcq.correctAnswer ? mcq.xpReward : 0
+      }));
+
+      await supabase.from('user_mcq_responses').insert(responses);
       
-      // Save response
-      await supabase.from('user_mcq_responses').insert({
-        user_id: userId,
-        mcq_id: currentMCQ?.id,
-        selected_answer: answer,
-        is_correct: false,
-        xp_earned: 0
-      });
+      toast.success(`Quiz Complete! You scored ${correctCount}/10 🎉`);
+    } catch (error) {
+      console.error('Error saving responses:', error);
     }
   };
 
   if (loading) {
     return (
       <Card className="glass-card p-6">
-        <div className="animate-pulse space-y-4">
-          <div className="h-4 bg-primary/20 rounded w-3/4"></div>
-          <div className="h-4 bg-primary/20 rounded w-1/2"></div>
+        <div className="text-center">Loading your daily quiz...</div>
+      </Card>
+    );
+  }
+
+  if (mcqList.length === 0) {
+    return (
+      <Card className="glass-card p-6">
+        <div className="text-center text-muted-foreground">
+          No quiz available for today. Check back tomorrow!
         </div>
       </Card>
     );
   }
 
-  if (!currentMCQ) {
-    return (
-      <Card className="glass-card p-6 text-center">
-        <p className="text-muted-foreground">No quiz available today. Check back tomorrow!</p>
-      </Card>
-    );
-  }
+  const currentMCQ = mcqList[currentIndex];
+  const answeredCount = Object.keys(answers).length;
+  const canSubmit = answeredCount === mcqList.length;
 
   return (
     <>
-      <ConfettiEffect trigger={showConfetti} type="success" />
+      <ConfettiEffect trigger={showConfetti} type="fireworks" />
       
-      <Card className="glass-card p-6">
-        <div className="space-y-6">
-          {/* Header */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-r from-primary to-accent flex items-center justify-center">
-                <Zap className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <h3 className="font-semibold">Daily Quiz</h3>
-                <p className="text-xs text-muted-foreground">Earn {currentMCQ.xp_reward} XP</p>
-              </div>
-            </div>
-            
-            <div className="flex items-center space-x-4">
-              <Badge variant="secondary" className="bg-primary/20">
-                {currentMCQ.difficulty}
-              </Badge>
-              {timerActive && !isAnswered && (
-                <div className="flex items-center space-x-2">
-                  <Clock className="w-4 h-4 text-primary" />
-                  <span className="text-sm font-semibold">{timeLeft}s</span>
+      <div className="space-y-4">
+        {/* Progress Bar */}
+        <Card className="glass-card p-4">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-medium">Question {currentIndex + 1} of {mcqList.length}</span>
+            <span className="text-sm text-muted-foreground">{answeredCount}/{mcqList.length} answered</span>
+          </div>
+          <Progress value={(answeredCount / mcqList.length) * 100} className="h-2" />
+        </Card>
+
+        {!showResults ? (
+          <>
+            {/* Current Question */}
+            <Card className="glass-card p-6">
+              <motion.div
+                key={currentIndex}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="space-y-6"
+              >
+                {/* Question Header */}
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <Badge variant="outline" className="mb-3">
+                      {currentMCQ.difficulty}
+                    </Badge>
+                    <h3 className="text-lg font-medium mb-4">{currentMCQ.question}</h3>
+                  </div>
                 </div>
+
+                {/* Options */}
+                <div className="space-y-3">
+                  {currentMCQ.options.map((option: string, index: number) => {
+                    const isSelected = answers[currentIndex] === option;
+                    let optionClass = 'glass-card p-4 cursor-pointer transition-all hover:border-primary/50';
+                    
+                    if (isSelected) {
+                      optionClass += ' border-primary bg-primary/10 animate-pulse-glow';
+                    }
+
+                    return (
+                      <motion.div
+                        key={index}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.05 }}
+                        className={optionClass}
+                        onClick={() => handleAnswerSelect(currentIndex, option)}
+                        whileHover={{ scale: 1.01, x: 5 }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        <div className="flex items-center space-x-3">
+                          <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
+                            isSelected ? 'border-primary bg-primary' : 'border-muted-foreground'
+                          }`}>
+                            {isSelected && <CheckCircle2 className="w-4 h-4 text-white" />}
+                          </div>
+                          <span className="flex-1">{option}</span>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+
+                {answers[currentIndex] && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="p-4 bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/30 rounded-lg"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <Sparkles className="w-5 h-5 text-blue-500 animate-pulse" />
+                      <p className="text-sm font-medium bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                        Good enough! Keep going! 💪
+                      </p>
+                    </div>
+                  </motion.div>
+                )}
+              </motion.div>
+            </Card>
+
+            {/* Navigation */}
+            <div className="flex justify-between items-center">
+              <Button
+                variant="outline"
+                onClick={() => setCurrentIndex(Math.max(0, currentIndex - 1))}
+                disabled={currentIndex === 0}
+              >
+                Previous
+              </Button>
+
+              {currentIndex < mcqList.length - 1 ? (
+                <Button
+                  onClick={() => setCurrentIndex(currentIndex + 1)}
+                  disabled={!answers[currentIndex]}
+                >
+                  Next Question
+                </Button>
+              ) : (
+                <Button
+                  onClick={handleSubmitQuiz}
+                  disabled={!canSubmit}
+                  className="bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600"
+                >
+                  Submit Quiz
+                </Button>
               )}
             </div>
-          </div>
-
-          {/* Timer Progress */}
-          {timerActive && !isAnswered && (
-            <Progress value={(timeLeft / 60) * 100} className="h-2" />
-          )}
-
-          {/* Question */}
-          <div>
-            <h4 className="text-lg font-semibold mb-4">{currentMCQ.question}</h4>
-          </div>
-
-          {/* Options */}
-          <div className="space-y-3">
-            <AnimatePresence>
-              {currentMCQ.options.map((option, index) => {
-                const isSelected = selectedAnswer === option;
-                const isCorrectOption = isAnswered && option === currentMCQ.correct_answer;
-                const isWrongSelected = isAnswered && isSelected && !isCorrect;
-
-                return (
-                  <motion.div
-                    key={index}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                  >
-                    <Button
-                      variant="outline"
-                      className={`w-full justify-start text-left p-4 h-auto transition-all ${
-                        isCorrectOption
-                          ? 'bg-green-500/20 border-green-500 text-green-400'
-                          : isWrongSelected
-                          ? 'bg-red-500/20 border-red-500 text-red-400'
-                          : isSelected
-                          ? 'border-primary bg-primary/10'
-                          : ''
-                      }`}
-                      onClick={() => handleAnswerSelect(option)}
-                      disabled={isAnswered || timeLeft === 0}
-                    >
-                      <div className="flex items-center justify-between w-full">
-                        <span>{option}</span>
-                        {isCorrectOption && <CheckCircle className="w-5 h-5 text-green-400" />}
-                        {isWrongSelected && <XCircle className="w-5 h-5 text-red-400" />}
-                      </div>
-                    </Button>
-                  </motion.div>
-                );
-              })}
-            </AnimatePresence>
-          </div>
-
-          {/* Result Message */}
-          {isAnswered && (
+          </>
+        ) : (
+          /* Results View */
+          <Card className="glass-card p-6">
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className={`p-4 rounded-lg ${
-                isCorrect
-                  ? 'bg-green-500/20 border border-green-500/50'
-                  : 'bg-red-500/20 border border-red-500/50'
-              }`}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="text-center space-y-6"
             >
-              <div className="flex items-center space-x-2">
-                {isCorrect ? (
-                  <>
-                    <Trophy className="w-5 h-5 text-green-400" />
-                    <span className="text-green-400 font-semibold">
-                      Excellent! You earned {currentMCQ.xp_reward} XP!
-                    </span>
-                  </>
-                ) : (
-                  <>
-                    <XCircle className="w-5 h-5 text-red-400" />
-                    <span className="text-red-400">
-                      The correct answer is: {currentMCQ.correct_answer}
-                    </span>
-                  </>
-                )}
+              <div className="w-24 h-24 mx-auto rounded-full bg-gradient-to-br from-green-400 to-blue-500 flex items-center justify-center">
+                <Trophy className="w-12 h-12 text-white" />
               </div>
+              
+              <div>
+                <h2 className="text-3xl font-bold gradient-text-rainbow mb-2">
+                  Quiz Complete! 🎉
+                </h2>
+                <p className="text-xl font-semibold">
+                  You scored {score} out of {mcqList.length}
+                </p>
+                <p className="text-muted-foreground mt-2">
+                  {score === 10 && "Perfect score! You're absolutely crushing it! 🏆"}
+                  {score >= 7 && score < 10 && "Excellent work! Keep it up! 🌟"}
+                  {score >= 5 && score < 7 && "Good effort! Practice makes perfect! 💪"}
+                  {score < 5 && "Keep learning! You'll get better! 📚"}
+                </p>
+              </div>
+
+              {/* Review Answers */}
+              <div className="space-y-3 text-left mt-6">
+                <h3 className="font-semibold mb-3">Review Your Answers:</h3>
+                {mcqList.map((mcq, index) => {
+                  const userAnswer = answers[index];
+                  const isCorrect = userAnswer === mcq.correctAnswer;
+                  
+                  return (
+                    <div
+                      key={index}
+                      className={`p-3 rounded-lg border ${
+                        isCorrect 
+                          ? 'bg-green-500/10 border-green-500/30' 
+                          : 'bg-red-500/10 border-red-500/30'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between mb-2">
+                        <p className="text-sm font-medium flex-1">Q{index + 1}: {mcq.question}</p>
+                        {isCorrect ? (
+                          <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0" />
+                        ) : (
+                          <XCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
+                        )}
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        Your answer: <span className={isCorrect ? 'text-green-600' : 'text-red-600'}>{userAnswer || 'Not answered'}</span>
+                      </p>
+                      {!isCorrect && (
+                        <p className="text-sm text-muted-foreground">
+                          Correct answer: <span className="text-green-600">{mcq.correctAnswer}</span>
+                        </p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              <Button
+                onClick={() => {
+                  setShowResults(false);
+                  setAnswers({});
+                  setCurrentIndex(0);
+                  fetchDailyMCQs();
+                }}
+                className="w-full"
+              >
+                Take Another Quiz
+              </Button>
             </motion.div>
-          )}
-        </div>
-      </Card>
+          </Card>
+        )}
+      </div>
     </>
   );
 };
