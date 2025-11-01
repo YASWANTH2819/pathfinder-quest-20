@@ -141,9 +141,9 @@ export default function MainDashboard() {
                   {/* Button */}
                   <Button 
                     variant="ghost" 
-                    className="w-full bg-white/10 hover:bg-white/20 text-white border border-white/20 group-hover:border-white/40 transition-all"
+                    className="w-full bg-gradient-to-r from-white/20 to-white/10 hover:from-white/30 hover:to-white/20 text-white font-semibold border border-white/30 group-hover:border-white/50 transition-all duration-300 shadow-lg shadow-black/20 hover:shadow-xl hover:shadow-white/10 hover:scale-105 active:scale-95"
                   >
-                    {t('main.explore') || 'Explore'} →
+                    <span className="relative z-10">{t('main.explore') || 'Explore'} →</span>
                   </Button>
                 </div>
 
