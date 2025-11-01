@@ -4,7 +4,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { FileText, Heart, Rocket, Brain, Home, LogOut, Sparkles } from 'lucide-react';
+import { FileText, Heart, Rocket, Brain, Home, LogOut, Sparkles, ArrowRight } from 'lucide-react';
 import UserMenu from '@/components/UserMenu';
 import { LanguageToggle } from '@/components/LanguageToggle';
 
@@ -141,9 +141,13 @@ export default function MainDashboard() {
                   {/* Button */}
                   <Button 
                     variant="ghost" 
-                    className="w-full bg-gradient-to-r from-white/20 to-white/10 hover:from-white/30 hover:to-white/20 text-white font-semibold border border-white/30 group-hover:border-white/50 transition-all duration-300 shadow-lg shadow-black/20 hover:shadow-xl hover:shadow-white/10 hover:scale-105 active:scale-95"
+                    className="relative overflow-hidden w-full bg-gradient-to-r from-white/10 via-white/20 to-white/10 hover:from-white/20 hover:via-white/30 hover:to-white/20 text-white font-bold border-2 border-white/30 group-hover:border-white/60 transition-all duration-300 shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:shadow-[0_0_30px_rgba(255,255,255,0.2)] hover:scale-105 active:scale-95 rounded-xl group/btn"
                   >
-                    <span className="relative z-10">{t('main.explore') || 'Explore'} →</span>
+                    <span className="relative z-10 flex items-center justify-center">
+                      {t('main.explore') || 'Explore'}
+                      <ArrowRight className="w-5 h-5 ml-2 group-hover/btn:translate-x-1 transition-transform" />
+                    </span>
+                    <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/30 to-white/0 translate-x-[-100%] group-hover/btn:translate-x-[100%] transition-transform duration-700"></div>
                   </Button>
                 </div>
 

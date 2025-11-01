@@ -202,34 +202,62 @@ export const RoadmapView: React.FC<RoadmapViewProps> = ({ career, progress, onBa
           <Button
             variant={activeView === 'roadmap' ? 'default' : 'ghost'}
             onClick={() => setActiveView('roadmap')}
-            className="w-full"
+            className={`relative overflow-hidden w-full rounded-xl transition-all duration-300 ${
+              activeView === 'roadmap' 
+                ? 'bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-white font-bold shadow-[0_0_20px_rgba(59,130,246,0.5)] border-2 border-white/30 hover:scale-105' 
+                : 'border-2 border-transparent hover:border-primary/50 hover:bg-primary/5 hover:scale-105'
+            }`}
           >
-            <Target className="w-4 h-4 mr-2" />
+            <Target className="w-5 h-5 mr-2" />
             Roadmap
+            {activeView === 'roadmap' && (
+              <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 animate-shimmer-slide"></div>
+            )}
           </Button>
           <Button
             variant={activeView === 'quiz' ? 'default' : 'ghost'}
             onClick={() => setActiveView('quiz')}
-            className="w-full"
+            className={`relative overflow-hidden w-full rounded-xl transition-all duration-300 ${
+              activeView === 'quiz' 
+                ? 'bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-white font-bold shadow-[0_0_20px_rgba(59,130,246,0.5)] border-2 border-white/30 hover:scale-105' 
+                : 'border-2 border-transparent hover:border-primary/50 hover:bg-primary/5 hover:scale-105'
+            }`}
           >
-            <Zap className="w-4 h-4 mr-2" />
+            <Zap className="w-5 h-5 mr-2" />
             Daily Quiz
+            {activeView === 'quiz' && (
+              <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 animate-shimmer-slide"></div>
+            )}
           </Button>
           <Button
             variant={activeView === 'assignment' ? 'default' : 'ghost'}
             onClick={() => setActiveView('assignment')}
-            className="w-full"
+            className={`relative overflow-hidden w-full rounded-xl transition-all duration-300 ${
+              activeView === 'assignment' 
+                ? 'bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-white font-bold shadow-[0_0_20px_rgba(59,130,246,0.5)] border-2 border-white/30 hover:scale-105' 
+                : 'border-2 border-transparent hover:border-primary/50 hover:bg-primary/5 hover:scale-105'
+            }`}
           >
-            <BookOpen className="w-4 h-4 mr-2" />
+            <BookOpen className="w-5 h-5 mr-2" />
             Assignment
+            {activeView === 'assignment' && (
+              <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 animate-shimmer-slide"></div>
+            )}
           </Button>
           <Button
             variant={activeView === 'badges' ? 'default' : 'ghost'}
             onClick={() => setActiveView('badges')}
-            className="w-full"
+            className={`relative overflow-hidden w-full rounded-xl transition-all duration-300 ${
+              activeView === 'badges' 
+                ? 'bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-white font-bold shadow-[0_0_20px_rgba(59,130,246,0.5)] border-2 border-white/30 hover:scale-105' 
+                : 'border-2 border-transparent hover:border-primary/50 hover:bg-primary/5 hover:scale-105'
+            }`}
           >
-            <Trophy className="w-4 h-4 mr-2" />
+            <Trophy className="w-5 h-5 mr-2" />
             Badges
+            {activeView === 'badges' && (
+              <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 animate-shimmer-slide"></div>
+            )}
           </Button>
         </div>
 
@@ -306,10 +334,13 @@ export const RoadmapView: React.FC<RoadmapViewProps> = ({ career, progress, onBa
                           <Button
                             variant="outline"
                             size="sm"
-                            className="mt-2"
+                            className="relative overflow-hidden mt-2 border-2 border-green-500/50 bg-transparent hover:bg-green-500/10 hover:border-green-500 text-foreground hover:scale-105 transition-all duration-300 group"
                             onClick={() => toast.info('Mark this step complete in your learning journey!')}
                           >
-                            Mark Complete
+                            <span className="relative z-10 flex items-center">
+                              <CheckCircle className="w-4 h-4 mr-1 group-hover:scale-110 transition-transform" />
+                              Mark Complete
+                            </span>
                           </Button>
                         )}
                       </div>

@@ -241,10 +241,13 @@ export const CareerAnalyzer: React.FC<CareerAnalyzerProps> = ({ profileData, onB
               variant="rainbow" 
               size="lg" 
               onClick={handleStartAnalysis}
-              className="w-full"
+              className="relative overflow-hidden w-full bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:from-blue-700 hover:via-purple-700 hover:to-pink-700 text-white font-bold shadow-[0_0_20px_rgba(59,130,246,0.5)] hover:shadow-[0_0_30px_rgba(168,85,247,0.7)] border-2 border-white/30 hover:border-white/50 rounded-xl transition-all duration-300 hover:scale-105 active:scale-95 group"
             >
-              <Sparkles className="w-5 h-5 mr-2" />
-              Generate My Career Options
+              <span className="relative z-10 flex items-center justify-center">
+                <Sparkles className="w-5 h-5 mr-2" />
+                Generate My Career Options
+              </span>
+              <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
             </Button>
           </div>
         </Card>
@@ -405,12 +408,15 @@ export const CareerAnalyzer: React.FC<CareerAnalyzerProps> = ({ profileData, onB
                   {/* Action Button */}
                   <Button
                     variant="rainbow"
-                    className="w-full mt-6 group"
+                    className="relative overflow-hidden w-full mt-6 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:from-blue-700 hover:via-purple-700 hover:to-pink-700 text-white font-bold shadow-[0_0_20px_rgba(59,130,246,0.5)] hover:shadow-[0_0_30px_rgba(168,85,247,0.7)] border-2 border-white/30 hover:border-white/50 rounded-xl transition-all duration-300 hover:scale-105 active:scale-95 group"
                     onClick={() => handleStartJourney(career)}
                   >
-                    <Sparkles className="mr-2 w-4 h-4" />
-                    Start Journey
-                    <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                    <span className="relative z-10 flex items-center justify-center">
+                      <Sparkles className="mr-2 w-5 h-5" />
+                      Start Journey
+                      <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                    </span>
+                    <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
                   </Button>
                 </Card>
               </motion.div>

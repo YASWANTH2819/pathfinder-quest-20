@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { motion } from 'framer-motion';
-import { CheckCircle2, XCircle, Trophy, Sparkles } from 'lucide-react';
+import { CheckCircle2, XCircle, Trophy, Sparkles, ChevronLeft, ChevronRight, Send, RotateCcw } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { ConfettiEffect } from './ConfettiEffect';
@@ -234,24 +234,37 @@ export const DailyMCQ = ({ userId, careerName, onXPEarned }: DailyMCQProps) => {
                 variant="outline"
                 onClick={() => setCurrentIndex(Math.max(0, currentIndex - 1))}
                 disabled={currentIndex === 0}
+                className="relative overflow-hidden border-2 border-blue-500/50 bg-transparent hover:bg-blue-500/10 hover:border-blue-500 text-foreground hover:scale-105 transition-all duration-300 group"
               >
-                Previous
+                <span className="relative z-10 flex items-center">
+                  <ChevronLeft className="w-5 h-5 mr-1 group-hover:-translate-x-1 transition-transform" />
+                  Previous
+                </span>
               </Button>
 
               {currentIndex < mcqList.length - 1 ? (
                 <Button
                   onClick={() => setCurrentIndex(currentIndex + 1)}
                   disabled={!answers[currentIndex]}
+                  className="relative overflow-hidden bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:from-blue-700 hover:via-purple-700 hover:to-pink-700 text-white font-bold shadow-[0_0_20px_rgba(59,130,246,0.5)] hover:shadow-[0_0_30px_rgba(168,85,247,0.7)] border-2 border-white/30 hover:border-white/50 rounded-xl transition-all duration-300 hover:scale-105 active:scale-95 group"
                 >
-                  Next Question
+                  <span className="relative z-10 flex items-center">
+                    Next Question
+                    <ChevronRight className="w-5 h-5 ml-1 group-hover:translate-x-1 transition-transform" />
+                  </span>
+                  <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
                 </Button>
               ) : (
                 <Button
                   onClick={handleSubmitQuiz}
                   disabled={!canSubmit}
-                  className="bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600"
+                  className="relative overflow-hidden bg-gradient-to-r from-green-500 via-emerald-500 to-blue-500 hover:from-green-600 hover:via-emerald-600 hover:to-blue-600 text-white font-bold shadow-[0_0_20px_rgba(34,197,94,0.5)] hover:shadow-[0_0_30px_rgba(16,185,129,0.7)] border-2 border-white/30 hover:border-white/50 rounded-xl transition-all duration-300 hover:scale-105 active:scale-95 group"
                 >
-                  Submit Quiz
+                  <span className="relative z-10 flex items-center">
+                    <Send className="w-5 h-5 mr-2" />
+                    Submit Quiz
+                  </span>
+                  <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
                 </Button>
               )}
             </div>
@@ -327,9 +340,13 @@ export const DailyMCQ = ({ userId, careerName, onXPEarned }: DailyMCQProps) => {
                   setCurrentIndex(0);
                   fetchDailyMCQs();
                 }}
-                className="w-full"
+                className="relative overflow-hidden w-full bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:from-blue-700 hover:via-purple-700 hover:to-pink-700 text-white font-bold shadow-[0_0_20px_rgba(59,130,246,0.5)] hover:shadow-[0_0_30px_rgba(168,85,247,0.7)] border-2 border-white/30 hover:border-white/50 rounded-xl transition-all duration-300 hover:scale-105 active:scale-95 group"
               >
-                Take Another Quiz
+                <span className="relative z-10 flex items-center justify-center">
+                  <RotateCcw className="w-5 h-5 mr-2 group-hover:rotate-[-360deg] transition-transform duration-700" />
+                  Take Another Quiz
+                </span>
+                <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
               </Button>
             </motion.div>
           </Card>
