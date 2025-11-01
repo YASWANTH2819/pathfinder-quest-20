@@ -376,12 +376,15 @@ export const CareerGrowthPath = () => {
 
                   <Button
                     variant="rainbow"
-                    className="w-full group"
+                    className="w-full group relative overflow-hidden bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:from-blue-700 hover:via-purple-700 hover:to-pink-700 text-white font-bold shadow-[0_0_20px_rgba(59,130,246,0.5)] hover:shadow-[0_0_30px_rgba(168,85,247,0.7)] border-2 border-white/30 hover:border-white/50 rounded-xl transition-all duration-300 hover:scale-105 active:scale-95"
                     onClick={() => handleSelectCareer(career)}
                   >
-                    <TrendingUp className="mr-2 w-4 h-4" />
-                    Start Journey
-                    <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                    <span className="relative z-10 flex items-center justify-center">
+                      <TrendingUp className="mr-2 w-5 h-5" />
+                      Explore Career Path
+                      <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                    </span>
+                    <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
                   </Button>
                 </Card>
               </motion.div>
