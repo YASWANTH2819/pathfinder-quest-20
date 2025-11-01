@@ -175,6 +175,39 @@ export type Database = {
           },
         ]
       }
+      daily_mcqs: {
+        Row: {
+          career_name: string
+          correct_answer: string
+          created_at: string
+          difficulty: string
+          id: string
+          options: Json
+          question: string
+          xp_reward: number
+        }
+        Insert: {
+          career_name: string
+          correct_answer: string
+          created_at?: string
+          difficulty?: string
+          id?: string
+          options: Json
+          question: string
+          xp_reward?: number
+        }
+        Update: {
+          career_name?: string
+          correct_answer?: string
+          created_at?: string
+          difficulty?: string
+          id?: string
+          options?: Json
+          question?: string
+          xp_reward?: number
+        }
+        Relationships: []
+      }
       resumes: {
         Row: {
           ats_score: number | null
@@ -255,6 +288,74 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      user_badges: {
+        Row: {
+          badge_code: string
+          badge_description: string | null
+          badge_name: string
+          earned_at: string
+          icon_name: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          badge_code: string
+          badge_description?: string | null
+          badge_name: string
+          earned_at?: string
+          icon_name?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          badge_code?: string
+          badge_description?: string | null
+          badge_name?: string
+          earned_at?: string
+          icon_name?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_mcq_responses: {
+        Row: {
+          attempted_at: string
+          id: string
+          is_correct: boolean
+          mcq_id: string
+          selected_answer: string
+          user_id: string
+          xp_earned: number
+        }
+        Insert: {
+          attempted_at?: string
+          id?: string
+          is_correct: boolean
+          mcq_id: string
+          selected_answer: string
+          user_id: string
+          xp_earned?: number
+        }
+        Update: {
+          attempted_at?: string
+          id?: string
+          is_correct?: boolean
+          mcq_id?: string
+          selected_answer?: string
+          user_id?: string
+          xp_earned?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_mcq_responses_mcq_id_fkey"
+            columns: ["mcq_id"]
+            isOneToOne: false
+            referencedRelation: "daily_mcqs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_profiles: {
         Row: {

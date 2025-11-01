@@ -1,25 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { motion } from 'framer-motion';
 import { 
-  Trophy, 
-  Target, 
-  BookOpen, 
-  Code, 
-  Award,
-  CheckCircle,
-  Circle,
-  ArrowLeft,
+  ArrowLeft, 
+  CheckCircle, 
+  Circle, 
+  BookOpen,
+  Trophy,
+  Target,
   Zap,
-  Star,
-  TrendingUp
+  Lock
 } from 'lucide-react';
+import { DailyMCQ } from './DailyMCQ';
+import { BadgeDisplay } from './BadgeDisplay';
+import { StreakTracker } from './StreakTracker';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
 interface CareerOption {
@@ -37,6 +36,7 @@ interface CareerProgress {
   xp: number;
   streak_count: number;
   roadmap_data: any;
+  last_activity_date?: string;
 }
 
 interface RoadmapViewProps {
@@ -45,151 +45,129 @@ interface RoadmapViewProps {
   onBack: () => void;
 }
 
-interface RoadmapTask {
-  task: string;
-  duration: string;
-  type: string;
-  resources: string[];
+interface RoadmapStep {
+  title: string;
   description: string;
-  completed?: boolean;
+  completed: boolean;
+  resources?: string[];
 }
 
 export const RoadmapView: React.FC<RoadmapViewProps> = ({ career, progress, onBack }) => {
   const { user } = useAuth();
-  const [currentXP, setCurrentXP] = useState(progress.xp || 0);
-  const [currentLevel, setCurrentLevel] = useState(Math.floor((progress.xp || 0) / 100) + 1);
-  const [completedTasks, setCompletedTasks] = useState<Set<string>>(new Set());
+  const [currentProgress, setCurrentProgress] = useState(progress);
+  const [activeView, setActiveView] = useState<'roadmap' | 'quiz' | 'badges'>('roadmap');
+  
+  const roadmapData = currentProgress.roadmap_data || {};
+  const steps = roadmapData.steps || [];
+  const completedSteps = steps.filter((step: RoadmapStep) => step.completed).length;
+  const totalSteps = steps.length;
+  const progressPercentage = totalSteps > 0 ? (completedSteps / totalSteps) * 100 : 0;
 
-  const roadmap = progress.roadmap_data || {
-    shortTerm: [],
-    midTerm: [],
-    longTerm: [],
-    explanation: 'Your personalized roadmap is being generated...'
-  };
+  useEffect(() => {
+    if (user) {
+      updateLastActivity();
+    }
+  }, [user]);
 
-  const handleTaskComplete = async (task: RoadmapTask, phase: string) => {
+  const updateLastActivity = async () => {
     if (!user) return;
 
-    const taskKey = `${phase}-${task.task}`;
-    if (completedTasks.has(taskKey)) return;
+    const today = new Date().toISOString().split('T')[0];
+    const lastActivity = currentProgress.last_activity_date;
 
-    const xpGain = 25;
-    const newXP = currentXP + xpGain;
-    const newLevel = Math.floor(newXP / 100) + 1;
-
-    try {
-      const { error } = await supabase
-        .from('career_progress')
-        .update({
-          xp: newXP,
-          last_activity_date: new Date().toISOString().split('T')[0]
-        })
-        .eq('user_id', user.id);
-
-      if (error) throw error;
-
-      setCompletedTasks(prev => new Set([...prev, taskKey]));
-      setCurrentXP(newXP);
+    let newStreakCount = currentProgress.streak_count || 0;
+    
+    if (lastActivity) {
+      const lastDate = new Date(lastActivity);
+      const todayDate = new Date(today);
+      const diffDays = Math.floor((todayDate.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24));
       
-      if (newLevel > currentLevel) {
-        setCurrentLevel(newLevel);
-        toast.success(`🎉 Level Up! You've reached Level ${newLevel}!`, {
-          description: 'Keep up the great work on your career journey!'
-        });
-      } else {
-        toast.success(`+${xpGain} XP earned! 🌟`, {
-          description: 'Great progress on your learning journey!'
-        });
+      if (diffDays === 1) {
+        newStreakCount += 1;
+      } else if (diffDays > 1) {
+        newStreakCount = 1;
       }
-    } catch (error) {
-      console.error('Error updating progress:', error);
-      toast.error('Failed to update progress');
+    } else {
+      newStreakCount = 1;
+    }
+
+    const { data, error } = await supabase
+      .from('career_progress')
+      .update({
+        last_activity_date: today,
+        streak_count: newStreakCount
+      })
+      .eq('user_id', user.id)
+      .eq('id', currentProgress.id)
+      .select()
+      .single();
+
+    if (!error && data) {
+      setCurrentProgress(data);
+      
+      if (newStreakCount === 7) {
+        await awardBadge('week_streak', '7 Day Streak', 'Maintained a 7-day learning streak!', 'Flame');
+      } else if (newStreakCount === 30) {
+        await awardBadge('month_streak', '30 Day Streak', 'Incredible! 30 days of consistent learning!', 'Crown');
+      }
     }
   };
 
-  const renderTask = (task: RoadmapTask, index: number, phase: string) => {
-    const taskKey = `${phase}-${task.task}`;
-    const isCompleted = completedTasks.has(taskKey);
+  const handleXPEarned = async (xp: number) => {
+    if (!user) return;
 
-    const typeIcons: Record<string, any> = {
-      skill: BookOpen,
-      project: Code,
-      certification: Award,
-      internship: Target,
-      default: Circle
-    };
+    const newXP = (currentProgress.xp || 0) + xp;
 
-    const Icon = typeIcons[task.type] || typeIcons.default;
+    const { data, error } = await supabase
+      .from('career_progress')
+      .update({ xp: newXP })
+      .eq('user_id', user.id)
+      .eq('id', currentProgress.id)
+      .select()
+      .single();
 
-    return (
-      <motion.div
-        key={index}
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ delay: index * 0.1 }}
-      >
-        <Card className={`p-4 mb-3 ${isCompleted ? 'bg-green-500/10 border-green-500/30' : 'glass-card'}`}>
-          <div className="flex items-start space-x-4">
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
-              isCompleted ? 'bg-green-500' : 'bg-gradient-to-r from-primary to-secondary'
-            }`}>
-              {isCompleted ? (
-                <CheckCircle className="w-5 h-5 text-white" />
-              ) : (
-                <Icon className="w-5 h-5 text-white" />
-              )}
-            </div>
-
-            <div className="flex-1">
-              <div className="flex items-start justify-between mb-2">
-                <div>
-                  <h4 className="font-semibold">{task.task}</h4>
-                  <p className="text-sm text-muted-foreground">{task.description}</p>
-                </div>
-                <Badge variant="outline" className="ml-2">
-                  {task.duration}
-                </Badge>
-              </div>
-
-              {task.resources && task.resources.length > 0 && (
-                <div className="mb-3">
-                  <p className="text-xs font-semibold text-muted-foreground mb-1">Resources:</p>
-                  <div className="flex flex-wrap gap-2">
-                    {task.resources.map((resource, i) => (
-                      <Badge key={i} variant="secondary" className="text-xs">
-                        {resource}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {!isCompleted && (
-                <Button 
-                  size="sm" 
-                  variant="outline"
-                  onClick={() => handleTaskComplete(task, phase)}
-                  className="mt-2"
-                >
-                  <CheckCircle className="w-4 h-4 mr-2" />
-                  Mark Complete
-                </Button>
-              )}
-            </div>
-          </div>
-        </Card>
-      </motion.div>
-    );
+    if (!error && data) {
+      setCurrentProgress(data);
+      
+      if (newXP >= 100 && (currentProgress.xp || 0) < 100) {
+        await awardBadge('xp_100', '100 XP Milestone', 'Earned your first 100 XP!', 'Zap');
+      } else if (newXP >= 500 && (currentProgress.xp || 0) < 500) {
+        await awardBadge('xp_500', '500 XP Milestone', 'Amazing! 500 XP achieved!', 'Trophy');
+      } else if (newXP >= 1000 && (currentProgress.xp || 0) < 1000) {
+        await awardBadge('xp_1000', '1000 XP Master', 'You are a learning master!', 'Crown');
+      }
+    }
   };
 
-  const levelProgress = ((currentXP % 100) / 100) * 100;
+  const awardBadge = async (badgeCode: string, badgeName: string, description: string, iconName: string) => {
+    if (!user) return;
+
+    const { data: existing } = await supabase
+      .from('user_badges')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('badge_code', badgeCode)
+      .single();
+
+    if (!existing) {
+      await supabase.from('user_badges').insert({
+        user_id: user.id,
+        badge_code: badgeCode,
+        badge_name: badgeName,
+        badge_description: description,
+        icon_name: iconName
+      });
+
+      toast.success(`🏆 New Badge Unlocked: ${badgeName}!`);
+    }
+  };
 
   return (
     <div className="min-h-screen cyber-grid p-4">
       <div className="max-w-6xl mx-auto space-y-6">
         {/* Header */}
         <Card className="glass-card p-6">
-          <div className="flex items-center justify-between flex-wrap gap-4">
+          <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <Button variant="ghost" size="icon" onClick={onBack}>
                 <ArrowLeft className="w-5 h-5" />
@@ -199,133 +177,158 @@ export const RoadmapView: React.FC<RoadmapViewProps> = ({ career, progress, onBa
                   {career.career_name} Journey
                 </h1>
                 <p className="text-sm text-muted-foreground">
-                  Level {currentLevel} • {currentXP} XP
+                  Level 1: Getting Started
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center space-x-4">
-              <div className="text-right">
-                <p className="text-sm font-semibold">Level {currentLevel}</p>
-                <p className="text-xs text-muted-foreground">
-                  {currentXP % 100}/100 XP to Level {currentLevel + 1}
-                </p>
-              </div>
-              <div className="w-16 h-16 rounded-full bg-gradient-to-r from-primary to-secondary flex items-center justify-center">
-                <Trophy className="w-8 h-8 text-white" />
-              </div>
-            </div>
+            <Badge variant="secondary" className="bg-primary/20">
+              {career.match_percentage}% Match
+            </Badge>
           </div>
 
           <div className="mt-4">
-            <Progress value={levelProgress} className="h-3" />
+            <div className="flex justify-between text-sm mb-2">
+              <span>Overall Progress</span>
+              <span>{Math.round(progressPercentage)}%</span>
+            </div>
+            <Progress value={progressPercentage} className="h-3" />
           </div>
         </Card>
 
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className="glass-card p-4">
-            <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 flex items-center justify-center">
-                <Zap className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">{currentXP}</p>
-                <p className="text-sm text-muted-foreground">Total XP</p>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="glass-card p-4">
-            <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center">
-                <Star className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">{progress.streak_count || 0}</p>
-                <p className="text-sm text-muted-foreground">Day Streak</p>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="glass-card p-4">
-            <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-r from-green-500 to-emerald-500 flex items-center justify-center">
-                <TrendingUp className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">{completedTasks.size}</p>
-                <p className="text-sm text-muted-foreground">Tasks Done</p>
-              </div>
-            </div>
-          </Card>
+        {/* View Tabs */}
+        <div className="flex space-x-2 border-b border-primary/20 pb-2">
+          <Button
+            variant={activeView === 'roadmap' ? 'default' : 'ghost'}
+            onClick={() => setActiveView('roadmap')}
+            className="flex-1"
+          >
+            <Target className="w-4 h-4 mr-2" />
+            Roadmap
+          </Button>
+          <Button
+            variant={activeView === 'quiz' ? 'default' : 'ghost'}
+            onClick={() => setActiveView('quiz')}
+            className="flex-1"
+          >
+            <Zap className="w-4 h-4 mr-2" />
+            Daily Quiz
+          </Button>
+          <Button
+            variant={activeView === 'badges' ? 'default' : 'ghost'}
+            onClick={() => setActiveView('badges')}
+            className="flex-1"
+          >
+            <Trophy className="w-4 h-4 mr-2" />
+            Badges
+          </Button>
         </div>
 
-        {/* AI Explanation */}
-        {roadmap.explanation && (
-          <Card className="glass-card p-6">
-            <h3 className="text-lg font-semibold mb-3 flex items-center">
-              <Target className="w-5 h-5 mr-2 text-primary" />
-              Your Personalized Roadmap
-            </h3>
-            <p className="text-muted-foreground whitespace-pre-line">
-              {roadmap.explanation}
-            </p>
-          </Card>
+        {/* Streak & Progress Stats */}
+        {user && (
+          <StreakTracker 
+            streakCount={currentProgress.streak_count || 0}
+            xp={currentProgress.xp || 0}
+            lastActivityDate={currentProgress.last_activity_date}
+          />
         )}
 
-        {/* Roadmap Tabs */}
-        <Card className="glass-card p-6">
-          <Tabs defaultValue="short" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="short">
-                Short Term (0-3 months)
-              </TabsTrigger>
-              <TabsTrigger value="mid">
-                Mid Term (3-6 months)
-              </TabsTrigger>
-              <TabsTrigger value="long">
-                Long Term (6+ months)
-              </TabsTrigger>
-            </TabsList>
+        {/* Content based on active view */}
+        {activeView === 'roadmap' && (
+          <div className="space-y-4">
+            <h3 className="text-xl font-semibold gradient-text-rainbow">Your Learning Path</h3>
+            {steps.map((step: RoadmapStep, index: number) => {
+              const isLocked = index > 0 && !steps[index - 1].completed;
+              
+              return (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                >
+                  <Card className={`glass-card p-4 ${
+                    step.completed 
+                      ? 'border-green-500/50' 
+                      : isLocked 
+                      ? 'border-gray-500/30 opacity-60' 
+                      : 'border-primary/30'
+                  }`}>
+                    <div className="flex items-start space-x-4">
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                        step.completed 
+                          ? 'bg-green-500/20 text-green-400' 
+                          : isLocked
+                          ? 'bg-gray-500/20 text-gray-400'
+                          : 'bg-primary/20 text-primary'
+                      }`}>
+                        {step.completed ? (
+                          <CheckCircle className="w-5 h-5" />
+                        ) : isLocked ? (
+                          <Lock className="w-5 h-5" />
+                        ) : (
+                          <Circle className="w-5 h-5" />
+                        )}
+                      </div>
+                      
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-semibold mb-1">{step.title}</h4>
+                          {isLocked && (
+                            <Badge variant="outline" className="text-xs">
+                              Complete previous step
+                            </Badge>
+                          )}
+                        </div>
+                        <p className="text-sm text-muted-foreground mb-2">{step.description}</p>
+                        
+                        {step.resources && step.resources.length > 0 && !isLocked && (
+                          <div className="flex flex-wrap gap-2 mt-2">
+                            {step.resources.map((resource: string, i: number) => (
+                              <Badge key={i} variant="outline" className="text-xs">
+                                <BookOpen className="w-3 h-3 mr-1" />
+                                {resource}
+                              </Badge>
+                            ))}
+                          </div>
+                        )}
+                        
+                        {!step.completed && !isLocked && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="mt-2"
+                            onClick={() => toast.info('Mark this step complete in your learning journey!')}
+                          >
+                            Mark Complete
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </Card>
+                </motion.div>
+              );
+            })}
+          </div>
+        )}
 
-            <TabsContent value="short" className="mt-6">
-              {roadmap.shortTerm && roadmap.shortTerm.length > 0 ? (
-                roadmap.shortTerm.map((task: RoadmapTask, index: number) =>
-                  renderTask(task, index, 'short')
-                )
-              ) : (
-                <p className="text-center text-muted-foreground py-8">
-                  No tasks available yet. Check back soon!
-                </p>
-              )}
-            </TabsContent>
+        {activeView === 'quiz' && user && (
+          <div className="space-y-4">
+            <h3 className="text-xl font-semibold gradient-text-rainbow">Today's Challenge</h3>
+            <DailyMCQ 
+              userId={user.id}
+              careerName={career.career_name}
+              onXPEarned={handleXPEarned}
+            />
+          </div>
+        )}
 
-            <TabsContent value="mid" className="mt-6">
-              {roadmap.midTerm && roadmap.midTerm.length > 0 ? (
-                roadmap.midTerm.map((task: RoadmapTask, index: number) =>
-                  renderTask(task, index, 'mid')
-                )
-              ) : (
-                <p className="text-center text-muted-foreground py-8">
-                  No tasks available yet. Check back soon!
-                </p>
-              )}
-            </TabsContent>
-
-            <TabsContent value="long" className="mt-6">
-              {roadmap.longTerm && roadmap.longTerm.length > 0 ? (
-                roadmap.longTerm.map((task: RoadmapTask, index: number) =>
-                  renderTask(task, index, 'long')
-                )
-              ) : (
-                <p className="text-center text-muted-foreground py-8">
-                  No tasks available yet. Check back soon!
-                </p>
-              )}
-            </TabsContent>
-          </Tabs>
-        </Card>
+        {activeView === 'badges' && user && (
+          <div className="space-y-4">
+            <h3 className="text-xl font-semibold gradient-text-rainbow">Your Achievements</h3>
+            <BadgeDisplay userId={user.id} />
+          </div>
+        )}
       </div>
     </div>
   );

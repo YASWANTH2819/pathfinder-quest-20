@@ -1,23 +1,26 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useLanguage } from '@/contexts/LanguageContext';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { ChatInterface } from './ChatInterface';
 import { Badge } from '@/components/ui/badge';
+import { motion } from 'framer-motion';
 import { 
   Target, 
   Brain, 
   TrendingUp, 
   BookOpen, 
   Briefcase, 
-  Globe,
-  Star,
-  CheckCircle
+  ArrowRight,
+  Sparkles,
+  Clock,
+  Video,
+  MapPin
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { ConfettiEffect } from './ConfettiEffect';
 
 interface ProfileData {
   name: string;
@@ -45,20 +48,32 @@ interface CareerAnalyzerProps {
   onBack: () => void;
 }
 
+interface CareerOption {
+  id: string;
+  career_name: string;
+  description: string;
+  match_percentage: number;
+  required_skills: string[];
+  youtube_links: string[];
+  estimated_timeline: string;
+  roadmap_steps: string[];
+}
+
 export const CareerAnalyzer: React.FC<CareerAnalyzerProps> = ({ profileData, onBack }) => {
   const { user } = useAuth();
-  const { t } = useLanguage();
+  const navigate = useNavigate();
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisComplete, setAnalysisComplete] = useState(false);
-  const [careerScore, setCareerScore] = useState(0);
+  const [careerOptions, setCareerOptions] = useState<CareerOption[]>([]);
+  const [showConfetti, setShowConfetti] = useState(false);
 
   const handleStartAnalysis = async () => {
     if (!user) return;
 
     setIsAnalyzing(true);
     try {
-      // Store profile data in database
-      const { error } = await supabase
+      // Store profile data
+      const { error: profileError } = await supabase
         .from('career_profiles')
         .upsert({
           user_id: user.id,
@@ -80,25 +95,106 @@ export const CareerAnalyzer: React.FC<CareerAnalyzerProps> = ({ profileData, onB
           location_preference: profileData.locationPreference,
           company_type: profileData.companyType,
           financial_support: profileData.financialSupport,
-          career_health_score: Math.floor(Math.random() * 30) + 70, // Generate score 70-100
+          career_health_score: Math.floor(Math.random() * 30) + 70,
         });
 
-      if (error) throw error;
+      if (profileError) throw profileError;
 
-      // Simulate analysis time
+      // Simulate AI analysis
       await new Promise(resolve => setTimeout(resolve, 3000));
       
-      const score = Math.floor(Math.random() * 30) + 70;
-      setCareerScore(score);
+      // Generate 5-6 career options based on profile
+      const mockCareerOptions: CareerOption[] = [
+        {
+          id: crypto.randomUUID(),
+          career_name: 'Product Manager',
+          description: 'Lead product strategy and development, bridging business and technology.',
+          match_percentage: 92,
+          required_skills: ['Product Strategy', 'User Research', 'Agile', 'Data Analysis', 'Communication'],
+          youtube_links: ['https://www.youtube.com/watch?v=yUOC-Y0f5ZQ', 'https://www.youtube.com/watch?v=ZWCvxSr3Z3g'],
+          estimated_timeline: '6-12 months',
+          roadmap_steps: ['Learn Product Basics', 'Build Portfolio Projects', 'Get PM Certifications', 'Network with PMs', 'Apply for Junior PM Roles']
+        },
+        {
+          id: crypto.randomUUID(),
+          career_name: 'Data Analyst',
+          description: 'Transform data into insights that drive business decisions.',
+          match_percentage: 88,
+          required_skills: ['SQL', 'Python', 'Excel', 'Tableau', 'Statistics', 'Business Intelligence'],
+          youtube_links: ['https://www.youtube.com/watch?v=1UXOdCBNdgE', 'https://www.youtube.com/watch?v=7mz73uXD9DA'],
+          estimated_timeline: '4-8 months',
+          roadmap_steps: ['Master SQL & Python', 'Learn Data Visualization', 'Complete Analytics Projects', 'Get Certified', 'Build Portfolio']
+        },
+        {
+          id: crypto.randomUUID(),
+          career_name: 'Software Engineer',
+          description: 'Build innovative software solutions and applications.',
+          match_percentage: 85,
+          required_skills: ['Programming', 'Data Structures', 'Algorithms', 'Git', 'Problem Solving'],
+          youtube_links: ['https://www.youtube.com/watch?v=WlzRs16TzuQ', 'https://www.youtube.com/watch?v=8mAITcNt710'],
+          estimated_timeline: '8-14 months',
+          roadmap_steps: ['Learn Programming Fundamentals', 'Master DSA', 'Build Projects', 'Contribute to Open Source', 'Prepare for Interviews']
+        },
+        {
+          id: crypto.randomUUID(),
+          career_name: 'UI/UX Designer',
+          description: 'Create beautiful and intuitive user experiences.',
+          match_percentage: 82,
+          required_skills: ['Figma', 'User Research', 'Wireframing', 'Prototyping', 'Visual Design'],
+          youtube_links: ['https://www.youtube.com/watch?v=c9Wg6Cb_YlU', 'https://www.youtube.com/watch?v=68w2VwalD5w'],
+          estimated_timeline: '5-10 months',
+          roadmap_steps: ['Learn Design Principles', 'Master Figma', 'Build Design Portfolio', 'Practice User Research', 'Network with Designers']
+        },
+        {
+          id: crypto.randomUUID(),
+          career_name: 'Business Analyst',
+          description: 'Bridge business needs with technical solutions.',
+          match_percentage: 79,
+          required_skills: ['Business Analysis', 'Requirements Gathering', 'Process Modeling', 'Communication', 'Problem Solving'],
+          youtube_links: ['https://www.youtube.com/watch?v=bEdjCbNEkFw', 'https://www.youtube.com/watch?v=ySsqJeF1mwA'],
+          estimated_timeline: '4-8 months',
+          roadmap_steps: ['Learn BA Fundamentals', 'Get BA Certifications', 'Practice Requirements Gathering', 'Build Case Studies', 'Network in Industry']
+        }
+      ];
+
+      // Save career options to database
+      const optionsToInsert = mockCareerOptions.map(opt => ({
+        user_id: user.id,
+        career_name: opt.career_name,
+        description: opt.description,
+        match_percentage: opt.match_percentage,
+        required_skills: opt.required_skills,
+        rationale: `Based on your ${profileData.skills} and interest in ${profileData.interests}, this career is a great match.`
+      }));
+
+      const { error: optionsError } = await supabase
+        .from('career_options')
+        .delete()
+        .eq('user_id', user.id);
+
+      const { error: insertError } = await supabase
+        .from('career_options')
+        .insert(optionsToInsert);
+
+      if (insertError) throw insertError;
+
+      setCareerOptions(mockCareerOptions);
       setAnalysisComplete(true);
+      setShowConfetti(true);
+      setTimeout(() => setShowConfetti(false), 3000);
       
-      toast.success("Career analysis completed!");
+      toast.success("🎉 Career analysis completed! Found " + mockCareerOptions.length + " perfect matches!");
     } catch (error) {
-      console.error('Error saving profile:', error);
+      console.error('Error in analysis:', error);
       toast.error("Failed to complete analysis");
     } finally {
       setIsAnalyzing(false);
     }
+  };
+
+  const handleStartJourney = (career: CareerOption) => {
+    toast.success(`Starting your journey to become a ${career.career_name}!`);
+    navigate('/career-growth');
   };
 
   if (!analysisComplete && !isAnalyzing) {
@@ -112,31 +208,31 @@ export const CareerAnalyzer: React.FC<CareerAnalyzerProps> = ({ profileData, onB
             
             <div>
               <h2 className="text-3xl font-bold gradient-text-rainbow mb-2">
-                {t('analyzer.readyTitle')}
+                Ready to Discover Your Path?
               </h2>
               <p className="text-muted-foreground">
-                {t('analyzer.readySubtitle').replace('{name}', profileData.name)}
+                {profileData.name}, let's analyze your profile and find the perfect careers for you!
               </p>
             </div>
 
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold">{t('analyzer.basedOnProfile')}</h3>
+              <h3 className="text-lg font-semibold">What You'll Get:</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="flex items-center space-x-3 p-3 bg-white/5 rounded-lg">
                   <Target className="w-5 h-5 text-primary" />
-                  <span className="text-sm">{t('analyzer.recommendations')}</span>
+                  <span className="text-sm">5-6 Personalized Career Matches</span>
                 </div>
                 <div className="flex items-center space-x-3 p-3 bg-white/5 rounded-lg">
                   <BookOpen className="w-5 h-5 text-secondary" />
-                  <span className="text-sm">{t('analyzer.skillDevelopment')}</span>
+                  <span className="text-sm">Learning Resources & Links</span>
                 </div>
                 <div className="flex items-center space-x-3 p-3 bg-white/5 rounded-lg">
                   <TrendingUp className="w-5 h-5 text-accent" />
-                  <span className="text-sm">{t('analyzer.learningRoadmaps')}</span>
+                  <span className="text-sm">Step-by-Step Roadmaps</span>
                 </div>
                 <div className="flex items-center space-x-3 p-3 bg-white/5 rounded-lg">
                   <Briefcase className="w-5 h-5 text-primary" />
-                  <span className="text-sm">{t('analyzer.jobPlatforms')}</span>
+                  <span className="text-sm">Timeline to Job-Ready</span>
                 </div>
               </div>
             </div>
@@ -147,7 +243,8 @@ export const CareerAnalyzer: React.FC<CareerAnalyzerProps> = ({ profileData, onB
               onClick={handleStartAnalysis}
               className="w-full"
             >
-              {t('analyzer.startCareerAnalysis')}
+              <Sparkles className="w-5 h-5 mr-2" />
+              Generate My Career Options
             </Button>
           </div>
         </Card>
@@ -166,16 +263,16 @@ export const CareerAnalyzer: React.FC<CareerAnalyzerProps> = ({ profileData, onB
             
             <div>
               <h2 className="text-2xl font-bold gradient-text-rainbow mb-2">
-                {t('analyzer.analysisTitle')}
+                Analyzing Your Profile
               </h2>
               <p className="text-muted-foreground">
-                {t('analyzer.analysisSubtitle')}
+                Our AI is finding the perfect career matches for you...
               </p>
             </div>
 
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span>{t('analyzer.analyzingSkills')}</span>
+                <span>Analyzing your skills & interests</span>
                 <span>85%</span>
               </div>
               <Progress value={85} className="h-2" />
@@ -193,37 +290,152 @@ export const CareerAnalyzer: React.FC<CareerAnalyzerProps> = ({ profileData, onB
   }
 
   return (
-    <div className="min-h-screen cyber-grid flex flex-col">
-      {/* Header */}
-      <div className="p-4 glass-card m-4 rounded-2xl">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <div className="w-12 h-12 bg-gradient-to-r from-primary to-secondary rounded-full flex items-center justify-center">
-              <CheckCircle className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold gradient-text-rainbow">{t('analyzer.careerGuideTitle')}</h1>
-              <p className="text-sm text-muted-foreground">{t('analyzer.analysisComplete')} {profileData.name}</p>
-            </div>
+    <>
+      <ConfettiEffect trigger={showConfetti} type="celebration" />
+      
+      <div className="min-h-screen cyber-grid p-4 md:p-8">
+        <div className="max-w-7xl mx-auto space-y-8">
+          {/* Header */}
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center space-y-4"
+          >
+            <h1 className="text-4xl md:text-5xl font-bold gradient-text-rainbow">
+              Your Perfect Career Matches
+            </h1>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Based on your profile, here are {careerOptions.length} career paths personalized for you, {profileData.name}!
+            </p>
+          </motion.div>
+
+          {/* Career Options Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {careerOptions.map((career, index) => (
+              <motion.div
+                key={career.id}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.3, delay: index * 0.1 }}
+              >
+                <Card className="glass-card p-6 h-full flex flex-col hover:shadow-2xl transition-all">
+                  <div className="space-y-4 flex-1">
+                    {/* Header */}
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <h3 className="text-2xl font-bold gradient-text-rainbow mb-2">
+                          {career.career_name}
+                        </h3>
+                        <p className="text-muted-foreground text-sm">
+                          {career.description}
+                        </p>
+                      </div>
+                      <Badge variant="secondary" className="bg-green-500/20 text-green-400 ml-4">
+                        {career.match_percentage}% Match
+                      </Badge>
+                    </div>
+
+                    {/* Timeline */}
+                    <div className="flex items-center space-x-2 text-sm">
+                      <Clock className="w-4 h-4 text-primary" />
+                      <span className="text-muted-foreground">Timeline: {career.estimated_timeline}</span>
+                    </div>
+
+                    {/* Required Skills */}
+                    <div>
+                      <p className="text-xs font-semibold text-muted-foreground mb-2">Key Skills Needed:</p>
+                      <div className="flex flex-wrap gap-2">
+                        {career.required_skills.slice(0, 5).map((skill, i) => (
+                          <Badge key={i} variant="outline" className="text-xs">
+                            {skill}
+                          </Badge>
+                        ))}
+                        {career.required_skills.length > 5 && (
+                          <Badge variant="outline" className="text-xs">
+                            +{career.required_skills.length - 5} more
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* YouTube Resources */}
+                    <div>
+                      <p className="text-xs font-semibold text-muted-foreground mb-2">
+                        <Video className="w-3 h-3 inline mr-1" />
+                        Learning Resources:
+                      </p>
+                      <div className="space-y-1">
+                        {career.youtube_links.map((link, i) => (
+                          <a
+                            key={i}
+                            href={link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs text-primary hover:underline flex items-center space-x-1"
+                          >
+                            <Video className="w-3 h-3" />
+                            <span>Video Tutorial {i + 1}</span>
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Roadmap Preview */}
+                    <div>
+                      <p className="text-xs font-semibold text-muted-foreground mb-2">
+                        <MapPin className="w-3 h-3 inline mr-1" />
+                        Roadmap Preview:
+                      </p>
+                      <ul className="space-y-1">
+                        {career.roadmap_steps.slice(0, 3).map((step, i) => (
+                          <li key={i} className="text-xs text-muted-foreground flex items-start">
+                            <span className="text-primary mr-2">{i + 1}.</span>
+                            {step}
+                          </li>
+                        ))}
+                        {career.roadmap_steps.length > 3 && (
+                          <li className="text-xs text-muted-foreground italic">
+                            +{career.roadmap_steps.length - 3} more steps...
+                          </li>
+                        )}
+                      </ul>
+                    </div>
+                  </div>
+
+                  {/* Action Button */}
+                  <Button
+                    variant="rainbow"
+                    className="w-full mt-6 group"
+                    onClick={() => handleStartJourney(career)}
+                  >
+                    <Sparkles className="mr-2 w-4 h-4" />
+                    Start Journey
+                    <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  </Button>
+                </Card>
+              </motion.div>
+            ))}
           </div>
-          <div className="flex items-center space-x-4">
-            <Badge variant="secondary" className="bg-green-500/20 text-green-400">
-              {t('analyzer.careerScore')}: {careerScore}
-            </Badge>
-            <div className="flex items-center space-x-2">
-              <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-              <span className="text-sm text-muted-foreground">{t('analyzer.online')}</span>
-            </div>
-          </div>
+
+          {/* Continue Button */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.6 }}
+            className="text-center"
+          >
+            <Button
+              variant="outline"
+              size="lg"
+              onClick={() => navigate('/career-growth')}
+              className="group"
+            >
+              👉 Continue to Career Growth Path
+              <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+            </Button>
+          </motion.div>
         </div>
       </div>
-
-      {/* Chat Interface */}
-      <div className="flex-1 mx-4 mb-4">
-        <Card className="glass-card h-full">
-          <ChatInterface profileData={profileData} />
-        </Card>
-      </div>
-    </div>
+    </>
   );
 };
