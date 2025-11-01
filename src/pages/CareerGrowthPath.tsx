@@ -143,6 +143,37 @@ export const CareerGrowthPath = () => {
 
       if (roadmapError) throw roadmapError;
 
+      // Transform roadmap structure to steps format
+      const transformedRoadmap = {
+        steps: [
+          ...(roadmapData.roadmap?.shortTerm || []).map((item: any) => ({
+            title: item.task,
+            description: item.description || '',
+            duration: item.duration,
+            type: item.type,
+            resources: item.resources || [],
+            completed: false
+          })),
+          ...(roadmapData.roadmap?.midTerm || []).map((item: any) => ({
+            title: item.task,
+            description: item.description || '',
+            duration: item.duration,
+            type: item.type,
+            resources: item.resources || [],
+            completed: false
+          })),
+          ...(roadmapData.roadmap?.longTerm || []).map((item: any) => ({
+            title: item.task,
+            description: item.description || '',
+            duration: item.duration,
+            type: item.type,
+            resources: item.resources || [],
+            completed: false
+          }))
+        ],
+        explanation: roadmapData.explanation || ''
+      };
+
       // Save or update career progress
       const { error: progressError } = await supabase
         .from('career_progress')
@@ -152,7 +183,7 @@ export const CareerGrowthPath = () => {
           selected_career_name: career.career_name,
           xp: 0,
           streak_count: 0,
-          roadmap_data: roadmapData.roadmap,
+          roadmap_data: transformedRoadmap,
           last_activity_date: new Date().toISOString().split('T')[0]
         }, {
           onConflict: 'user_id'

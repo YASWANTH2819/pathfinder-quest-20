@@ -64,15 +64,16 @@ export const DailyMCQ = ({ userId, careerName, onXPEarned }: DailyMCQProps) => {
         .from('daily_mcqs')
         .select('*')
         .eq('career_name', careerName)
-        .limit(1)
-        .single();
+        .limit(1);
 
       if (error) throw error;
 
-      if (data) {
+      if (data && data.length > 0) {
+        // Pick a random question from the results
+        const randomIndex = Math.floor(Math.random() * data.length);
         setCurrentMCQ({
-          ...data,
-          options: data.options as string[]
+          ...data[randomIndex],
+          options: data[randomIndex].options as string[]
         });
       }
     } catch (error) {
