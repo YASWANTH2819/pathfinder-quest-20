@@ -110,6 +110,22 @@ Return your response as JSON with this structure:
     if (!geminiResponse.ok) {
       const errorText = await geminiResponse.text()
       console.error('Gemini API error:', geminiResponse.status, errorText)
+      
+      // Handle rate limiting specifically
+      if (geminiResponse.status === 429) {
+        return new Response(
+          JSON.stringify({ 
+            error: 'Rate limit exceeded',
+            explanation: 'The Gemini API rate limit has been reached. Please wait a moment and try again.',
+            roadmap: null
+          }),
+          {
+            status: 429,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          }
+        )
+      }
+      
       throw new Error(`Gemini API error: ${geminiResponse.statusText}`)
     }
 
