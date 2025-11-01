@@ -154,6 +154,8 @@ export const CareerGrowthPath = () => {
           streak_count: 0,
           roadmap_data: roadmapData.roadmap,
           last_activity_date: new Date().toISOString().split('T')[0]
+        }, {
+          onConflict: 'user_id'
         });
 
       if (progressError) throw progressError;
