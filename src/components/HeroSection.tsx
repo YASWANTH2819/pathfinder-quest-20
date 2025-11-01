@@ -51,10 +51,13 @@ export const HeroSection = ({ onStartChat }: HeroSectionProps) => {
                 variant="shine" 
                 size="lg" 
                 onClick={onStartChat}
-                className="text-lg px-8 py-4 h-auto animate-float"
+                className="relative overflow-hidden bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:from-blue-700 hover:via-purple-700 hover:to-pink-700 text-white font-bold text-lg px-8 py-6 h-auto shadow-[0_0_25px_rgba(59,130,246,0.6)] hover:shadow-[0_0_35px_rgba(168,85,247,0.8)] border-2 border-white/40 hover:border-white/60 rounded-2xl transition-all duration-300 hover:scale-105 active:scale-95"
               >
-                {t('hero.startChat')}
-                <ArrowRight className="w-5 h-5 ml-2" />
+                <span className="relative z-10 flex items-center justify-center">
+                  {t('hero.startChat')}
+                  <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+                </span>
+                <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/25 to-white/0 translate-x-[-100%] hover:translate-x-[100%] transition-transform duration-700"></div>
               </Button>
             </div>
           </div>
