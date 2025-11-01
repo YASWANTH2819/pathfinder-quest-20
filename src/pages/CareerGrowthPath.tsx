@@ -199,9 +199,22 @@ export const CareerGrowthPath = () => {
         toast.success(`🎉 Journey started for ${career.career_name}!`);
       }, 2000);
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error starting career journey:', error);
-      toast.error('Failed to start career journey');
+      
+      // Check if it's a FunctionsHttpError with specific status codes
+      if (error?.context?.status === 429) {
+        toast.error('⏳ Too many requests. Please wait a moment and try again.');
+      } else if (error?.context?.status === 402) {
+        toast.error('💳 AI credits exhausted. Please add credits in Settings > Workspace > Usage.');
+      } else if (error?.message?.includes('Rate limit')) {
+        toast.error('⏳ Rate limit exceeded. Please try again in a moment.');
+      } else if (error?.message?.includes('Payment required')) {
+        toast.error('💳 Please add AI credits to continue. Go to Settings > Workspace > Usage.');
+      } else {
+        toast.error('Failed to start career journey. Please try again.');
+      }
+      
       setStartingJourney(false);
     }
   };

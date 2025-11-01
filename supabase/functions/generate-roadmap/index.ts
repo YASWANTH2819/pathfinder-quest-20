@@ -50,10 +50,10 @@ serve(async (req) => {
 
     const { profileData, goal, language, userId, systemPrompt }: RoadmapRequest = validationResult.data
 
-    // Get Gemini API key from environment
-    const geminiApiKey = Deno.env.get('GEMINI_API_KEY')
-    if (!geminiApiKey) {
-      throw new Error('GEMINI_API_KEY not configured')
+    // Get Lovable AI API key from environment
+    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY')
+    if (!lovableApiKey) {
+      throw new Error('LOVABLE_API_KEY not configured')
     }
 
     // Create Supabase client
@@ -88,35 +88,42 @@ Return your response as JSON with this structure:
   "explanation": "A comprehensive summary in the requested language explaining the roadmap and rationale"
 }`
 
-    console.log('Calling Gemini API for roadmap generation...')
+    console.log('Calling Lovable AI Gateway for roadmap generation...')
 
-    // Call Gemini API
-    const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${geminiApiKey}`, {
+    // Call Lovable AI Gateway (OpenAI-compatible API)
+    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
+        'Authorization': `Bearer ${lovableApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        contents: [{
-          parts: [{ text: fullPrompt }]
-        }],
-        generationConfig: {
-          temperature: 0.7,
-          maxOutputTokens: 3000,
-        }
+        model: 'google/gemini-2.5-flash',
+        messages: [
+          {
+            role: 'system',
+            content: systemPrompt || 'You are a career roadmap expert. Consider the Indian job market and education system.'
+          },
+          {
+            role: 'user',
+            content: fullPrompt
+          }
+        ],
+        temperature: 0.7,
+        max_tokens: 3000,
       })
     })
 
-    if (!geminiResponse.ok) {
-      const errorText = await geminiResponse.text()
-      console.error('Gemini API error:', geminiResponse.status, errorText)
+    if (!aiResponse.ok) {
+      const errorText = await aiResponse.text()
+      console.error('Lovable AI Gateway error:', aiResponse.status, errorText)
       
-      // Handle rate limiting specifically
-      if (geminiResponse.status === 429) {
+      // Handle rate limiting
+      if (aiResponse.status === 429) {
         return new Response(
           JSON.stringify({ 
             error: 'Rate limit exceeded',
-            explanation: 'The Gemini API rate limit has been reached. Please wait a moment and try again.',
+            explanation: 'Too many requests. Please wait a moment and try again.',
             roadmap: null
           }),
           {
@@ -126,11 +133,26 @@ Return your response as JSON with this structure:
         )
       }
       
-      throw new Error(`Gemini API error: ${geminiResponse.statusText}`)
+      // Handle payment required (out of credits)
+      if (aiResponse.status === 402) {
+        return new Response(
+          JSON.stringify({ 
+            error: 'Payment required',
+            explanation: 'AI credits exhausted. Please add credits to your Lovable workspace in Settings > Workspace > Usage.',
+            roadmap: null
+          }),
+          {
+            status: 402,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          }
+        )
+      }
+      
+      throw new Error(`Lovable AI Gateway error: ${aiResponse.statusText}`)
     }
 
-    const geminiData = await geminiResponse.json()
-    const responseText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || ''
+    const aiData = await aiResponse.json()
+    const responseText = aiData.choices?.[0]?.message?.content || ''
 
     // Parse the JSON response
     let roadmap
