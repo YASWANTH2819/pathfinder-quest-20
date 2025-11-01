@@ -17,6 +17,7 @@ import Dashboard from "./pages/Dashboard";
 import MainPage from "./pages/MainPage";
 import MainDashboard from "./pages/MainDashboard";
 import { RoadmapPage } from "./pages/RoadmapPage";
+import { CareerGrowthPath } from "./pages/CareerGrowthPath";
 import NotFound from "./pages/NotFound";
 import CareerHealthScore from "./components/CareerHealthScore";
 
@@ -55,7 +56,7 @@ const App = () => (
                 } />
                 <Route path="/career-growth" element={
                   <ProtectedRoute>
-                    <RoadmapPage />
+                    <CareerGrowthPath />
                   </ProtectedRoute>
                 } />
                 <Route path="/career-health" element={

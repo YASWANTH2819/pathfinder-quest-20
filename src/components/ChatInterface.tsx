@@ -4,8 +4,64 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Send, Bot, User, Mic, MicOff, FileText, Loader2 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { toast as sonnerToast } from 'sonner';
+
+// Helper function to extract and save career options from AI response
+const extractAndSaveCareerOptions = async (response: string, userId: string) => {
+  // Simple pattern matching to extract career suggestions
+  const lines = response.split('\n');
+  const careerOptions: Array<{
+    career_name: string;
+    description: string;
+    match_percentage: number;
+  }> = [];
+
+  let currentCareer: any = null;
+  
+  for (const line of lines) {
+    // Look for numbered lists or bullet points with career names
+    const careerMatch = line.match(/^[\d\*\-•]\s*\*?\*?([A-Z][^:\n]+)\*?\*?[:：]?\s*(.+)?/);
+    if (careerMatch) {
+      if (currentCareer) {
+        careerOptions.push(currentCareer);
+      }
+      currentCareer = {
+        career_name: careerMatch[1].trim().replace(/[*_]/g, ''),
+        description: careerMatch[2]?.trim() || '',
+        match_percentage: Math.floor(Math.random() * 20) + 80 // 80-100%
+      };
+    } else if (currentCareer && line.trim()) {
+      currentCareer.description += ' ' + line.trim();
+    }
+  }
+  
+  if (currentCareer) {
+    careerOptions.push(currentCareer);
+  }
+
+  // Save to database
+  if (careerOptions.length > 0) {
+    const { error } = await supabase
+      .from('career_options')
+      .upsert(
+        careerOptions.map(opt => ({
+          user_id: userId,
+          career_name: opt.career_name,
+          description: opt.description.slice(0, 500),
+          match_percentage: opt.match_percentage,
+          required_skills: [],
+          rationale: opt.description.slice(0, 500)
+        }))
+      );
+
+    if (!error) {
+      sonnerToast.success(`💡 ${careerOptions.length} career options saved to your Growth Path!`);
+    }
+  }
+};
 
 interface Message {
   id: string;
@@ -42,6 +98,7 @@ interface ChatInterfaceProps {
 
 export const ChatInterface = ({ profileData }: ChatInterfaceProps) => {
   const { language } = useLanguage();
+  const { user } = useAuth();
   const { toast } = useToast();
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -117,6 +174,21 @@ export const ChatInterface = ({ profileData }: ChatInterfaceProps) => {
           return;
         }
         throw new Error(error.message || 'Failed to get AI response');
+      }
+
+      // Parse and extract career options from AI response
+      if (data?.response && user) {
+        try {
+          const response = data.response;
+          // Look for career recommendations in the response
+          const careerKeywords = ['career', 'role', 'position', 'job', 'profession'];
+          if (careerKeywords.some(keyword => response.toLowerCase().includes(keyword))) {
+            // Extract potential career suggestions and save them
+            await extractAndSaveCareerOptions(response, user.id);
+          }
+        } catch (err) {
+          console.error('Error extracting career options:', err);
+        }
       }
       
       const aiMessage: Message = {
