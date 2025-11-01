@@ -50,10 +50,10 @@ serve(async (req) => {
 
     const { resumeText, targetRole, language, userId, systemPrompt }: ResumeAnalysisRequest = validationResult.data
 
-    // Get OpenAI API key from environment
-    const openaiApiKey = Deno.env.get('OPENAI_API_KEY')
-    if (!openaiApiKey) {
-      throw new Error('OPENAI_API_KEY not configured')
+    // Get Gemini API key from environment
+    const geminiApiKey = Deno.env.get('GEMINI_API_KEY')
+    if (!geminiApiKey) {
+      throw new Error('GEMINI_API_KEY not configured')
     }
 
     // Create Supabase client
@@ -61,12 +61,12 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
-    // Prepare the prompt for OpenAI (truncate resume if too long)
+    // Prepare the prompt for Gemini (truncate resume if too long)
     const truncatedResume = resumeText.slice(0, 30000)
     
-    const systemMessage = systemPrompt || 'You are an expert ATS (Applicant Tracking System) resume analyzer with deep knowledge of hiring practices.'
-    
-    const userMessage = `Analyze this resume for the target role: ${targetRole || 'General career guidance'}
+    const fullPrompt = `${systemPrompt || 'You are an expert ATS (Applicant Tracking System) resume analyzer with deep knowledge of hiring practices.'}
+
+Analyze this resume for the target role: ${targetRole || 'General career guidance'}
 
 RESUME TEXT:
 ${truncatedResume}
@@ -93,35 +93,33 @@ Return ONLY a valid JSON object with this exact structure:
   "explanation": "A comprehensive summary in ${language === 'hi' ? 'Hindi' : language === 'te' ? 'Telugu' : 'English'}"
 }`
 
-    console.log('Calling OpenAI API for resume analysis...')
+    console.log('Calling Gemini API for resume analysis...')
 
-    // Call OpenAI API
-    const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+    // Call Gemini API
+    const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${geminiApiKey}`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${openaiApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          { role: 'system', content: systemMessage },
-          { role: 'user', content: userMessage }
-        ],
-        temperature: 0.7,
-        max_tokens: 2000,
-        response_format: { type: "json_object" }
+        contents: [{
+          parts: [{ text: fullPrompt }]
+        }],
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 2000,
+        }
       })
     })
 
-    if (!openaiResponse.ok) {
-      const errorText = await openaiResponse.text()
-      console.error('OpenAI API error:', openaiResponse.status, errorText)
-      throw new Error(`OpenAI API error: ${openaiResponse.statusText}`)
+    if (!geminiResponse.ok) {
+      const errorText = await geminiResponse.text()
+      console.error('Gemini API error:', geminiResponse.status, errorText)
+      throw new Error(`Gemini API error: ${geminiResponse.statusText}`)
     }
 
-    const openaiData = await openaiResponse.json()
-    const responseText = openaiData.choices?.[0]?.message?.content || ''
+    const geminiData = await geminiResponse.json()
+    const responseText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || ''
 
     // Parse the JSON response
     let analysis

@@ -47,47 +47,47 @@ serve(async (req) => {
 
     const { message, language, context, systemPrompt }: ChatRequest = validationResult.data
 
-    // Get OpenAI API key from environment
-    const openaiApiKey = Deno.env.get('OPENAI_API_KEY')
-    if (!openaiApiKey) {
-      throw new Error('OPENAI_API_KEY not configured')
+    // Get Gemini API key from environment
+    const geminiApiKey = Deno.env.get('GEMINI_API_KEY')
+    if (!geminiApiKey) {
+      throw new Error('GEMINI_API_KEY not configured')
     }
 
-    // Prepare the prompt for OpenAI (limit context size)
+    // Prepare the prompt for Gemini (limit context size)
     const contextString = context ? JSON.stringify(context).slice(0, 5000) : ''
     
-    console.log('Calling OpenAI API for chat...')
+    console.log('Calling Gemini API for chat...')
 
-    // Call OpenAI API
-    const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+    // Build the prompt with system instructions and context
+    const fullPrompt = `${systemPrompt || 'You are a helpful career guidance assistant.'}
+
+${contextString ? `CONTEXT: ${contextString}\n\n` : ''}User: ${message}`
+
+    // Call Gemini API
+    const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${geminiApiKey}`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${openaiApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          { 
-            role: 'system', 
-            content: systemPrompt || 'You are a helpful career guidance assistant.'
-          },
-          ...(contextString ? [{ role: 'system', content: `CONTEXT: ${contextString}` }] : []),
-          { role: 'user', content: message }
-        ],
-        max_tokens: 1500,
-        temperature: 0.8,
+        contents: [{
+          parts: [{ text: fullPrompt }]
+        }],
+        generationConfig: {
+          temperature: 0.8,
+          maxOutputTokens: 1500,
+        }
       })
     })
 
-    if (!openaiResponse.ok) {
-      const errorText = await openaiResponse.text()
-      console.error('OpenAI API error:', openaiResponse.status, errorText)
-      throw new Error(`OpenAI API error: ${openaiResponse.statusText}`)
+    if (!geminiResponse.ok) {
+      const errorText = await geminiResponse.text()
+      console.error('Gemini API error:', geminiResponse.status, errorText)
+      throw new Error(`Gemini API error: ${geminiResponse.statusText}`)
     }
 
-    const openaiData = await openaiResponse.json()
-    const response = openaiData.choices?.[0]?.message?.content || 'No response generated'
+    const geminiData = await geminiResponse.json()
+    const response = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || 'No response generated'
 
     console.log('Successfully generated chat response')
 
