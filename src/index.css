@@ -74,13 +74,13 @@ All colors MUST be HSL.
     --glass-border-bright: hsl(217 91% 60% / 0.4);
     
     /* Professional Shadows & Effects */
-    --shadow-primary: 0 10px 25px hsl(217 91% 60% / 0.15);
-    --shadow-card: 0 4px 12px hsl(0 0% 0% / 0.1);
-    --shadow-accent: 0 10px 25px hsl(262 83% 58% / 0.15);
-    --glow-primary: 0 0 20px hsl(217 91% 60% / 0.3);
-    --glow-accent: 0 0 20px hsl(262 83% 58% / 0.3);
-    --glow-success: 0 0 20px hsl(142 76% 47% / 0.3);
-    --glow-soft: 0 0 15px hsl(217 91% 60% / 0.2);
+    --shadow-primary: 0 10px 25px hsl(217 91% 60% / 0.08);
+    --shadow-card: 0 4px 12px hsl(0 0% 0% / 0.06);
+    --shadow-accent: 0 10px 25px hsl(262 83% 58% / 0.08);
+    --glow-primary: 0 0 15px hsl(217 91% 60% / 0.15);
+    --glow-accent: 0 0 15px hsl(262 83% 58% / 0.15);
+    --glow-success: 0 0 15px hsl(142 76% 47% / 0.15);
+    --glow-soft: 0 0 10px hsl(217 91% 60% / 0.1);
 
     --radius: 0.5rem;
 
@@ -172,7 +172,7 @@ All colors MUST be HSL.
 
 @layer components {
   .glass-card {
-    @apply backdrop-blur-xl bg-[var(--glass-background)] border border-[var(--glass-border-bright)] rounded-2xl;
+    @apply backdrop-blur-md bg-[var(--glass-background)] border border-[var(--glass-border-bright)] rounded-2xl;
     box-shadow: var(--shadow-card), var(--shadow-primary);
     transition: all 0.3s ease;
   }
@@ -282,10 +282,10 @@ All colors MUST be HSL.
 
 @keyframes glow {
   from {
-    box-shadow: 0 0 20px hsl(var(--accent) / 0.4);
+    box-shadow: 0 0 10px hsl(var(--accent) / 0.2);
   }
   to {
-    box-shadow: 0 0 30px hsl(var(--primary) / 0.6), 0 0 50px hsl(var(--accent) / 0.3);
+    box-shadow: 0 0 15px hsl(var(--primary) / 0.3), 0 0 25px hsl(var(--accent) / 0.15);
   }
 }
 
@@ -300,10 +300,10 @@ All colors MUST be HSL.
 
 @keyframes pulse-glow {
   0%, 100% {
-    box-shadow: 0 0 10px hsl(var(--primary) / 0.4);
+    box-shadow: 0 0 8px hsl(var(--primary) / 0.2);
   }
   50% {
-    box-shadow: 0 0 20px hsl(var(--primary) / 0.6), 0 0 30px hsl(var(--accent) / 0.4);
+    box-shadow: 0 0 12px hsl(var(--primary) / 0.3), 0 0 20px hsl(var(--accent) / 0.2);
   }
 }
 
@@ -312,16 +312,16 @@ All colors MUST be HSL.
     box-shadow: var(--glow-primary);
   }
   50% {
-    box-shadow: 0 0 40px hsl(var(--accent) / 0.6), 0 0 60px hsl(var(--primary) / 0.4);
+    box-shadow: 0 0 20px hsl(var(--accent) / 0.3), 0 0 30px hsl(var(--primary) / 0.2);
   }
 }
 
 @keyframes rainbow-glow {
-  0% { box-shadow: 0 0 20px hsl(var(--primary) / 0.4); }
-  25% { box-shadow: 0 0 20px hsl(var(--accent) / 0.4); }
-  50% { box-shadow: 0 0 20px hsl(var(--green-success) / 0.4); }
-  75% { box-shadow: 0 0 20px hsl(var(--accent) / 0.4); }
-  100% { box-shadow: 0 0 20px hsl(var(--primary) / 0.4); }
+  0% { box-shadow: 0 0 12px hsl(var(--primary) / 0.2); }
+  25% { box-shadow: 0 0 12px hsl(var(--accent) / 0.2); }
+  50% { box-shadow: 0 0 12px hsl(var(--green-success) / 0.2); }
+  75% { box-shadow: 0 0 12px hsl(var(--accent) / 0.2); }
+  100% { box-shadow: 0 0 12px hsl(var(--primary) / 0.2); }
 }
 
 @keyframes gradient-shift {
