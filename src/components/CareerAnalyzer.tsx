@@ -17,10 +17,12 @@ import {
   Sparkles,
   Clock,
   Video,
-  MapPin
+  MapPin,
+  CheckCircle2
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { ConfettiEffect } from './ConfettiEffect';
+import { ChatInterface } from './ChatInterface';
 
 interface ProfileData {
   name: string;
@@ -194,7 +196,7 @@ export const CareerAnalyzer: React.FC<CareerAnalyzerProps> = ({ profileData, onB
 
   const handleStartJourney = (career: CareerOption) => {
     toast.success(`Starting your journey to become a ${career.career_name}!`);
-    navigate('/career-growth');
+    navigate(`/career-growth?career=${encodeURIComponent(career.career_name)}`);
   };
 
   if (!analysisComplete && !isAnalyzing) {
@@ -298,10 +300,38 @@ export const CareerAnalyzer: React.FC<CareerAnalyzerProps> = ({ profileData, onB
       
       <div className="min-h-screen cyber-grid p-4 md:p-8">
         <div className="max-w-7xl mx-auto space-y-8">
-          {/* Header */}
+          {/* AI Career Guide Chatbot */}
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
+            className="glass-card rounded-2xl overflow-hidden"
+          >
+            <div className="bg-gradient-to-r from-[hsl(var(--cyber-green))] via-[hsl(var(--cyber-blue))] to-[hsl(var(--cyber-purple))] p-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                    <CheckCircle2 className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-bold text-white">AI Career Guide</h2>
+                    <p className="text-white/80 text-sm">Analysis Complete - Chat with AI</p>
+                  </div>
+                </div>
+                <Badge variant="secondary" className="bg-[hsl(var(--cyber-green))]/30 text-white border-white/30">
+                  Career Score: {Math.floor(Math.random() * 30) + 70}
+                </Badge>
+              </div>
+            </div>
+            <div className="h-[500px]">
+              <ChatInterface profileData={profileData} />
+            </div>
+          </motion.div>
+
+          {/* Career Matches Header */}
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
             className="text-center space-y-4"
           >
             <h1 className="text-4xl md:text-5xl font-bold gradient-text-rainbow">
