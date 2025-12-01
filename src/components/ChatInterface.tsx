@@ -158,14 +158,9 @@ export const ChatInterface = ({ profileData }: ChatInterfaceProps) => {
       if (error) {
         // Check if it's a rate limit error (429)
         if (error.message?.includes('Rate limit') || error.message?.includes('429')) {
-          toast({
-            title: 'Rate Limit Reached',
-            description: 'The Gemini API rate limit has been reached. Please wait a moment before trying again.',
-            variant: 'destructive'
-          });
           const rateLimitMessage: Message = {
             id: Date.now().toString(),
-            content: '⏱️ **Rate Limit Reached**\n\nThe Gemini API is currently rate-limited. Please wait a moment and try again.\n\nTip: You can upgrade your Gemini API quota in the Google AI Studio console.',
+            content: '⏱️ **Rate Limit Reached**\n\nPlease wait a moment and try again.',
             sender: 'ai',
             timestamp: new Date()
           };
@@ -173,6 +168,20 @@ export const ChatInterface = ({ profileData }: ChatInterfaceProps) => {
           setIsLoading(false);
           return;
         }
+        
+        // Check if it's a payment required error (402)
+        if (error.message?.includes('credits exhausted') || error.message?.includes('402')) {
+          const creditsMessage: Message = {
+            id: Date.now().toString(),
+            content: '💳 **AI Credits Exhausted**\n\nPlease add credits to your Lovable workspace in Settings → Usage to continue using the AI chat.',
+            sender: 'ai',
+            timestamp: new Date()
+          };
+          setMessages(prev => [...prev, creditsMessage]);
+          setIsLoading(false);
+          return;
+        }
+        
         throw new Error(error.message || 'Failed to get AI response');
       }
 

@@ -47,49 +47,54 @@ serve(async (req) => {
 
     const { message, language, context, systemPrompt }: ChatRequest = validationResult.data
 
-    // Get Gemini API key from environment
-    const geminiApiKey = Deno.env.get('GEMINI_API_KEY')
-    if (!geminiApiKey) {
-      throw new Error('GEMINI_API_KEY not configured')
+    // Get Lovable AI API key from environment (auto-provisioned)
+    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY')
+    if (!lovableApiKey) {
+      throw new Error('LOVABLE_API_KEY not configured')
     }
 
-    // Prepare the prompt for Gemini (limit context size)
+    // Prepare the context (limit size)
     const contextString = context ? JSON.stringify(context).slice(0, 5000) : ''
     
-    console.log('Calling Gemini API for chat...')
+    console.log('Calling Lovable AI Gateway for chat...')
 
-    // Build the prompt with system instructions and context
-    const fullPrompt = `${systemPrompt || 'You are a helpful career guidance assistant.'}
+    // Build messages array for OpenAI-compatible API
+    const messages = [
+      {
+        role: 'system',
+        content: `${systemPrompt || 'You are a helpful career guidance assistant for Indian students. Provide practical, actionable advice tailored to the Indian job market and education system.'}${contextString ? `\n\nCONTEXT: ${contextString}` : ''}`
+      },
+      {
+        role: 'user',
+        content: message
+      }
+    ]
 
-${contextString ? `CONTEXT: ${contextString}\n\n` : ''}User: ${message}`
-
-    // Call Gemini API
-    const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${geminiApiKey}`, {
+    // Call Lovable AI Gateway
+    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
+        'Authorization': `Bearer ${lovableApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        contents: [{
-          parts: [{ text: fullPrompt }]
-        }],
-        generationConfig: {
-          temperature: 0.8,
-          maxOutputTokens: 1500,
-        }
+        model: 'google/gemini-2.5-flash',
+        messages: messages,
+        temperature: 0.8,
+        max_tokens: 1500,
       })
     })
 
-    if (!geminiResponse.ok) {
-      const errorText = await geminiResponse.text()
-      console.error('Gemini API error:', geminiResponse.status, errorText)
+    if (!aiResponse.ok) {
+      const errorText = await aiResponse.text()
+      console.error('Lovable AI Gateway error:', aiResponse.status, errorText)
       
-      // Handle rate limiting specifically
-      if (geminiResponse.status === 429) {
+      // Handle rate limiting
+      if (aiResponse.status === 429) {
         return new Response(
           JSON.stringify({ 
             error: 'Rate limit exceeded',
-            response: 'The Gemini API rate limit has been reached. Please wait a moment and try again.'
+            response: '⏱️ Rate limit reached. Please wait a moment and try again.'
           }),
           {
             status: 429,
@@ -97,12 +102,26 @@ ${contextString ? `CONTEXT: ${contextString}\n\n` : ''}User: ${message}`
           }
         )
       }
+
+      // Handle payment required
+      if (aiResponse.status === 402) {
+        return new Response(
+          JSON.stringify({ 
+            error: 'AI credits exhausted',
+            response: '💳 AI credits exhausted. Please add credits to your Lovable workspace in Settings → Usage.'
+          }),
+          {
+            status: 402,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          }
+        )
+      }
       
-      throw new Error(`Gemini API error: ${geminiResponse.statusText}`)
+      throw new Error(`Lovable AI Gateway error: ${aiResponse.statusText}`)
     }
 
-    const geminiData = await geminiResponse.json()
-    const response = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || 'No response generated'
+    const aiData = await aiResponse.json()
+    const response = aiData.choices?.[0]?.message?.content || 'No response generated'
 
     console.log('Successfully generated chat response')
 
