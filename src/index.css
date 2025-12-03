@@ -81,6 +81,10 @@ All colors MUST be HSL.
     --glow-accent: 0 0 8px hsl(262 83% 58% / 0.08);
     --glow-success: 0 0 8px hsl(142 76% 47% / 0.08);
     --glow-soft: 0 0 6px hsl(217 91% 60% / 0.05);
+    
+    /* Color-Blind Accessibility Enhancements */
+    --focus-ring-width: 3px;
+    --focus-ring-offset: 2px;
 
     --radius: 0.5rem;
 
@@ -153,6 +157,19 @@ All colors MUST be HSL.
     font-family: 'Inter', sans-serif;
   }
   
+  /* Color-Blind Accessibility: Enhanced focus states for keyboard navigation */
+  *:focus-visible {
+    outline: 3px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+  
+  /* Color-Blind Accessible: Interactive elements get visible borders */
+  button:not([class*="ghost"]), 
+  [role="button"]:not([class*="ghost"]),
+  .btn-primary {
+    border: 1px solid hsl(0 0% 0% / 0.15);
+  }
+  
   /* Professional Grid Background */
   .cyber-grid::before {
     content: '';
@@ -172,14 +189,44 @@ All colors MUST be HSL.
 
 @layer components {
   .glass-card {
-    @apply backdrop-blur-sm bg-[var(--glass-background)] border border-[var(--glass-border-bright)] rounded-2xl;
+    @apply backdrop-blur-sm bg-[var(--glass-background)] border-2 border-[var(--glass-border-bright)] rounded-2xl;
     box-shadow: var(--shadow-card);
     transition: all 0.3s ease;
   }
   
   .glass-card:hover {
     box-shadow: var(--shadow-card), var(--glow-soft);
-    border-color: hsl(var(--primary) / 0.3);
+    border-color: hsl(var(--primary) / 0.4);
+    border-width: 2px;
+  }
+  
+  /* Color-Blind Accessible: Success states with icon indicator pattern */
+  .success-indicator {
+    position: relative;
+  }
+  .success-indicator::before {
+    content: '✓';
+    margin-right: 0.5rem;
+    font-weight: bold;
+  }
+  
+  /* Color-Blind Accessible: Error states with icon indicator pattern */
+  .error-indicator {
+    position: relative;
+  }
+  .error-indicator::before {
+    content: '✕';
+    margin-right: 0.5rem;
+    font-weight: bold;
+  }
+  
+  /* Color-Blind Accessible: Warning states with icon indicator pattern */
+  .warning-indicator {
+    position: relative;
+  }
+  .warning-indicator::before {
+    content: '⚠';
+    margin-right: 0.5rem;
   }
   
   .gradient-text {
