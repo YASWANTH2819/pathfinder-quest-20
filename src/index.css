@@ -69,18 +69,18 @@ All colors MUST be HSL.
     --gradient-rainbow: linear-gradient(135deg, hsl(217 91% 60%), hsl(262 83% 58%), hsl(142 76% 47%), hsl(330 81% 60%));
     
     /* Modern Glass Effects */
-    --glass-background: hsl(0 0% 100% / 0.8);
-    --glass-border: hsl(217 91% 60% / 0.2);
-    --glass-border-bright: hsl(217 91% 60% / 0.4);
+    --glass-background: hsl(0 0% 100% / 0.9);
+    --glass-border: hsl(217 91% 60% / 0.15);
+    --glass-border-bright: hsl(217 91% 60% / 0.25);
     
-    /* Professional Shadows & Effects */
-    --shadow-primary: 0 10px 25px hsl(217 91% 60% / 0.08);
-    --shadow-card: 0 4px 12px hsl(0 0% 0% / 0.06);
-    --shadow-accent: 0 10px 25px hsl(262 83% 58% / 0.08);
-    --glow-primary: 0 0 15px hsl(217 91% 60% / 0.15);
-    --glow-accent: 0 0 15px hsl(262 83% 58% / 0.15);
-    --glow-success: 0 0 15px hsl(142 76% 47% / 0.15);
-    --glow-soft: 0 0 10px hsl(217 91% 60% / 0.1);
+    /* Professional Shadows & Effects - Subtle */
+    --shadow-primary: 0 8px 20px hsl(217 91% 60% / 0.05);
+    --shadow-card: 0 2px 8px hsl(0 0% 0% / 0.04);
+    --shadow-accent: 0 8px 20px hsl(262 83% 58% / 0.05);
+    --glow-primary: 0 0 8px hsl(217 91% 60% / 0.08);
+    --glow-accent: 0 0 8px hsl(262 83% 58% / 0.08);
+    --glow-success: 0 0 8px hsl(142 76% 47% / 0.08);
+    --glow-soft: 0 0 6px hsl(217 91% 60% / 0.05);
 
     --radius: 0.5rem;
 
@@ -172,14 +172,14 @@ All colors MUST be HSL.
 
 @layer components {
   .glass-card {
-    @apply backdrop-blur-md bg-[var(--glass-background)] border border-[var(--glass-border-bright)] rounded-2xl;
-    box-shadow: var(--shadow-card), var(--shadow-primary);
+    @apply backdrop-blur-sm bg-[var(--glass-background)] border border-[var(--glass-border-bright)] rounded-2xl;
+    box-shadow: var(--shadow-card);
     transition: all 0.3s ease;
   }
   
   .glass-card:hover {
-    box-shadow: var(--shadow-card), var(--glow-primary);
-    border-color: hsl(var(--primary) / 0.4);
+    box-shadow: var(--shadow-card), var(--glow-soft);
+    border-color: hsl(var(--primary) / 0.3);
   }
   
   .gradient-text {
@@ -200,13 +200,11 @@ All colors MUST be HSL.
   }
   
   .glow-effect {
-    box-shadow: var(--glow-primary);
-    animation: pulse-glow 2s ease-in-out infinite;
+    box-shadow: var(--glow-soft);
   }
   
   .glow-intense {
-    box-shadow: var(--glow-intense);
-    animation: intense-glow 3s ease-in-out infinite;
+    box-shadow: var(--glow-soft);
   }
   
   .professional-border {
@@ -282,10 +280,10 @@ All colors MUST be HSL.
 
 @keyframes glow {
   from {
-    box-shadow: 0 0 10px hsl(var(--accent) / 0.2);
+    box-shadow: 0 0 4px hsl(var(--accent) / 0.08);
   }
   to {
-    box-shadow: 0 0 15px hsl(var(--primary) / 0.3), 0 0 25px hsl(var(--accent) / 0.15);
+    box-shadow: 0 0 6px hsl(var(--primary) / 0.1);
   }
 }
 
@@ -300,28 +298,28 @@ All colors MUST be HSL.
 
 @keyframes pulse-glow {
   0%, 100% {
-    box-shadow: 0 0 8px hsl(var(--primary) / 0.2);
+    box-shadow: 0 0 4px hsl(var(--primary) / 0.08);
   }
   50% {
-    box-shadow: 0 0 12px hsl(var(--primary) / 0.3), 0 0 20px hsl(var(--accent) / 0.2);
+    box-shadow: 0 0 6px hsl(var(--primary) / 0.1);
   }
 }
 
 @keyframes intense-glow {
   0%, 100% {
-    box-shadow: var(--glow-primary);
+    box-shadow: var(--glow-soft);
   }
   50% {
-    box-shadow: 0 0 20px hsl(var(--accent) / 0.3), 0 0 30px hsl(var(--primary) / 0.2);
+    box-shadow: 0 0 8px hsl(var(--accent) / 0.1);
   }
 }
 
 @keyframes rainbow-glow {
-  0% { box-shadow: 0 0 12px hsl(var(--primary) / 0.2); }
-  25% { box-shadow: 0 0 12px hsl(var(--accent) / 0.2); }
-  50% { box-shadow: 0 0 12px hsl(var(--green-success) / 0.2); }
-  75% { box-shadow: 0 0 12px hsl(var(--accent) / 0.2); }
-  100% { box-shadow: 0 0 12px hsl(var(--primary) / 0.2); }
+  0% { box-shadow: 0 0 4px hsl(var(--primary) / 0.08); }
+  25% { box-shadow: 0 0 4px hsl(var(--accent) / 0.08); }
+  50% { box-shadow: 0 0 4px hsl(var(--green-success) / 0.08); }
+  75% { box-shadow: 0 0 4px hsl(var(--accent) / 0.08); }
+  100% { box-shadow: 0 0 4px hsl(var(--primary) / 0.08); }
 }
 
 @keyframes gradient-shift {

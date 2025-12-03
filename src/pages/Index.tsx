@@ -74,11 +74,11 @@ const Index = () => {
           </div>
 
           <div className="relative">
-            <div className="absolute inset-0 bg-gradient-to-r from-[hsl(var(--cyber-purple)/0.4)] to-[hsl(var(--cyber-blue)/0.4)] rounded-3xl blur-2xl animate-pulse-glow"></div>
+            <div className="absolute inset-0 bg-gradient-to-r from-[hsl(var(--cyber-purple)/0.15)] to-[hsl(var(--cyber-blue)/0.15)] rounded-3xl blur-xl"></div>
             <img 
               src={heroImage} 
               alt="AI Career Guidance" 
-              className="relative rounded-3xl shadow-2xl animate-float glow-effect"
+              className="relative rounded-3xl shadow-lg animate-float"
             />
           </div>
         </div>
@@ -95,10 +95,10 @@ const Index = () => {
 
         <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
           {/* Get Started Button */}
-          <Card className="glass-card p-8 hover:shadow-xl transition-all duration-300 group cursor-pointer hover:scale-105"
+          <Card className="glass-card p-8 hover:shadow-lg transition-all duration-300 group cursor-pointer hover:scale-105"
                 onClick={handleGetStarted}>
             <div className="text-center space-y-4">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-r from-[hsl(var(--primary))] to-[hsl(var(--primary-glow))] mb-4 animate-glow">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-r from-[hsl(var(--primary))] to-[hsl(var(--primary-glow))] mb-4">
                 <Sparkles className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-2xl font-bold gradient-text">Get Started</h3>
@@ -127,8 +127,8 @@ const Index = () => {
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
-            <Card className="glass-card p-8 hover:scale-105 transition-all duration-300 cyber-border glow-effect">
-              <div className="w-12 h-12 bg-gradient-to-r from-[hsl(var(--cyber-purple))] to-[hsl(var(--cyber-blue))] rounded-lg flex items-center justify-center mb-6 animate-glow">
+            <Card className="glass-card p-8 hover:scale-105 transition-all duration-300">
+              <div className="w-12 h-12 bg-gradient-to-r from-[hsl(var(--cyber-purple))] to-[hsl(var(--cyber-blue))] rounded-lg flex items-center justify-center mb-6">
                 <Target className="w-6 h-6 text-white" />
               </div>
               <h3 className="text-xl font-bold mb-4 gradient-text">Personalized Guidance</h3>
@@ -137,8 +137,8 @@ const Index = () => {
               </p>
             </Card>
 
-            <Card className="glass-card p-8 hover:scale-105 transition-all duration-300 cyber-border glow-effect">
-              <div className="w-12 h-12 bg-gradient-to-r from-[hsl(var(--cyber-green))] to-[hsl(var(--cyber-teal))] rounded-lg flex items-center justify-center mb-6 animate-pulse-glow">
+            <Card className="glass-card p-8 hover:scale-105 transition-all duration-300">
+              <div className="w-12 h-12 bg-gradient-to-r from-[hsl(var(--cyber-green))] to-[hsl(var(--cyber-teal))] rounded-lg flex items-center justify-center mb-6">
                 <Zap className="w-6 h-6 text-white" />
               </div>
               <h3 className="text-xl font-bold mb-4 gradient-text">AI-Powered Insights</h3>
@@ -147,8 +147,8 @@ const Index = () => {
               </p>
             </Card>
 
-            <Card className="glass-card p-8 hover:scale-105 transition-all duration-300 cyber-border glow-effect">
-              <div className="w-12 h-12 bg-gradient-to-r from-[hsl(var(--cyber-pink))] to-[hsl(var(--cyber-purple))] rounded-lg flex items-center justify-center mb-6 animate-rainbow">
+            <Card className="glass-card p-8 hover:scale-105 transition-all duration-300">
+              <div className="w-12 h-12 bg-gradient-to-r from-[hsl(var(--cyber-pink))] to-[hsl(var(--cyber-purple))] rounded-lg flex items-center justify-center mb-6">
                 <Users className="w-6 h-6 text-white" />
               </div>
               <h3 className="text-xl font-bold mb-4 gradient-text">Community Support</h3>
