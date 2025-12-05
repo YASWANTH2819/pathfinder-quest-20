@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { ArrowRight, Sparkles, Target, Users, Zap, Home, Play } from 'lucide-react';
@@ -11,6 +12,7 @@ interface HeroSectionProps {
 
 export const HeroSection = ({ onStartChat }: HeroSectionProps) => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   
   return (
     <div className="min-h-screen cyber-grid">
@@ -21,7 +23,7 @@ export const HeroSection = ({ onStartChat }: HeroSectionProps) => {
             <div className="w-8 h-8 bg-gradient-to-r from-[hsl(var(--cyber-purple))] to-[hsl(var(--cyber-blue))] rounded-lg flex items-center justify-center animate-glow">
               <Sparkles className="w-5 h-5 text-white" />
             </div>
-            <span className="text-xl font-bold gradient-text-rainbow">Career Guide</span>
+            <span className="text-xl font-bold gradient-text-rainbow">{t('careerGuide.title')}</span>
           </div>
           <div className="flex items-center space-x-4">
             <Button variant="glass" size="icon" onClick={() => navigate('/')}>
@@ -37,16 +39,16 @@ export const HeroSection = ({ onStartChat }: HeroSectionProps) => {
           <div className="space-y-8">
             <div className="space-y-4">
               <h1 className="text-5xl md:text-6xl font-bold leading-tight">
-                <span className="text-foreground">Discover Your</span>
+                <span className="text-foreground">{t('careerGuide.discoverPath')}</span>
                 <br />
                 <span className="bg-gradient-to-r from-blue-500 via-purple-500 to-blue-600 bg-clip-text text-transparent">
-                  Perfect Career
+                  {t('careerGuide.perfectCareer')}
                 </span>
                 <br />
-                <span className="text-foreground">Path</span>
+                <span className="text-foreground">{t('careerGuide.path')}</span>
               </h1>
               <p className="text-lg md:text-xl text-muted-foreground leading-relaxed">
-                AI-powered career guidance that understands your unique potential. Say goodbye to career confusion and hello to your dream future! ✨
+                {t('careerGuide.heroDescription')} ✨
               </p>
             </div>
 
@@ -57,7 +59,7 @@ export const HeroSection = ({ onStartChat }: HeroSectionProps) => {
                 className="relative overflow-hidden bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500 hover:from-yellow-500 hover:via-orange-600 hover:to-red-600 text-white font-bold text-lg px-8 py-6 h-auto shadow-[0_8px_30px_rgba(251,146,60,0.4)] hover:shadow-[0_12px_40px_rgba(251,146,60,0.6)] border-0 rounded-xl transition-all duration-300 hover:scale-105 active:scale-95"
               >
                 <span className="relative z-10 flex items-center justify-center">
-                  Start Your Journey
+                  {t('careerGuide.startJourney')}
                   <ArrowRight className="w-5 h-5 ml-2" />
                 </span>
               </Button>
@@ -68,7 +70,7 @@ export const HeroSection = ({ onStartChat }: HeroSectionProps) => {
               >
                 <span className="relative z-10 flex items-center justify-center">
                   <Play className="w-5 h-5 mr-2" />
-                  Watch Demo
+                  {t('careerGuide.watchDemo')}
                 </span>
               </Button>
             </div>
@@ -90,12 +92,11 @@ export const HeroSection = ({ onStartChat }: HeroSectionProps) => {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-5xl font-bold mb-4">
-              <span className="text-foreground">Why Choose </span>
-              <span className="bg-gradient-to-r from-purple-500 to-blue-600 bg-clip-text text-transparent">Career </span>
-              <span className="bg-gradient-to-r from-green-500 to-emerald-600 bg-clip-text text-transparent">Guide</span>
-              <span className="text-foreground">?</span>
+              <span className="text-foreground">{t('careerGuide.whyChoose')} </span>
+              <span className="bg-gradient-to-r from-purple-500 to-blue-600 bg-clip-text text-transparent">{t('careerGuide.title')} </span>
+              <span className="text-foreground">{t('careerGuide.careerGuideQ')}</span>
             </h2>
-            <p className="text-lg text-muted-foreground">Revolutionary features designed to unlock your potential</p>
+            <p className="text-lg text-muted-foreground">{t('careerGuide.revolutionaryFeatures')}</p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
@@ -103,9 +104,9 @@ export const HeroSection = ({ onStartChat }: HeroSectionProps) => {
               <div className="w-12 h-12 bg-gradient-to-r from-[hsl(var(--cyber-purple))] to-[hsl(var(--cyber-blue))] rounded-lg flex items-center justify-center mb-6 animate-glow">
                 <Target className="w-6 h-6 text-white" />
               </div>
-              <h3 className="text-xl font-bold mb-4 gradient-text">Personalized Guidance</h3>
+              <h3 className="text-xl font-bold mb-4 gradient-text">{t('careerGuide.personalizedGuidance')}</h3>
               <p className="text-foreground">
-                Get tailored career recommendations based on your unique skills, interests, and goals
+                {t('careerGuide.personalizedGuidanceDesc')}
               </p>
             </Card>
 
@@ -113,9 +114,9 @@ export const HeroSection = ({ onStartChat }: HeroSectionProps) => {
               <div className="w-12 h-12 bg-gradient-to-r from-[hsl(var(--cyber-green))] to-[hsl(var(--cyber-teal))] rounded-lg flex items-center justify-center mb-6 animate-pulse-glow">
                 <Zap className="w-6 h-6 text-white" />
               </div>
-              <h3 className="text-xl font-bold mb-4 gradient-text">AI-Powered Insights</h3>
+              <h3 className="text-xl font-bold mb-4 gradient-text">{t('careerGuide.aiPoweredInsights')}</h3>
               <p className="text-foreground">
-                Leverage advanced AI to analyze your profile and discover hidden career opportunities
+                {t('careerGuide.aiPoweredInsightsDesc')}
               </p>
             </Card>
 
@@ -123,9 +124,9 @@ export const HeroSection = ({ onStartChat }: HeroSectionProps) => {
               <div className="w-12 h-12 bg-gradient-to-r from-[hsl(var(--cyber-pink))] to-[hsl(var(--cyber-purple))] rounded-lg flex items-center justify-center mb-6 animate-rainbow">
                 <Users className="w-6 h-6 text-white" />
               </div>
-              <h3 className="text-xl font-bold mb-4 gradient-text">Community Support</h3>
+              <h3 className="text-xl font-bold mb-4 gradient-text">{t('careerGuide.communitySupport')}</h3>
               <p className="text-foreground">
-                Join a thriving community of career seekers and get expert guidance on your journey
+                {t('careerGuide.communitySupportDesc')}
               </p>
             </Card>
           </div>
