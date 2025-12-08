@@ -99,35 +99,47 @@ export const HeroSection = ({ onStartChat }: HeroSectionProps) => {
             <p className="text-lg text-muted-foreground">{t('careerGuide.revolutionaryFeatures')}</p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
-            <Card className="glass-card p-8 hover:scale-105 transition-all duration-300 cyber-border glow-effect">
-              <div className="w-12 h-12 bg-gradient-to-r from-[hsl(var(--cyber-purple))] to-[hsl(var(--cyber-blue))] rounded-lg flex items-center justify-center mb-6 animate-glow">
-                <Target className="w-6 h-6 text-white" />
+          <div className="grid md:grid-cols-3 gap-6">
+            <Card className="glass-card p-4 hover:scale-105 transition-all duration-300 cyber-border glow-effect">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 bg-gradient-to-r from-[hsl(var(--cyber-purple))] to-[hsl(var(--cyber-blue))] rounded-lg flex items-center justify-center shrink-0 animate-glow">
+                  <Target className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold mb-1 gradient-text">{t('careerGuide.personalizedGuidance')}</h3>
+                  <p className="text-sm text-foreground leading-snug">
+                    {t('careerGuide.personalizedGuidanceDesc')}
+                  </p>
+                </div>
               </div>
-              <h3 className="text-xl font-bold mb-4 gradient-text">{t('careerGuide.personalizedGuidance')}</h3>
-              <p className="text-foreground">
-                {t('careerGuide.personalizedGuidanceDesc')}
-              </p>
             </Card>
 
-            <Card className="glass-card p-8 hover:scale-105 transition-all duration-300 cyber-border glow-effect">
-              <div className="w-12 h-12 bg-gradient-to-r from-[hsl(var(--cyber-green))] to-[hsl(var(--cyber-teal))] rounded-lg flex items-center justify-center mb-6 animate-pulse-glow">
-                <Zap className="w-6 h-6 text-white" />
+            <Card className="glass-card p-4 hover:scale-105 transition-all duration-300 cyber-border glow-effect">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 bg-gradient-to-r from-[hsl(var(--cyber-green))] to-[hsl(var(--cyber-teal))] rounded-lg flex items-center justify-center shrink-0 animate-pulse-glow">
+                  <Zap className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold mb-1 gradient-text">{t('careerGuide.aiPoweredInsights')}</h3>
+                  <p className="text-sm text-foreground leading-snug">
+                    {t('careerGuide.aiPoweredInsightsDesc')}
+                  </p>
+                </div>
               </div>
-              <h3 className="text-xl font-bold mb-4 gradient-text">{t('careerGuide.aiPoweredInsights')}</h3>
-              <p className="text-foreground">
-                {t('careerGuide.aiPoweredInsightsDesc')}
-              </p>
             </Card>
 
-            <Card className="glass-card p-8 hover:scale-105 transition-all duration-300 cyber-border glow-effect">
-              <div className="w-12 h-12 bg-gradient-to-r from-[hsl(var(--cyber-pink))] to-[hsl(var(--cyber-purple))] rounded-lg flex items-center justify-center mb-6 animate-rainbow">
-                <Users className="w-6 h-6 text-white" />
+            <Card className="glass-card p-4 hover:scale-105 transition-all duration-300 cyber-border glow-effect">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 bg-gradient-to-r from-[hsl(var(--cyber-pink))] to-[hsl(var(--cyber-purple))] rounded-lg flex items-center justify-center shrink-0 animate-rainbow">
+                  <Users className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold mb-1 gradient-text">{t('careerGuide.communitySupport')}</h3>
+                  <p className="text-sm text-foreground leading-snug">
+                    {t('careerGuide.communitySupportDesc')}
+                  </p>
+                </div>
               </div>
-              <h3 className="text-xl font-bold mb-4 gradient-text">{t('careerGuide.communitySupport')}</h3>
-              <p className="text-foreground">
-                {t('careerGuide.communitySupportDesc')}
-              </p>
             </Card>
           </div>
         </div>

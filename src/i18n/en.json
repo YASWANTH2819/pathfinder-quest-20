@@ -380,10 +380,10 @@
     "educationPlaceholder": "e.g., B.Tech in Computer Science, 3rd year",
     "subjectsEnjoyed": "Subjects or Areas You Enjoy",
     "subjectsPlaceholder": "e.g., Programming, Mathematics, Design, Marketing",
-    "shortTermGoals": "Short-term Career Goals (1-2 years)",
-    "shortTermPlaceholder": "e.g., Get an internship, Learn web development, Build portfolio",
-    "longTermGoals": "Long-term Career Goals (5+ years)",
-    "longTermPlaceholder": "e.g., Become a senior software engineer, Start my own company",
+    "goals": "Career Goals",
+    "goalsPlaceholder": "e.g., Get an internship, become a software engineer, start my own company",
+    "skills": "Your Skills",
+    "skillsPlaceholder": "e.g., Python, Java, Communication, Problem Solving, Leadership",
     "getRecommendations": "Get Career Recommendations"
   },
   "validation": {

@@ -82,8 +82,7 @@ interface ProfileData {
   skills: string;
   interests: string;
   workEnvironment: string;
-  shortTermGoals: string;
-  longTermGoals: string;
+  goals: string;
   careerTransition: string;
   studyOrJob: string;
   locationPreference: string;
