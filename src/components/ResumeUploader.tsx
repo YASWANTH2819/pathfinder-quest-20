@@ -1,8 +1,8 @@
 import React, { useState, useCallback } from 'react';
-import { Upload, FileText, AlertTriangle, CheckCircle } from 'lucide-react';
+import { Upload, FileText, AlertTriangle, CheckCircle, Loader2 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { aiService } from '@/services/aiService';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -25,81 +25,25 @@ export const ResumeUploader: React.FC<ResumeUploaderProps> = ({
   const [analysis, setAnalysis] = useState<any>(null);
   const [error, setError] = useState<string>('');
 
+  // Use the FileParser utility for proper file extraction
   const extractTextFromFile = async (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      
-      reader.onload = async (e) => {
-        try {
-          const result = e.target?.result;
-          
-          if (file.type === 'text/plain') {
-            resolve(result as string);
-          } else if (file.type === 'application/pdf') {
-            // For PDF, we'll need to implement PDF parsing
-            // For now, just return placeholder
-            resolve('PDF content extraction not yet implemented');
-          } else if (file.type.includes('word') || file.name.endsWith('.docx') || file.name.endsWith('.doc')) {
-            // For Word docs, we'll need to implement Word parsing
-            resolve('Word document content extraction not yet implemented');
-          } else if (file.type.startsWith('image/')) {
-            // For images, we could use OCR
-            resolve('Image OCR not yet implemented');
-          } else {
-            reject(new Error('Unsupported file type'));
-          }
-        } catch (error) {
-          reject(error);
-        }
-      };
-      
-      reader.onerror = () => reject(new Error('Failed to read file'));
-      
-      if (file.type === 'text/plain') {
-        reader.readAsText(file);
-      } else {
-        reader.readAsArrayBuffer(file);
-      }
-    });
-  };
-
-  const validateResumeFile = async (file: File): Promise<boolean> => {
-    // Check file name for resume indicators
-    const fileName = file.name.toLowerCase();
-    const resumeNameIndicators = ['resume', 'cv', 'curriculum'];
+    // Dynamically import FileParser to avoid SSR issues
+    const { FileParser } = await import('@/utils/fileParser');
     
-    const hasResumeInName = resumeNameIndicators.some(indicator => 
-      fileName.includes(indicator)
-    );
-    
-    // If file name clearly indicates it's a resume, accept it
-    if (hasResumeInName) {
-      return true;
+    // Validate file first
+    const validation = FileParser.validateFile(file);
+    if (!validation.isValid) {
+      throw new Error(validation.error || 'Invalid file');
     }
     
-    // For other files, check content briefly
-    try {
-      const textContent = await extractTextFromFile(file);
-      const contentLower = textContent.toLowerCase();
-      
-      // Check for key resume sections
-      const resumeSections = [
-        'experience', 'education', 'skills', 'work history', 
-        'employment', 'qualification', 'objective', 'summary',
-        'achievements', 'projects', 'certifications'
-      ];
-      
-      const sectionMatches = resumeSections.filter(section => 
-        contentLower.includes(section)
-      );
-      
-      // Must have at least 3 resume sections to be considered a valid resume
-      return sectionMatches.length >= 3;
-      
-    } catch (error) {
-      // If we can't extract content, fall back to basic checks
-      return fileName.includes('resume') || fileName.includes('cv') || file.size > 15000;
+    // Parse and extract text from the file
+    const extractedText = await FileParser.parseFile(file);
+    
+    if (!extractedText || extractedText.trim().length < 50) {
+      throw new Error('Could not extract enough text from the file. Please ensure your resume has readable text content.');
     }
+    
+    return extractedText;
   };
 
   const handleFileUpload = useCallback(async (file: File) => {
@@ -112,18 +56,6 @@ export const ResumeUploader: React.FC<ResumeUploaderProps> = ({
       return;
     }
 
-    // Validate that the file appears to be a resume
-    const isValidResume = await validateResumeFile(file);
-    if (!isValidResume) {
-      setError('Please upload a valid resume file. The file should be your CV/resume containing professional experience, education, and skills.');
-      toast({
-        title: 'Please Upload Resume',
-        description: 'This doesn\'t appear to be a resume. Please upload your CV/resume document with your professional information.',
-        variant: 'destructive'
-      });
-      return;
-    }
-
     setIsUploading(true);
     setProgress(0);
     setError('');
@@ -131,20 +63,53 @@ export const ResumeUploader: React.FC<ResumeUploaderProps> = ({
     try {
       // Progress: File reading (25%)
       setProgress(25);
-      const resumeText = await extractTextFromFile(file);
+      
+      let resumeText: string;
+      try {
+        resumeText = await extractTextFromFile(file);
+      } catch (extractError) {
+        throw new Error(`Failed to extract text from file: ${extractError instanceof Error ? extractError.message : 'Unknown error'}`);
+      }
       
       // Progress: Text extracted (50%)
       setProgress(50);
       
-      // Call AI service for analysis
-      const analysisResult = await aiService.analyzeResume({
-        resumeText,
-        language,
-        userId: user?.id
+      console.log('Extracted resume text length:', resumeText.length);
+      
+      // Build language-specific system prompt
+      const languagePrompts: Record<string, string> = {
+        en: 'Analyze this resume and provide detailed, personalized feedback in English.',
+        hi: 'इस रिज्यूमे का विश्लेषण करें और हिंदी में विस्तृत, व्यक्तिगत प्रतिक्रिया दें।',
+        te: 'ఈ రెజ్యూమేను విశ్లేషించండి మరియు తెలుగులో వివరమైన, వ్యక్తిగత అభిప్రాయాన్ని అందించండి।'
+      };
+      
+      // Call Supabase edge function for analysis
+      const { data, error: apiError } = await supabase.functions.invoke('analyze-resume', {
+        body: {
+          resumeText: resumeText.trim(),
+          targetRole: 'General career guidance',
+          language: language,
+          userId: user?.id,
+          systemPrompt: languagePrompts[language] || languagePrompts.en
+        }
       });
+      
+      if (apiError) {
+        throw new Error(apiError.message || 'Failed to analyze resume');
+      }
+      
+      if (data?.error) {
+        throw new Error(data.error);
+      }
       
       // Progress: Analysis complete (100%)
       setProgress(100);
+      
+      const analysisResult = {
+        structuredData: data?.analysis || {},
+        localizedText: data?.explanation || '',
+        originalResponse: data?.rawResponse || ''
+      };
       
       setAnalysis(analysisResult);
       onAnalysisComplete?.(analysisResult);
@@ -154,12 +119,12 @@ export const ResumeUploader: React.FC<ResumeUploaderProps> = ({
         description: t('upload.analysisComplete')
       });
       
-    } catch (error) {
-      console.error('Upload error:', error);
-      setError(error instanceof Error ? error.message : t('upload.error'));
+    } catch (err) {
+      console.error('Upload error:', err);
+      setError(err instanceof Error ? err.message : t('upload.error'));
       toast({
         title: t('upload.error'),
-        description: error instanceof Error ? error.message : t('upload.errorDescription'),
+        description: err instanceof Error ? err.message : t('upload.errorDescription'),
         variant: 'destructive'
       });
     } finally {
@@ -178,13 +143,10 @@ export const ResumeUploader: React.FC<ResumeUploaderProps> = ({
         'application/pdf',
         'application/msword',
         'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        'text/plain',
-        'image/jpeg',
-        'image/png',
-        'image/jpg'
+        'text/plain'
       ];
       
-      if (allowedTypes.includes(file.type) || file.name.match(/\.(pdf|doc|docx|txt|jpg|jpeg|png)$/i)) {
+      if (allowedTypes.includes(file.type) || file.name.match(/\.(pdf|doc|docx|txt)$/i)) {
         handleFileUpload(file);
       } else {
         setError(t('upload.invalidFileType'));
@@ -239,7 +201,7 @@ export const ResumeUploader: React.FC<ResumeUploaderProps> = ({
               type="file"
               id="resume-upload"
               className="hidden"
-              accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png"
+              accept=".pdf,.doc,.docx,.txt"
               onChange={(e) => {
                 const file = e.target.files?.[0];
                 if (file) handleFileUpload(file);
@@ -252,7 +214,14 @@ export const ResumeUploader: React.FC<ResumeUploaderProps> = ({
               disabled={!consent || isUploading}
               variant="outline"
             >
-              {t('upload.selectFile')}
+              {isUploading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  {t('upload.processing')}
+                </>
+              ) : (
+                t('upload.selectFile')
+              )}
             </Button>
           </div>
 
