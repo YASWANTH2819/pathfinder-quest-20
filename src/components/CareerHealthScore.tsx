@@ -64,9 +64,31 @@ export default function CareerHealthScore({ onBack }: CareerHealthScoreProps) {
         .limit(1)
         .single();
 
-      // Calculate health score
-      const healthScore = calculateHealthScore(careerProfile, resumeAnalysis);
-      const suggestions = generateSuggestions(careerProfile, resumeAnalysis, healthScore);
+      // Fetch career progress (quiz scores, streak, XP)
+      const { data: careerProgress } = await supabase
+        .from('career_progress')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('updated_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      // Fetch user's quiz performance
+      const { data: quizResponses } = await supabase
+        .from('user_mcq_responses')
+        .select('is_correct, xp_earned')
+        .eq('user_id', user.id);
+
+      // Calculate quiz stats
+      const quizStats = {
+        totalAttempts: quizResponses?.length || 0,
+        correctAnswers: quizResponses?.filter(r => r.is_correct).length || 0,
+        totalXP: quizResponses?.reduce((sum, r) => sum + (r.xp_earned || 0), 0) || 0
+      };
+
+      // Calculate health score using the 3-component formula
+      const healthScore = calculateHealthScore(careerProfile, resumeAnalysis, careerProgress, quizStats);
+      const suggestions = generateSuggestions(careerProfile, resumeAnalysis, careerProgress, quizStats, healthScore);
       const status = getHealthStatus(healthScore);
 
       setHealthData({
@@ -92,37 +114,70 @@ export default function CareerHealthScore({ onBack }: CareerHealthScoreProps) {
     }
   };
 
-  const calculateHealthScore = (careerData: any, resumeData: any): number => {
+  // Calculate health score using 3 components: Career Match (30%), Career Growth Path (35%), Resume (35%)
+  const calculateHealthScore = (
+    careerData: any, 
+    resumeData: any, 
+    progressData: any,
+    quizStats: { totalAttempts: number; correctAnswers: number; totalXP: number }
+  ): number => {
     let score = 0;
-    let factors = 0;
 
-    // Career analysis factor (40%)
+    // Component 1: Career Guidance Alignment (30% weight)
+    // Based on profile completeness and career match quality
+    let careerMatchScore = 0;
     if (careerData) {
-      score += 40;
-      factors += 40;
-      
-      // Bonus for complete profile
+      // Profile completeness (up to 15 points)
       const completeness = [
         careerData.skills,
         careerData.interests,
         careerData.short_term_goals,
         careerData.long_term_goals,
-        careerData.field_of_study
+        careerData.field_of_study,
+        careerData.education_level
       ].filter(Boolean).length;
+      careerMatchScore += (completeness / 6) * 15;
       
-      score += (completeness / 5) * 20; // Up to 20 bonus points
+      // Career health score from guidance (up to 15 points)
+      const existingScore = careerData.career_health_score || 0;
+      careerMatchScore += Math.min(15, existingScore * 0.15);
     }
+    score += careerMatchScore; // Max 30 points
 
-    // Resume analysis factor (60%)
+    // Component 2: Career Growth Path Engagement (35% weight)
+    // Quiz performance + Streak + XP
+    let growthPathScore = 0;
+    if (quizStats.totalAttempts > 0) {
+      // Quiz accuracy (up to 15 points)
+      const accuracy = quizStats.correctAnswers / quizStats.totalAttempts;
+      growthPathScore += accuracy * 15;
+    }
+    if (progressData) {
+      // Streak contribution (up to 10 points) - max at 30 day streak
+      const streakContribution = Math.min(10, (progressData.streak_count || 0) / 3);
+      growthPathScore += streakContribution;
+      
+      // XP contribution (up to 10 points) - max at 1000 XP
+      const xpContribution = Math.min(10, (progressData.xp || 0) / 100);
+      growthPathScore += xpContribution;
+    }
+    score += growthPathScore; // Max 35 points
+
+    // Component 3: Resume Readiness (35% weight)
+    // ATS score + overall rating
+    let resumeScore = 0;
     if (resumeData) {
+      // ATS score contribution (up to 20 points)
       const atsScore = resumeData.ats_score || 0;
-      const overallRating = (resumeData.overall_rating || 0) * 10;
+      resumeScore += (atsScore / 100) * 20;
       
-      score += (atsScore * 0.3) + (overallRating * 0.3); // 30% each
-      factors += 60;
+      // Overall rating contribution (up to 15 points)
+      const overallRating = resumeData.overall_rating || 0;
+      resumeScore += (overallRating / 10) * 15;
     }
+    score += resumeScore; // Max 35 points
 
-    return Math.min(100, Math.round(factors > 0 ? (score / factors) * 100 : 0));
+    return Math.min(100, Math.round(score));
   };
 
   const getHealthStatus = (score: number): 'Excellent' | 'Good' | 'Fair' | 'Needs Improvement' => {
@@ -132,9 +187,16 @@ export default function CareerHealthScore({ onBack }: CareerHealthScoreProps) {
     return 'Needs Improvement';
   };
 
-  const generateSuggestions = (careerData: any, resumeData: any, score: number): string[] => {
+  const generateSuggestions = (
+    careerData: any, 
+    resumeData: any, 
+    progressData: any,
+    quizStats: { totalAttempts: number; correctAnswers: number; totalXP: number },
+    score: number
+  ): string[] => {
     const suggestions: string[] = [];
 
+    // Career Guidance suggestions
     if (!careerData) {
       suggestions.push("Complete your career analysis to get personalized career recommendations");
     } else {
@@ -146,29 +208,42 @@ export default function CareerHealthScore({ onBack }: CareerHealthScoreProps) {
       }
     }
 
+    // Career Growth Path suggestions
+    if (quizStats.totalAttempts === 0) {
+      suggestions.push("Take daily quizzes in Career Growth Path to boost your learning score");
+    } else if (quizStats.totalAttempts > 0) {
+      const accuracy = (quizStats.correctAnswers / quizStats.totalAttempts) * 100;
+      if (accuracy < 60) {
+        suggestions.push(`Improve your quiz accuracy (currently ${Math.round(accuracy)}%) by reviewing study materials`);
+      }
+    }
+    
+    if (!progressData || (progressData.streak_count || 0) < 3) {
+      suggestions.push("Build a learning streak by completing quizzes daily for higher engagement scores");
+    }
+
+    // Resume suggestions
     if (!resumeData) {
       suggestions.push("Upload and analyze your resume to improve your career health score");
     } else {
       if ((resumeData.ats_score || 0) < 70) {
-        suggestions.push("Optimize your resume for better ATS compatibility (currently " + (resumeData.ats_score || 0) + "%)");
+        suggestions.push(`Optimize your resume for better ATS compatibility (currently ${resumeData.ats_score || 0}%)`);
       }
       if ((resumeData.overall_rating || 0) < 7) {
-        suggestions.push("Improve your resume quality - current rating is " + (resumeData.overall_rating || 0) + "/10");
+        suggestions.push(`Improve your resume quality - current rating is ${resumeData.overall_rating || 0}/10`);
       }
     }
 
+    // General suggestions based on overall score
     if (score < 50) {
       suggestions.push("Consider taking additional courses or certifications to strengthen your profile");
-      suggestions.push("Update your resume with recent achievements and quantifiable results");
     } else if (score < 70) {
       suggestions.push("Focus on skill development in your chosen field");
-      suggestions.push("Network with professionals in your target industry");
     } else if (score < 85) {
       suggestions.push("Consider leadership opportunities to advance your career");
-      suggestions.push("Stay updated with industry trends and emerging technologies");
     }
 
-    return suggestions;
+    return suggestions.slice(0, 5); // Limit to 5 suggestions
   };
 
   const downloadReport = () => {

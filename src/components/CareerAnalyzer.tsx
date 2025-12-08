@@ -54,6 +54,7 @@ interface CareerOption {
   youtube_links: string[];
   estimated_timeline: string;
   roadmap_steps: string[];
+  rationale: string;
 }
 
 export const CareerAnalyzer: React.FC<CareerAnalyzerProps> = ({ profileData, onBack }) => {
@@ -100,76 +101,21 @@ export const CareerAnalyzer: React.FC<CareerAnalyzerProps> = ({ profileData, onB
           location_preference: profileData.locationPreference,
           company_type: profileData.companyType,
           financial_support: profileData.financialSupport,
-          career_health_score: Math.floor(Math.random() * 30) + 70,
         });
 
       if (profileError) throw profileError;
 
-      // Simulate AI analysis
-      await new Promise(resolve => setTimeout(resolve, 3000));
-      
-      // Generate 5-6 career options based on profile
-      const mockCareerOptions: CareerOption[] = [
-        {
-          id: crypto.randomUUID(),
-          career_name: 'Product Manager',
-          description: 'Lead product strategy and development, bridging business and technology.',
-          match_percentage: 92,
-          required_skills: ['Product Strategy', 'User Research', 'Agile', 'Data Analysis', 'Communication'],
-          youtube_links: ['https://www.youtube.com/watch?v=yUOC-Y0f5ZQ', 'https://www.youtube.com/watch?v=ZWCvxSr3Z3g'],
-          estimated_timeline: '6-12 months',
-          roadmap_steps: ['Learn Product Basics', 'Build Portfolio Projects', 'Get PM Certifications', 'Network with PMs', 'Apply for Junior PM Roles']
-        },
-        {
-          id: crypto.randomUUID(),
-          career_name: 'Data Analyst',
-          description: 'Transform data into insights that drive business decisions.',
-          match_percentage: 88,
-          required_skills: ['SQL', 'Python', 'Excel', 'Tableau', 'Statistics', 'Business Intelligence'],
-          youtube_links: ['https://www.youtube.com/watch?v=1UXOdCBNdgE', 'https://www.youtube.com/watch?v=7mz73uXD9DA'],
-          estimated_timeline: '4-8 months',
-          roadmap_steps: ['Master SQL & Python', 'Learn Data Visualization', 'Complete Analytics Projects', 'Get Certified', 'Build Portfolio']
-        },
-        {
-          id: crypto.randomUUID(),
-          career_name: 'Software Engineer',
-          description: 'Build innovative software solutions and applications.',
-          match_percentage: 85,
-          required_skills: ['Programming', 'Data Structures', 'Algorithms', 'Git', 'Problem Solving'],
-          youtube_links: ['https://www.youtube.com/watch?v=WlzRs16TzuQ', 'https://www.youtube.com/watch?v=8mAITcNt710'],
-          estimated_timeline: '8-14 months',
-          roadmap_steps: ['Learn Programming Fundamentals', 'Master DSA', 'Build Projects', 'Contribute to Open Source', 'Prepare for Interviews']
-        },
-        {
-          id: crypto.randomUUID(),
-          career_name: 'UI/UX Designer',
-          description: 'Create beautiful and intuitive user experiences.',
-          match_percentage: 82,
-          required_skills: ['Figma', 'User Research', 'Wireframing', 'Prototyping', 'Visual Design'],
-          youtube_links: ['https://www.youtube.com/watch?v=c9Wg6Cb_YlU', 'https://www.youtube.com/watch?v=68w2VwalD5w'],
-          estimated_timeline: '5-10 months',
-          roadmap_steps: ['Learn Design Principles', 'Master Figma', 'Build Design Portfolio', 'Practice User Research', 'Network with Designers']
-        },
-        {
-          id: crypto.randomUUID(),
-          career_name: 'Business Analyst',
-          description: 'Bridge business needs with technical solutions.',
-          match_percentage: 79,
-          required_skills: ['Business Analysis', 'Requirements Gathering', 'Process Modeling', 'Communication', 'Problem Solving'],
-          youtube_links: ['https://www.youtube.com/watch?v=bEdjCbNEkFw', 'https://www.youtube.com/watch?v=ySsqJeF1mwA'],
-          estimated_timeline: '4-8 months',
-          roadmap_steps: ['Learn BA Fundamentals', 'Get BA Certifications', 'Practice Requirements Gathering', 'Build Case Studies', 'Network in Industry']
-        }
-      ];
+      // Generate skill-based career recommendations using AI
+      const careerOptions = await generateSkillBasedCareers(profileData);
 
       // Save career options to database
-      const optionsToInsert = mockCareerOptions.map(opt => ({
+      const optionsToInsert = careerOptions.map(opt => ({
         user_id: user.id,
         career_name: opt.career_name,
         description: opt.description,
         match_percentage: opt.match_percentage,
         required_skills: opt.required_skills,
-        rationale: `Based on your interests in ${profileData.interests} and goals: ${profileData.goals}, this career is a great match.`
+        rationale: opt.rationale
       }));
 
       await supabase
@@ -183,18 +129,265 @@ export const CareerAnalyzer: React.FC<CareerAnalyzerProps> = ({ profileData, onB
 
       if (insertError) throw insertError;
 
-      setCareerOptions(mockCareerOptions);
+      // Update career health score based on match quality
+      const avgMatchScore = careerOptions.reduce((sum, c) => sum + c.match_percentage, 0) / careerOptions.length;
+      await supabase
+        .from('career_profiles')
+        .update({ career_health_score: Math.round(avgMatchScore * 0.3) }) // 30% weight for career matching
+        .eq('user_id', user.id);
+
+      setCareerOptions(careerOptions);
       setAnalysisComplete(true);
       setShowConfetti(true);
       setTimeout(() => setShowConfetti(false), 3000);
       
-      toast.success(t('careerGuide.analysisComplete').replace('{count}', String(mockCareerOptions.length)));
+      toast.success(t('careerGuide.analysisComplete').replace('{count}', String(careerOptions.length)));
     } catch (error) {
       console.error('Error in analysis:', error);
       toast.error(t('careerGuide.analysisFailed'));
     } finally {
       setIsAnalyzing(false);
     }
+  };
+
+  // Generate skill-based career recommendations using AI
+  const generateSkillBasedCareers = async (profile: ProfileData): Promise<CareerOption[]> => {
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-career-recommendations', {
+        body: {
+          education: profile.fieldOfStudy || profile.educationLevel || '',
+          interests: profile.interests || '',
+          goals: profile.goals || '',
+          skills: profile.skills || '',
+          language: 'en'
+        }
+      });
+
+      if (error) throw error;
+
+      if (data?.careers && Array.isArray(data.careers)) {
+        return data.careers.map((career: any, index: number) => ({
+          id: crypto.randomUUID(),
+          career_name: career.name || career.career_name || `Career Option ${index + 1}`,
+          description: career.description || '',
+          match_percentage: career.match_percentage || career.matchScore || 70,
+          required_skills: career.required_skills || career.skills || [],
+          youtube_links: career.youtube_links || [],
+          estimated_timeline: career.timeline || '6-12 months',
+          roadmap_steps: career.roadmap_steps || [],
+          rationale: career.rationale || career.reason || ''
+        }));
+      }
+      
+      // Fallback to skill-based matching if AI fails
+      return getSkillBasedFallback(profile);
+    } catch (error) {
+      console.error('AI career generation failed, using skill-based fallback:', error);
+      return getSkillBasedFallback(profile);
+    }
+  };
+
+  // Skill-based career matching fallback
+  const getSkillBasedFallback = (profile: ProfileData): CareerOption[] => {
+    const userSkills = (profile.skills || '').toLowerCase();
+    const userInterests = (profile.interests || '').toLowerCase();
+    const combined = `${userSkills} ${userInterests}`;
+
+    // Comprehensive career database with skill matching
+    const careerDatabase: Array<{
+      name: string;
+      description: string;
+      keywords: string[];
+      skills: string[];
+      timeline: string;
+      youtube: string[];
+    }> = [
+      {
+        name: 'Python Developer',
+        description: 'Build applications, scripts, and backend systems using Python.',
+        keywords: ['python', 'django', 'flask', 'scripting', 'automation'],
+        skills: ['Python', 'Django/Flask', 'REST APIs', 'SQL', 'Git'],
+        timeline: '4-8 months',
+        youtube: ['https://www.youtube.com/watch?v=_uQrJ0TkZlc']
+      },
+      {
+        name: 'Backend Developer',
+        description: 'Design and implement server-side logic and databases.',
+        keywords: ['backend', 'java', 'python', 'node', 'api', 'server', 'database'],
+        skills: ['Java/Python/Node.js', 'SQL', 'REST APIs', 'Microservices', 'Docker'],
+        timeline: '6-10 months',
+        youtube: ['https://www.youtube.com/watch?v=WlzRs16TzuQ']
+      },
+      {
+        name: 'Data Analyst',
+        description: 'Transform data into insights that drive business decisions.',
+        keywords: ['data', 'analysis', 'excel', 'sql', 'python', 'statistics', 'analytics'],
+        skills: ['SQL', 'Python', 'Excel', 'Tableau', 'Statistics'],
+        timeline: '4-8 months',
+        youtube: ['https://www.youtube.com/watch?v=1UXOdCBNdgE']
+      },
+      {
+        name: 'Machine Learning Engineer',
+        description: 'Build and deploy ML models for intelligent systems.',
+        keywords: ['ml', 'machine learning', 'ai', 'deep learning', 'tensorflow', 'pytorch', 'neural'],
+        skills: ['Python', 'TensorFlow/PyTorch', 'Math/Statistics', 'ML Algorithms', 'Data Processing'],
+        timeline: '8-14 months',
+        youtube: ['https://www.youtube.com/watch?v=7eh4d6sabA0']
+      },
+      {
+        name: 'Software Engineer',
+        description: 'Build innovative software solutions and applications.',
+        keywords: ['programming', 'coding', 'dsa', 'algorithms', 'software', 'development', 'java', 'c++'],
+        skills: ['Programming', 'Data Structures', 'Algorithms', 'Git', 'Problem Solving'],
+        timeline: '8-14 months',
+        youtube: ['https://www.youtube.com/watch?v=WlzRs16TzuQ']
+      },
+      {
+        name: 'Frontend Developer',
+        description: 'Create beautiful and interactive user interfaces for web applications.',
+        keywords: ['frontend', 'react', 'javascript', 'html', 'css', 'web', 'ui'],
+        skills: ['React/Vue/Angular', 'JavaScript', 'HTML/CSS', 'TypeScript', 'Responsive Design'],
+        timeline: '5-9 months',
+        youtube: ['https://www.youtube.com/watch?v=bMknfKXIFA8']
+      },
+      {
+        name: 'Full Stack Developer',
+        description: 'Work on both frontend and backend of web applications.',
+        keywords: ['fullstack', 'full stack', 'mern', 'mean', 'web development'],
+        skills: ['React/Vue', 'Node.js/Python', 'SQL', 'REST APIs', 'DevOps Basics'],
+        timeline: '10-16 months',
+        youtube: ['https://www.youtube.com/watch?v=nu_pCVPKzTk']
+      },
+      {
+        name: 'Product Manager',
+        description: 'Lead product strategy and development, bridging business and technology.',
+        keywords: ['product', 'management', 'communication', 'strategy', 'business', 'leadership'],
+        skills: ['Product Strategy', 'User Research', 'Agile', 'Data Analysis', 'Communication'],
+        timeline: '6-12 months',
+        youtube: ['https://www.youtube.com/watch?v=yUOC-Y0f5ZQ']
+      },
+      {
+        name: 'Business Analyst',
+        description: 'Bridge business needs with technical solutions.',
+        keywords: ['business', 'analysis', 'requirements', 'communication', 'management'],
+        skills: ['Business Analysis', 'Requirements Gathering', 'Process Modeling', 'SQL', 'Communication'],
+        timeline: '4-8 months',
+        youtube: ['https://www.youtube.com/watch?v=bEdjCbNEkFw']
+      },
+      {
+        name: 'UI/UX Designer',
+        description: 'Create beautiful and intuitive user experiences.',
+        keywords: ['design', 'ui', 'ux', 'figma', 'user experience', 'creative', 'visual'],
+        skills: ['Figma', 'User Research', 'Wireframing', 'Prototyping', 'Visual Design'],
+        timeline: '5-10 months',
+        youtube: ['https://www.youtube.com/watch?v=c9Wg6Cb_YlU']
+      },
+      {
+        name: 'DevOps Engineer',
+        description: 'Automate and streamline development and deployment processes.',
+        keywords: ['devops', 'docker', 'kubernetes', 'ci/cd', 'aws', 'cloud', 'linux'],
+        skills: ['Docker', 'Kubernetes', 'CI/CD', 'Cloud (AWS/GCP)', 'Linux'],
+        timeline: '6-12 months',
+        youtube: ['https://www.youtube.com/watch?v=7pz6BkVPgCI']
+      },
+      {
+        name: 'Cloud Solutions Architect',
+        description: 'Design and implement cloud infrastructure solutions.',
+        keywords: ['cloud', 'aws', 'azure', 'gcp', 'infrastructure', 'architecture'],
+        skills: ['AWS/Azure/GCP', 'Networking', 'Security', 'Terraform', 'Cost Optimization'],
+        timeline: '8-14 months',
+        youtube: ['https://www.youtube.com/watch?v=SOTamWNgDKc']
+      },
+      {
+        name: 'Cybersecurity Analyst',
+        description: 'Protect organizations from cyber threats and vulnerabilities.',
+        keywords: ['security', 'cyber', 'hacking', 'penetration', 'network', 'encryption'],
+        skills: ['Network Security', 'Penetration Testing', 'SIEM Tools', 'Cryptography', 'Incident Response'],
+        timeline: '8-14 months',
+        youtube: ['https://www.youtube.com/watch?v=inWWhr5tnEA']
+      },
+      {
+        name: 'Digital Marketing Specialist',
+        description: 'Drive online growth through marketing strategies.',
+        keywords: ['marketing', 'digital', 'seo', 'social media', 'content', 'advertising'],
+        skills: ['SEO/SEM', 'Social Media Marketing', 'Content Strategy', 'Analytics', 'Ad Platforms'],
+        timeline: '3-6 months',
+        youtube: ['https://www.youtube.com/watch?v=bixR-KIJKYM']
+      },
+      {
+        name: 'HR Manager',
+        description: 'Manage human resources and organizational development.',
+        keywords: ['hr', 'human resources', 'recruitment', 'people', 'management', 'hiring'],
+        skills: ['Recruitment', 'Employee Relations', 'HR Software', 'Labor Laws', 'Training'],
+        timeline: '4-8 months',
+        youtube: ['https://www.youtube.com/watch?v=aZETj6T8UoU']
+      },
+      {
+        name: 'Content Writer',
+        description: 'Create compelling content for various platforms.',
+        keywords: ['writing', 'content', 'blog', 'copywriting', 'creative writing'],
+        skills: ['Writing', 'SEO', 'Research', 'Content Strategy', 'Editing'],
+        timeline: '2-4 months',
+        youtube: ['https://www.youtube.com/watch?v=3DSMWUH7WBk']
+      }
+    ];
+
+    // Score each career based on keyword matches
+    const scoredCareers = careerDatabase.map(career => {
+      let score = 0;
+      let matchedKeywords: string[] = [];
+
+      career.keywords.forEach(keyword => {
+        if (combined.includes(keyword)) {
+          score += 15;
+          matchedKeywords.push(keyword);
+        }
+      });
+
+      // Boost for exact skill matches
+      career.skills.forEach(skill => {
+        if (combined.includes(skill.toLowerCase())) {
+          score += 10;
+        }
+      });
+
+      return {
+        ...career,
+        score,
+        matchedKeywords
+      };
+    });
+
+    // Sort by score and take top 5-6
+    const topCareers = scoredCareers
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 6)
+      .map((career, index) => {
+        // Normalize match percentage (min 60%, max 95%)
+        const baseMatch = Math.min(95, Math.max(60, 60 + career.score));
+        
+        return {
+          id: crypto.randomUUID(),
+          career_name: career.name,
+          description: career.description,
+          match_percentage: baseMatch - (index * 3), // Decrease slightly for lower matches
+          required_skills: career.skills,
+          youtube_links: career.youtube,
+          estimated_timeline: career.timeline,
+          roadmap_steps: [
+            `Learn ${career.skills[0]} fundamentals`,
+            `Build practice projects`,
+            `Get certified in ${career.skills[1] || career.skills[0]}`,
+            `Create portfolio showcasing your work`,
+            `Apply for entry-level positions`
+          ],
+          rationale: career.matchedKeywords.length > 0 
+            ? `Matched based on your skills: ${career.matchedKeywords.join(', ')}`
+            : `Based on your education in ${profile.fieldOfStudy || 'your field'} and career interests.`
+        };
+      });
+
+    return topCareers;
   };
 
   const handleStartJourney = (career: CareerOption) => {
