@@ -1,13 +1,8 @@
 import * as pdfjsLib from 'pdfjs-dist';
 import mammoth from 'mammoth';
 
-// Set up PDF.js worker using CDN - version 5.x compatible
-// Note: pdfjs-dist 5.x uses ESM workers
-try {
-  pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@5.0.375/build/pdf.worker.min.mjs`;
-} catch (e) {
-  console.warn('[FileParser] Could not set PDF.js worker, using fallback');
-}
+// Set up PDF.js worker using CDN - must match installed pdfjs-dist version (5.4.54)
+pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@5.4.54/build/pdf.worker.min.mjs`;
 
 export class FileParser {
   static async parseFile(file: File): Promise<string> {
