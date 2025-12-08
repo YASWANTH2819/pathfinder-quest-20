@@ -42,24 +42,13 @@ interface FieldError {
 }
 
 // Validation helper functions
-const MIN_FIELD_LENGTH = 10;
 
-const containsMeaningfulWords = (text: string): boolean => {
-  // Check if text contains at least 2 meaningful words (3+ chars each)
-  const words = text.trim().split(/\s+/).filter(w => w.length >= 3);
-  return words.length >= 2;
+const containsLetters = (text: string): boolean => {
+  return /[a-zA-Z]/.test(text);
 };
 
 const isNonsenseInput = (text: string): boolean => {
   const trimmed = text.trim().toLowerCase();
-  
-  // Check for mostly random characters/numbers
-  const alphaCount = (trimmed.match(/[a-z]/gi) || []).length;
-  const numberCount = (trimmed.match(/\d/g) || []).length;
-  const specialCount = (trimmed.match(/[^a-z0-9\s]/gi) || []).length;
-  
-  // If more than 50% is numbers or special chars, likely nonsense
-  if ((numberCount + specialCount) / trimmed.length > 0.5) return true;
   
   // Check for repeated characters (e.g., "aaaaaaa")
   if (/(.)\1{4,}/i.test(trimmed)) return true;
@@ -71,23 +60,43 @@ const isNonsenseInput = (text: string): boolean => {
   return false;
 };
 
-const validateField = (value: string, fieldName: string, t: (key: string) => string): string | undefined => {
+const validateEducationField = (value: string, t: (key: string) => string): string | undefined => {
   const trimmed = value.trim();
   
   if (!trimmed) {
     return t('validation.fieldRequired');
   }
   
-  if (trimmed.length < MIN_FIELD_LENGTH) {
-    return t('validation.tooShort').replace('{min}', String(MIN_FIELD_LENGTH));
+  if (!containsLetters(trimmed)) {
+    return t('validation.educationInvalid');
   }
   
   if (isNonsenseInput(trimmed)) {
-    return t('validation.nonsenseInput');
+    return t('validation.educationInvalid');
   }
   
-  if (!containsMeaningfulWords(trimmed)) {
-    return t('validation.needMeaningfulWords');
+  return undefined;
+};
+
+const validateDescriptiveField = (value: string, t: (key: string) => string): string | undefined => {
+  const trimmed = value.trim();
+  
+  if (!trimmed) {
+    return t('validation.fieldRequired');
+  }
+  
+  // Require at least 5 characters or 2 words
+  const words = trimmed.split(/\s+/).filter(w => w.length >= 1);
+  if (trimmed.length < 5 && words.length < 2) {
+    return t('validation.descriptiveInvalid');
+  }
+  
+  if (!containsLetters(trimmed)) {
+    return t('validation.descriptiveInvalid');
+  }
+  
+  if (isNonsenseInput(trimmed)) {
+    return t('validation.descriptiveInvalid');
   }
   
   return undefined;
@@ -133,15 +142,17 @@ export const ProfileForm = ({ onComplete, onBack }: ProfileFormProps) => {
   const handleBlur = (field: keyof FieldError) => {
     setTouched(prev => ({ ...prev, [field]: true }));
     
-    const error = validateField(formData[field], field, t);
+    const error = field === 'fieldOfStudy' 
+      ? validateEducationField(formData[field], t)
+      : validateDescriptiveField(formData[field], t);
     setErrors(prev => ({ ...prev, [field]: error }));
   };
 
   const validateAllFields = (): boolean => {
-    const fieldOfStudyError = validateField(formData.fieldOfStudy, 'fieldOfStudy', t);
-    const interestsError = validateField(formData.interests, 'interests', t);
-    const shortTermGoalsError = validateField(formData.shortTermGoals, 'shortTermGoals', t);
-    const longTermGoalsError = validateField(formData.longTermGoals, 'longTermGoals', t);
+    const fieldOfStudyError = validateEducationField(formData.fieldOfStudy, t);
+    const interestsError = validateDescriptiveField(formData.interests, t);
+    const shortTermGoalsError = validateDescriptiveField(formData.shortTermGoals, t);
+    const longTermGoalsError = validateDescriptiveField(formData.longTermGoals, t);
     
     const newErrors: FieldError = {
       fieldOfStudy: fieldOfStudyError,
@@ -174,10 +185,11 @@ export const ProfileForm = ({ onComplete, onBack }: ProfileFormProps) => {
     onComplete(formData);
   };
 
-  const isFormValid = formData.fieldOfStudy.trim().length >= MIN_FIELD_LENGTH && 
-                      formData.interests.trim().length >= MIN_FIELD_LENGTH && 
-                      formData.shortTermGoals.trim().length >= MIN_FIELD_LENGTH && 
-                      formData.longTermGoals.trim().length >= MIN_FIELD_LENGTH;
+  const isFormValid = formData.fieldOfStudy.trim().length >= 1 && 
+                      containsLetters(formData.fieldOfStudy) &&
+                      formData.interests.trim().length >= 5 && 
+                      formData.shortTermGoals.trim().length >= 5 && 
+                      formData.longTermGoals.trim().length >= 5;
 
   const renderFieldError = (field: keyof FieldError) => {
     if (touched[field] && errors[field]) {

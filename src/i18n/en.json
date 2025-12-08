@@ -1,4 +1,11 @@
 {
+  "validation": {
+    "fieldRequired": "This field is required",
+    "educationInvalid": "Please enter a valid education background (e.g., BTech CSE, BSc, Diploma, etc.)",
+    "descriptiveInvalid": "Please describe this in a clear and meaningful way, not just a random word",
+    "formError": "Form has errors",
+    "pleaseFixErrors": "Please fix the errors before submitting"
+  },
   "common": {
     "loading": "Loading...",
     "error": "Error occurred",
