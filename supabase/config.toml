@@ -11,3 +11,6 @@ verify_jwt = true
 
 [functions.generate-career-roadmap]
 verify_jwt = true
+
+[functions.generate-career-recommendations]
+verify_jwt = true

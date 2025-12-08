@@ -64,13 +64,13 @@ export const RoadmapView: React.FC<RoadmapViewProps> = ({ career, progress, onBa
   const totalSteps = steps.length;
   const progressPercentage = totalSteps > 0 ? (completedSteps / totalSteps) * 100 : 0;
 
+  // Only check streak on initial load (don't auto-update - update on quiz completion)
   useEffect(() => {
-    if (user) {
-      updateLastActivity();
-    }
+    // Just load current progress, don't auto-update streak
   }, [user]);
 
-  const updateLastActivity = async () => {
+  // Update streak after quiz completion
+  const updateStreakAfterQuiz = async () => {
     if (!user) return;
 
     const today = new Date().toISOString().split('T')[0];
@@ -83,12 +83,18 @@ export const RoadmapView: React.FC<RoadmapViewProps> = ({ career, progress, onBa
       const todayDate = new Date(today);
       const diffDays = Math.floor((todayDate.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24));
       
-      if (diffDays === 1) {
+      if (diffDays === 0) {
+        // Same day - don't increment streak (already counted for today)
+        return;
+      } else if (diffDays === 1) {
+        // Consecutive day - increment streak
         newStreakCount += 1;
       } else if (diffDays > 1) {
+        // Streak broken - reset to 1
         newStreakCount = 1;
       }
     } else {
+      // First activity ever
       newStreakCount = 1;
     }
 
@@ -114,7 +120,7 @@ export const RoadmapView: React.FC<RoadmapViewProps> = ({ career, progress, onBa
     }
   };
 
-  const handleXPEarned = async (xp: number) => {
+  const handleXPEarned = async (xp: number, isQuizCompletion: boolean = false) => {
     if (!user) return;
 
     const newXP = (currentProgress.xp || 0) + xp;
@@ -129,6 +135,11 @@ export const RoadmapView: React.FC<RoadmapViewProps> = ({ career, progress, onBa
 
     if (!error && data) {
       setCurrentProgress(data);
+      
+      // Update streak only when quiz is completed
+      if (isQuizCompletion) {
+        await updateStreakAfterQuiz();
+      }
       
       if (newXP >= 100 && (currentProgress.xp || 0) < 100) {
         await awardBadge('xp_100', '100 XP Milestone', 'Earned your first 100 XP!', 'Zap');
@@ -358,7 +369,7 @@ export const RoadmapView: React.FC<RoadmapViewProps> = ({ career, progress, onBa
             <DailyMCQ 
               userId={user.id}
               careerName={career.career_name}
-              onXPEarned={handleXPEarned}
+              onXPEarned={(xp) => handleXPEarned(xp, true)}
             />
           </div>
         )}
