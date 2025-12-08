@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Card } from '@/components/ui/card';
@@ -34,6 +35,7 @@ interface CareerHealthScoreProps {
 }
 
 export default function CareerHealthScore({ onBack }: CareerHealthScoreProps) {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [healthData, setHealthData] = useState<CareerHealthData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -324,7 +326,7 @@ export default function CareerHealthScore({ onBack }: CareerHealthScoreProps) {
           <p className="text-muted-foreground mb-6">
             Complete your career analysis and upload your resume to get your health score.
           </p>
-          <Button onClick={onBack} className="w-full">
+          <Button onClick={() => onBack ? onBack() : navigate('/main')} className="w-full">
             Go Back to Dashboard
           </Button>
         </Card>
@@ -355,7 +357,7 @@ export default function CareerHealthScore({ onBack }: CareerHealthScoreProps) {
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <Button variant="outline" size="icon" onClick={onBack}>
+              <Button variant="outline" size="icon" onClick={() => onBack ? onBack() : navigate('/main')}>
                 <ArrowLeft className="w-5 h-5" />
               </Button>
               <div>
@@ -434,7 +436,7 @@ export default function CareerHealthScore({ onBack }: CareerHealthScoreProps) {
             ) : (
               <div className="text-center py-4">
                 <p className="text-muted-foreground mb-4">Complete your career analysis to improve your score</p>
-                <Button variant="outline" size="sm" onClick={onBack}>
+                <Button variant="outline" size="sm" onClick={() => navigate('/career-guide')}>
                   Start Career Analysis
                 </Button>
               </div>
@@ -473,7 +475,7 @@ export default function CareerHealthScore({ onBack }: CareerHealthScoreProps) {
             ) : (
               <div className="text-center py-4">
                 <p className="text-muted-foreground mb-4">Upload your resume to get detailed analysis</p>
-                <Button variant="outline" size="sm" onClick={onBack}>
+                <Button variant="outline" size="sm" onClick={() => navigate('/resume-analyzer')}>
                   Analyze Resume
                 </Button>
               </div>
