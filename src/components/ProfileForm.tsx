@@ -4,7 +4,8 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { ArrowLeft, Sparkles } from 'lucide-react';
+import { ArrowLeft, Sparkles, AlertCircle } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 interface ProfileData {
   name: string;
@@ -33,8 +34,68 @@ interface ProfileFormProps {
   onBack: () => void;
 }
 
+interface FieldError {
+  fieldOfStudy?: string;
+  interests?: string;
+  shortTermGoals?: string;
+  longTermGoals?: string;
+}
+
+// Validation helper functions
+const MIN_FIELD_LENGTH = 10;
+
+const containsMeaningfulWords = (text: string): boolean => {
+  // Check if text contains at least 2 meaningful words (3+ chars each)
+  const words = text.trim().split(/\s+/).filter(w => w.length >= 3);
+  return words.length >= 2;
+};
+
+const isNonsenseInput = (text: string): boolean => {
+  const trimmed = text.trim().toLowerCase();
+  
+  // Check for mostly random characters/numbers
+  const alphaCount = (trimmed.match(/[a-z]/gi) || []).length;
+  const numberCount = (trimmed.match(/\d/g) || []).length;
+  const specialCount = (trimmed.match(/[^a-z0-9\s]/gi) || []).length;
+  
+  // If more than 50% is numbers or special chars, likely nonsense
+  if ((numberCount + specialCount) / trimmed.length > 0.5) return true;
+  
+  // Check for repeated characters (e.g., "aaaaaaa")
+  if (/(.)\1{4,}/i.test(trimmed)) return true;
+  
+  // Check for keyboard patterns (e.g., "asdfgh", "qwerty")
+  const keyboardPatterns = ['qwert', 'asdfg', 'zxcvb', 'qazws', 'poiuy', 'lkjhg', 'mnbvc'];
+  if (keyboardPatterns.some(p => trimmed.includes(p))) return true;
+  
+  return false;
+};
+
+const validateField = (value: string, fieldName: string, t: (key: string) => string): string | undefined => {
+  const trimmed = value.trim();
+  
+  if (!trimmed) {
+    return t('validation.fieldRequired');
+  }
+  
+  if (trimmed.length < MIN_FIELD_LENGTH) {
+    return t('validation.tooShort').replace('{min}', String(MIN_FIELD_LENGTH));
+  }
+  
+  if (isNonsenseInput(trimmed)) {
+    return t('validation.nonsenseInput');
+  }
+  
+  if (!containsMeaningfulWords(trimmed)) {
+    return t('validation.needMeaningfulWords');
+  }
+  
+  return undefined;
+};
+
 export const ProfileForm = ({ onComplete, onBack }: ProfileFormProps) => {
   const { t } = useLanguage();
+  const { toast } = useToast();
   const [formData, setFormData] = useState<ProfileData>({
     name: '',
     age: '',
@@ -56,19 +117,79 @@ export const ProfileForm = ({ onComplete, onBack }: ProfileFormProps) => {
     financialSupport: '',
     resumeText: ''
   });
+  
+  const [errors, setErrors] = useState<FieldError>({});
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
 
   const updateField = (field: keyof ProfileData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+    
+    // Clear error when user starts typing
+    if (errors[field as keyof FieldError]) {
+      setErrors(prev => ({ ...prev, [field]: undefined }));
+    }
+  };
+
+  const handleBlur = (field: keyof FieldError) => {
+    setTouched(prev => ({ ...prev, [field]: true }));
+    
+    const error = validateField(formData[field], field, t);
+    setErrors(prev => ({ ...prev, [field]: error }));
+  };
+
+  const validateAllFields = (): boolean => {
+    const fieldOfStudyError = validateField(formData.fieldOfStudy, 'fieldOfStudy', t);
+    const interestsError = validateField(formData.interests, 'interests', t);
+    const shortTermGoalsError = validateField(formData.shortTermGoals, 'shortTermGoals', t);
+    const longTermGoalsError = validateField(formData.longTermGoals, 'longTermGoals', t);
+    
+    const newErrors: FieldError = {
+      fieldOfStudy: fieldOfStudyError,
+      interests: interestsError,
+      shortTermGoals: shortTermGoalsError,
+      longTermGoals: longTermGoalsError,
+    };
+    
+    setErrors(newErrors);
+    setTouched({
+      fieldOfStudy: true,
+      interests: true,
+      shortTermGoals: true,
+      longTermGoals: true,
+    });
+    
+    return !fieldOfStudyError && !interestsError && !shortTermGoalsError && !longTermGoalsError;
   };
 
   const handleSubmit = () => {
+    if (!validateAllFields()) {
+      toast({
+        title: t('validation.formError'),
+        description: t('validation.pleaseFixErrors'),
+        variant: 'destructive',
+      });
+      return;
+    }
+    
     onComplete(formData);
   };
 
-  const isFormValid = formData.fieldOfStudy.trim() !== '' && 
-                      formData.interests.trim() !== '' && 
-                      formData.shortTermGoals.trim() !== '' && 
-                      formData.longTermGoals.trim() !== '';
+  const isFormValid = formData.fieldOfStudy.trim().length >= MIN_FIELD_LENGTH && 
+                      formData.interests.trim().length >= MIN_FIELD_LENGTH && 
+                      formData.shortTermGoals.trim().length >= MIN_FIELD_LENGTH && 
+                      formData.longTermGoals.trim().length >= MIN_FIELD_LENGTH;
+
+  const renderFieldError = (field: keyof FieldError) => {
+    if (touched[field] && errors[field]) {
+      return (
+        <div className="flex items-center gap-1.5 mt-1.5 text-destructive text-sm">
+          <AlertCircle className="w-4 h-4" />
+          <span>{errors[field]}</span>
+        </div>
+      );
+    }
+    return null;
+  };
 
   return (
     <div className="min-h-screen cyber-grid p-4">
@@ -93,10 +214,12 @@ export const ProfileForm = ({ onComplete, onBack }: ProfileFormProps) => {
                 id="fieldOfStudy"
                 value={formData.fieldOfStudy}
                 onChange={(e) => updateField('fieldOfStudy', e.target.value)}
+                onBlur={() => handleBlur('fieldOfStudy')}
                 placeholder={t('simpleForm.educationPlaceholder')}
-                className="glass-card mt-2"
+                className={`glass-card mt-2 ${touched.fieldOfStudy && errors.fieldOfStudy ? 'border-destructive' : ''}`}
                 rows={2}
               />
+              {renderFieldError('fieldOfStudy')}
             </div>
 
             {/* Subjects/Areas Enjoyed */}
@@ -108,10 +231,12 @@ export const ProfileForm = ({ onComplete, onBack }: ProfileFormProps) => {
                 id="interests"
                 value={formData.interests}
                 onChange={(e) => updateField('interests', e.target.value)}
+                onBlur={() => handleBlur('interests')}
                 placeholder={t('simpleForm.subjectsPlaceholder')}
-                className="glass-card mt-2"
+                className={`glass-card mt-2 ${touched.interests && errors.interests ? 'border-destructive' : ''}`}
                 rows={2}
               />
+              {renderFieldError('interests')}
             </div>
 
             {/* Short-term Goals */}
@@ -123,10 +248,12 @@ export const ProfileForm = ({ onComplete, onBack }: ProfileFormProps) => {
                 id="shortTermGoals"
                 value={formData.shortTermGoals}
                 onChange={(e) => updateField('shortTermGoals', e.target.value)}
+                onBlur={() => handleBlur('shortTermGoals')}
                 placeholder={t('simpleForm.shortTermPlaceholder')}
-                className="glass-card mt-2"
+                className={`glass-card mt-2 ${touched.shortTermGoals && errors.shortTermGoals ? 'border-destructive' : ''}`}
                 rows={2}
               />
+              {renderFieldError('shortTermGoals')}
             </div>
 
             {/* Long-term Goals */}
@@ -138,10 +265,12 @@ export const ProfileForm = ({ onComplete, onBack }: ProfileFormProps) => {
                 id="longTermGoals"
                 value={formData.longTermGoals}
                 onChange={(e) => updateField('longTermGoals', e.target.value)}
+                onBlur={() => handleBlur('longTermGoals')}
                 placeholder={t('simpleForm.longTermPlaceholder')}
-                className="glass-card mt-2"
+                className={`glass-card mt-2 ${touched.longTermGoals && errors.longTermGoals ? 'border-destructive' : ''}`}
                 rows={2}
               />
+              {renderFieldError('longTermGoals')}
             </div>
           </div>
         </Card>

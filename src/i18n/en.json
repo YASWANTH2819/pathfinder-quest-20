@@ -378,5 +378,13 @@
     "longTermGoals": "Long-term Career Goals (5+ years)",
     "longTermPlaceholder": "e.g., Become a senior software engineer, Start my own company",
     "getRecommendations": "Get Career Recommendations"
+  },
+  "validation": {
+    "fieldRequired": "This field is required",
+    "tooShort": "Please enter at least {min} characters with meaningful information",
+    "nonsenseInput": "Please enter clear, meaningful information. Avoid random characters or patterns.",
+    "needMeaningfulWords": "Please provide more detail with complete words describing your background or goals",
+    "formError": "Please fix the errors",
+    "pleaseFixErrors": "Please enter clear, meaningful information about your education, interests, and career goals."
   }
 }
