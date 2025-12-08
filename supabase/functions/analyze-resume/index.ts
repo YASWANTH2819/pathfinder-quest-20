@@ -112,6 +112,7 @@ Based on the EXACT content above, provide a PERSONALIZED analysis. You MUST:
 Return ONLY a valid JSON object:
 {
   "atsScore": number (0-100, based on THIS resume's ATS compatibility),
+  "overallRating": number (0-10, your overall assessment of the resume quality - 10 being excellent, 0 being very poor),
   "jobMatchScore": number (0-100, how well THIS resume matches the target role),
   "keywordCoverage": number (0-100, industry keywords found in THIS resume),
   "skillsMatchScore": number (0-100),
@@ -205,9 +206,20 @@ Return ONLY a valid JSON object:
       console.log('[analyze-resume] ATS Score:', analysis.atsScore)
       console.log('[analyze-resume] Career Health:', analysis.careerHealth)
       
-      // Validate required fields
-      if (typeof analysis.atsScore !== 'number' || typeof analysis.jobMatchScore !== 'number') {
+      // Validate required fields and calculate overallRating if missing
+      if (typeof analysis.atsScore !== 'number') {
         throw new Error('Missing required analysis fields')
+      }
+      
+      // Ensure overallRating exists - derive from atsScore if not provided
+      if (typeof analysis.overallRating !== 'number') {
+        // Calculate overall rating as a 0-10 scale based on atsScore
+        analysis.overallRating = Math.round(analysis.atsScore / 10)
+      }
+      
+      // Ensure jobMatchScore exists
+      if (typeof analysis.jobMatchScore !== 'number') {
+        analysis.jobMatchScore = analysis.atsScore
       }
     } catch (parseError) {
       console.error('[analyze-resume] JSON parse error:', parseError)
@@ -216,6 +228,7 @@ Return ONLY a valid JSON object:
       // Create a fallback response that still references the resume
       analysis = {
         atsScore: 60,
+        overallRating: 6,
         jobMatchScore: 55,
         keywordCoverage: 50,
         skillsMatchScore: 55,
@@ -244,12 +257,14 @@ Return ONLY a valid JSON object:
             filename: 'uploaded_resume',
             resume_text: resumeText.slice(0, 10000),
             ats_score: analysis.atsScore,
+            overall_rating: analysis.overallRating,
             career_score: analysis.jobMatchScore || analysis.atsScore,
             career_health: analysis.careerHealth,
             skills_analysis: {
               ...analysis,
               jobMatchScore: analysis.jobMatchScore,
-              keywordCoverage: analysis.keywordCoverage
+              keywordCoverage: analysis.keywordCoverage,
+              overallRating: analysis.overallRating
             },
             parsed_data: { targetRole, language },
             suggestions: analysis.recommendations?.slice(0, 5) || []
