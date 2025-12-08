@@ -49,8 +49,8 @@ export const CareerScoreDisplay: React.FC<CareerScoreProps> = ({ analysis }) => 
 
   return (
     <div className="space-y-6">
-      {/* Overall Scores - 3 Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {/* Overall Scores - 2 Metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card className="glass-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">ATS Score</CardTitle>
@@ -63,22 +63,6 @@ export const CareerScoreDisplay: React.FC<CareerScoreProps> = ({ analysis }) => 
               </div>
               <Progress value={structuredData.atsScore} className="h-2" />
               <p className="text-xs text-muted-foreground">Applicant Tracking System compatibility</p>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="glass-card">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Job Match</CardTitle>
-            <Award className="h-4 w-4 text-purple-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <div className={`text-3xl font-bold ${getScoreColor(structuredData.jobMatchScore || structuredData.skillsMatchScore)}`}>
-                {structuredData.jobMatchScore || structuredData.skillsMatchScore}%
-              </div>
-              <Progress value={structuredData.jobMatchScore || structuredData.skillsMatchScore} className="h-2" />
-              <p className="text-xs text-muted-foreground">Alignment with target role</p>
             </div>
           </CardContent>
         </Card>
