@@ -6,8 +6,9 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { FileText, Loader2, Upload, X } from 'lucide-react';
-import { geminiService } from '@/services/geminiService';
+import { supabase } from '@/integrations/supabase/client';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface ProfileData {
   name: string;
@@ -37,6 +38,7 @@ interface ResumeAnalyzerProps {
 
 export const ResumeAnalyzer = ({ profileData, onAnalysisComplete }: ResumeAnalyzerProps) => {
   const { language } = useLanguage();
+  const { user } = useAuth();
   const [resumeText, setResumeText] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
@@ -48,13 +50,125 @@ export const ResumeAnalyzer = ({ profileData, onAnalysisComplete }: ResumeAnalyz
     
     setIsAnalyzing(true);
     try {
-      const analysis = await geminiService.analyzeResume(resumeText, profileData, language);
-      onAnalysisComplete(`📋 **Resume Analysis Results:**\n\n${analysis}`);
+      // Build language-specific system prompt
+      const languagePrompts: Record<string, string> = {
+        en: 'Analyze this resume and provide detailed, personalized feedback in English.',
+        hi: 'इस रिज्यूमे का विश्लेषण करें और हिंदी में विस्तृत, व्यक्तिगत प्रतिक्रिया दें।',
+        te: 'ఈ రెజ్యూమేను విశ్లేషించండి మరియు తెలుగులో వివరమైన, వ్యక్తిగత అభిప్రాయాన్ని అందించండి।'
+      };
+      
+      const systemPrompt = languagePrompts[language] || languagePrompts.en;
+      
+      // Call the edge function with the actual resume text
+      const { data, error } = await supabase.functions.invoke('analyze-resume', {
+        body: {
+          resumeText: resumeText.trim(),
+          targetRole: profileData?.shortTermGoals || 'General career guidance',
+          language: language,
+          userId: user?.id,
+          systemPrompt: systemPrompt
+        }
+      });
+
+      if (error) {
+        throw new Error(error.message || 'Failed to analyze resume');
+      }
+
+      if (data?.error) {
+        throw new Error(data.error);
+      }
+
+      // Format the analysis response
+      const analysis = data?.analysis;
+      if (analysis) {
+        const formattedResponse = formatAnalysisResponse(analysis, language);
+        onAnalysisComplete(formattedResponse);
+      } else {
+        onAnalysisComplete(data?.explanation || '❌ No analysis received from AI.');
+      }
     } catch (error) {
+      console.error('Resume analysis error:', error);
       onAnalysisComplete(`❌ **Error analyzing resume:** ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsAnalyzing(false);
     }
+  };
+
+  // Format the AI analysis into a readable response
+  const formatAnalysisResponse = (analysis: any, lang: string): string => {
+    const headers = {
+      en: {
+        title: '📋 **Resume Analysis Results**',
+        atsScore: '🤖 **ATS Compatibility Score**',
+        jobMatch: '🎯 **Job Match Score**',
+        keywordCoverage: '🔍 **Keyword Coverage**',
+        careerHealth: '💼 **Career Health**',
+        missingSkills: '⚠️ **Missing Skills**',
+        quickFixes: '🔧 **Quick Fixes**',
+        recommendations: '💡 **Recommendations**',
+        summary: '📝 **Summary**'
+      },
+      hi: {
+        title: '📋 **रिज्यूमे विश्लेषण परिणाम**',
+        atsScore: '🤖 **ATS संगतता स्कोर**',
+        jobMatch: '🎯 **नौकरी मिलान स्कोर**',
+        keywordCoverage: '🔍 **कीवर्ड कवरेज**',
+        careerHealth: '💼 **करियर स्वास्थ्य**',
+        missingSkills: '⚠️ **लापता कौशल**',
+        quickFixes: '🔧 **त्वरित सुधार**',
+        recommendations: '💡 **सिफारिशें**',
+        summary: '📝 **सारांश**'
+      },
+      te: {
+        title: '📋 **రెజ్యూమే విశ్లేషణ ఫలితాలు**',
+        atsScore: '🤖 **ATS అనుకూలత స్కోర్**',
+        jobMatch: '🎯 **ఉద్యోగ సరిపోలిక స్కోర్**',
+        keywordCoverage: '🔍 **కీవర్డ్ కవరేజ్**',
+        careerHealth: '💼 **కెరీర్ ఆరోగ్యం**',
+        missingSkills: '⚠️ **తప్పిపోయిన నైపుణ్యాలు**',
+        quickFixes: '🔧 **త్వరిత పరిష్కారాలు**',
+        recommendations: '💡 **సిఫార్సులు**',
+        summary: '📝 **సారాంశం**'
+      }
+    };
+
+    const h = headers[lang as keyof typeof headers] || headers.en;
+
+    let response = `${h.title}\n\n`;
+    response += `${h.atsScore}: **${analysis.atsScore || 0}/100**\n`;
+    response += `${h.jobMatch}: **${analysis.jobMatchScore || 0}/100**\n`;
+    response += `${h.keywordCoverage}: **${analysis.keywordCoverage || 0}/100**\n`;
+    response += `${h.careerHealth}: **${analysis.careerHealth || 'N/A'}**\n\n`;
+
+    if (analysis.missingSkills?.length > 0) {
+      response += `${h.missingSkills}:\n`;
+      analysis.missingSkills.forEach((skill: string) => {
+        response += `- ${skill}\n`;
+      });
+      response += '\n';
+    }
+
+    if (analysis.quickFixes?.length > 0) {
+      response += `${h.quickFixes}:\n`;
+      analysis.quickFixes.forEach((fix: string) => {
+        response += `- ${fix}\n`;
+      });
+      response += '\n';
+    }
+
+    if (analysis.recommendations?.length > 0) {
+      response += `${h.recommendations}:\n`;
+      analysis.recommendations.forEach((rec: string) => {
+        response += `- ${rec}\n`;
+      });
+      response += '\n';
+    }
+
+    if (analysis.explanation) {
+      response += `${h.summary}:\n${analysis.explanation}\n`;
+    }
+
+    return response;
   };
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {

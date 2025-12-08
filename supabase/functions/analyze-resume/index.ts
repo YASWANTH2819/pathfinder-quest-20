@@ -21,7 +21,7 @@ interface ResumeAnalysisRequest {
   targetRole?: string
   language: string
   userId?: string
-  systemPrompt: string
+  systemPrompt?: string
 }
 
 serve(async (req) => {
@@ -50,10 +50,10 @@ serve(async (req) => {
 
     const { resumeText, targetRole, language, userId, systemPrompt }: ResumeAnalysisRequest = validationResult.data
 
-    // Get Gemini API key from environment
-    const geminiApiKey = Deno.env.get('GEMINI_API_KEY')
-    if (!geminiApiKey) {
-      throw new Error('GEMINI_API_KEY not configured')
+    // Get Lovable API key from environment
+    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY')
+    if (!lovableApiKey) {
+      throw new Error('LOVABLE_API_KEY not configured')
     }
 
     // Create Supabase client
@@ -61,67 +61,90 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
-    // Prepare the prompt for Gemini (truncate resume if too long)
-    const truncatedResume = resumeText.slice(0, 30000)
+    // Prepare the prompt - truncate resume if too long but keep essential content
+    const truncatedResume = resumeText.slice(0, 25000)
     
-    const fullPrompt = `${systemPrompt || 'You are an expert ATS (Applicant Tracking System) resume analyzer with deep knowledge of hiring practices.'}
+    // Language-specific instructions
+    const languageInstructions: Record<string, string> = {
+      en: 'Provide all analysis and feedback in English.',
+      hi: 'सभी विश्लेषण और प्रतिक्रिया हिंदी में प्रदान करें। Use Devanagari script.',
+      te: 'అన్ని విశ్లేషణ మరియు అభిప్రాయాన్ని తెలుగులో అందించండి। Use Telugu script.'
+    }
+    
+    const langInstruction = languageInstructions[language] || languageInstructions.en
 
-Analyze this resume for the target role: ${targetRole || 'General career guidance'}
+    const systemMessage = `You are an expert ATS (Applicant Tracking System) resume analyzer with deep knowledge of hiring practices across industries. Your task is to provide PERSONALIZED and SPECIFIC feedback based on the actual resume content provided.
 
-RESUME TEXT:
+CRITICAL: You MUST analyze the SPECIFIC content of the resume provided. Do NOT give generic advice. Reference specific sections, skills, experiences, and details FROM THE RESUME.
+
+${langInstruction}`
+
+    const userMessage = `Analyze this resume for the target role: "${targetRole || 'General career guidance'}"
+
+=== RESUME CONTENT START ===
 ${truncatedResume}
+=== RESUME CONTENT END ===
 
-Please provide a comprehensive ATS analysis with realistic scores based on:
-1. **ATS Score (0-100)**: Actual assessment of formatting, keyword optimization, and ATS compatibility
-2. **Job Match Score (0-100)**: How well the resume aligns with the target role
-3. **Keyword Coverage (0-100)**: Presence of industry-relevant keywords
-4. **Missing Skills**: Critical skills absent from the resume
-5. **Quick Fixes**: Immediate improvements for better ATS performance
-6. **Career Health**: Overall assessment (Excellent/Good/Moderate/Needs Upskill)
-7. **Detailed Recommendations**: Specific, actionable advice
+Based on the SPECIFIC content of this resume, provide a comprehensive ATS analysis. Your feedback MUST be personalized to THIS resume.
+
+Analyze and provide:
+1. **ATS Score (0-100)**: Based on THIS resume's formatting, keyword optimization, and ATS compatibility
+2. **Job Match Score (0-100)**: How well THIS resume aligns with the target role
+3. **Keyword Coverage (0-100)**: Industry-relevant keywords present in THIS resume
+4. **Skills Match Score (0-100)**: Skills relevance assessment
+
+5. **Missing Skills**: Specific skills that are MISSING from THIS resume but important for the target role
+
+6. **Quick Fixes**: Immediate improvements specific to THIS resume's content and structure
+
+7. **Career Health**: Overall assessment based on THIS candidate's profile (Excellent/Good/Moderate/Needs Upskill)
+
+8. **Recommendations**: Specific, actionable advice for THIS resume - mention specific sections, experiences, or content that should be improved
+
+9. **Explanation**: A comprehensive summary of the analysis, referencing specific elements FROM THIS RESUME
 
 Return ONLY a valid JSON object with this exact structure:
 {
-  "atsScore": number (realistic, based on actual formatting and keyword optimization),
-  "jobMatchScore": number (based on role alignment),
-  "keywordCoverage": number (based on industry keywords present),
-  "skillsMatchScore": number (0-100),
-  "missingSkills": [array of specific missing skills],
-  "quickFixes": [array of immediate improvements],
+  "atsScore": number,
+  "jobMatchScore": number,
+  "keywordCoverage": number,
+  "skillsMatchScore": number,
+  "missingSkills": ["specific skill 1", "specific skill 2", ...],
+  "quickFixes": ["specific fix referencing resume content 1", "specific fix 2", ...],
   "careerHealth": "Excellent" | "Good" | "Moderate" | "Needs Upskill",
-  "recommendations": [array of detailed, actionable recommendations],
-  "explanation": "A comprehensive summary in ${language === 'hi' ? 'Hindi' : language === 'te' ? 'Telugu' : 'English'}"
+  "recommendations": ["specific recommendation 1", "specific recommendation 2", ...],
+  "explanation": "Personalized summary referencing specific content from the resume"
 }`
 
-    console.log('Calling Gemini API for resume analysis...')
+    console.log('Calling Lovable AI Gateway for resume analysis...')
+    console.log('Resume length:', truncatedResume.length, 'characters')
 
-    // Call Gemini API
-    const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${geminiApiKey}`, {
+    // Call Lovable AI Gateway
+    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
+        'Authorization': `Bearer ${lovableApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        contents: [{
-          parts: [{ text: fullPrompt }]
-        }],
-        generationConfig: {
-          temperature: 0.7,
-          maxOutputTokens: 2000,
-        }
+        model: 'google/gemini-2.5-flash',
+        messages: [
+          { role: 'system', content: systemMessage },
+          { role: 'user', content: userMessage }
+        ],
+        temperature: 0.3,
+        max_tokens: 2500,
       })
     })
 
-    if (!geminiResponse.ok) {
-      const errorText = await geminiResponse.text()
-      console.error('Gemini API error:', geminiResponse.status, errorText)
+    if (!aiResponse.ok) {
+      const errorText = await aiResponse.text()
+      console.error('AI Gateway error:', aiResponse.status, errorText)
       
-      // Handle rate limiting specifically
-      if (geminiResponse.status === 429) {
+      if (aiResponse.status === 429) {
         return new Response(
           JSON.stringify({ 
-            error: 'Rate limit exceeded',
-            explanation: 'The Gemini API rate limit has been reached. Please wait a moment and try again.',
+            error: 'Rate limit exceeded. Please wait a moment and try again.',
             analysis: null
           }),
           {
@@ -131,72 +154,106 @@ Return ONLY a valid JSON object with this exact structure:
         )
       }
       
-      throw new Error(`Gemini API error: ${geminiResponse.statusText}`)
+      if (aiResponse.status === 402) {
+        return new Response(
+          JSON.stringify({ 
+            error: 'AI credits exhausted. Please add funds to continue.',
+            analysis: null
+          }),
+          {
+            status: 402,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          }
+        )
+      }
+      
+      throw new Error(`AI Gateway error: ${aiResponse.statusText}`)
     }
 
-    const geminiData = await geminiResponse.json()
-    const responseText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || ''
+    const aiData = await aiResponse.json()
+    const responseText = aiData.choices?.[0]?.message?.content || ''
+
+    console.log('AI Response received, length:', responseText.length)
 
     // Parse the JSON response
     let analysis
     try {
-      analysis = JSON.parse(responseText)
+      // Extract JSON from the response (handle markdown code blocks)
+      let jsonText = responseText
+      const jsonMatch = responseText.match(/```(?:json)?\s*([\s\S]*?)```/)
+      if (jsonMatch) {
+        jsonText = jsonMatch[1].trim()
+      }
       
-      // Ensure all required fields are present
-      if (!analysis.atsScore || !analysis.jobMatchScore) {
+      analysis = JSON.parse(jsonText)
+      
+      // Validate required fields
+      if (typeof analysis.atsScore !== 'number' || typeof analysis.jobMatchScore !== 'number') {
         throw new Error('Missing required analysis fields')
       }
     } catch (parseError) {
-      console.error('JSON parse error:', parseError, 'Response:', responseText)
-      // Fallback with realistic default scores
+      console.error('JSON parse error:', parseError, 'Response:', responseText.slice(0, 500))
+      
+      // Create a fallback response that still references the resume
+      const resumePreview = truncatedResume.slice(0, 200)
       analysis = {
-        atsScore: 65,
-        jobMatchScore: 60,
-        keywordCoverage: 55,
-        skillsMatchScore: 60,
-        missingSkills: ['Industry-specific keywords', 'Technical certifications', 'Quantifiable achievements'],
+        atsScore: 55,
+        jobMatchScore: 50,
+        keywordCoverage: 45,
+        skillsMatchScore: 50,
+        missingSkills: ['Unable to parse specific missing skills - please try again'],
         quickFixes: [
-          'Add metrics and quantifiable achievements',
-          'Include relevant industry keywords',
-          'Improve section formatting for ATS compatibility',
-          'Add a professional summary at the top'
+          'Ensure resume uses standard formatting',
+          'Add quantifiable achievements',
+          'Include industry-specific keywords',
+          'Add a clear professional summary'
         ],
         careerHealth: 'Moderate',
         recommendations: [
-          'Optimize resume with ATS-friendly formatting',
-          'Add measurable results to work experience',
-          'Include relevant certifications',
-          'Tailor resume to target role requirements'
+          'Re-submit resume for detailed analysis',
+          'Ensure resume is in a parseable format',
+          'Consider reformatting complex layouts'
         ],
-        explanation: 'Resume analyzed with standard recommendations. Consider improving keyword optimization and quantifiable achievements.'
+        explanation: `Analysis encountered a parsing issue. Based on the resume beginning with "${resumePreview.slice(0, 100)}...", we recommend re-submitting for a complete analysis.`
       }
     }
 
     // Store analysis in database if userId provided
     if (userId && analysis) {
-      const { error: insertError } = await supabase
-        .from('resumes')
-        .insert({
-          user_id: userId,
-          filename: 'uploaded_resume',
-          resume_text: resumeText.slice(0, 10000), // Store truncated version
-          ats_score: analysis.atsScore,
-          career_score: analysis.jobMatchScore || analysis.atsScore,
-          career_health: analysis.careerHealth,
-          skills_analysis: {
-            ...analysis,
-            jobMatchScore: analysis.jobMatchScore,
-            keywordCoverage: analysis.keywordCoverage
-          },
-          parsed_data: { targetRole, language }
-        })
+      try {
+        const { error: insertError } = await supabase
+          .from('resumes')
+          .insert({
+            user_id: userId,
+            filename: 'uploaded_resume',
+            resume_text: resumeText.slice(0, 10000),
+            ats_score: analysis.atsScore,
+            career_score: analysis.jobMatchScore || analysis.atsScore,
+            career_health: analysis.careerHealth,
+            skills_analysis: {
+              ...analysis,
+              jobMatchScore: analysis.jobMatchScore,
+              keywordCoverage: analysis.keywordCoverage
+            },
+            parsed_data: { targetRole, language },
+            suggestions: analysis.recommendations?.slice(0, 5) || []
+          })
 
-      if (insertError) {
-        console.error('Error storing resume analysis:', insertError)
+        if (insertError) {
+          console.error('Error storing resume analysis:', insertError)
+        } else {
+          console.log('Resume analysis stored successfully')
+        }
+      } catch (dbError) {
+        console.error('Database error:', dbError)
       }
     }
 
-    console.log('Successfully analyzed resume')
+    console.log('Successfully analyzed resume with scores:', {
+      atsScore: analysis.atsScore,
+      jobMatchScore: analysis.jobMatchScore,
+      careerHealth: analysis.careerHealth
+    })
 
     return new Response(
       JSON.stringify({
@@ -214,7 +271,7 @@ Return ONLY a valid JSON object with this exact structure:
     
     return new Response(
       JSON.stringify({ 
-        error: error.message,
+        error: error.message || 'An unexpected error occurred',
         analysis: null,
         explanation: 'Failed to analyze resume. Please try again.'
       }),
