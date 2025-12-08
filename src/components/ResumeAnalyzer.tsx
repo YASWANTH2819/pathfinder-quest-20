@@ -48,6 +48,15 @@ export const ResumeAnalyzer = ({ profileData, onAnalysisComplete }: ResumeAnalyz
   const handleAnalyzeResume = async () => {
     if (!resumeText.trim()) return;
     
+    // Debug log
+    console.log('[ResumeAnalyzer] DEBUG - Resume text length:', resumeText.trim().length, 'characters');
+    console.log('[ResumeAnalyzer] DEBUG - First 200 chars:', resumeText.trim().substring(0, 200));
+    
+    if (resumeText.trim().length < 50) {
+      onAnalysisComplete('❌ **Error:** Resume text is too short. Please provide more content for analysis.');
+      return;
+    }
+    
     setIsAnalyzing(true);
     try {
       // Build language-specific system prompt
@@ -58,6 +67,8 @@ export const ResumeAnalyzer = ({ profileData, onAnalysisComplete }: ResumeAnalyz
       };
       
       const systemPrompt = languagePrompts[language] || languagePrompts.en;
+      
+      console.log('[ResumeAnalyzer] Calling edge function with resume of', resumeText.trim().length, 'characters');
       
       // Call the edge function with the actual resume text
       const { data, error } = await supabase.functions.invoke('analyze-resume', {
