@@ -164,60 +164,60 @@ export const ProfileForm = ({ onComplete, onBack }: ProfileFormProps) => {
 
             {/* Education Background Form */}
             <Card className="glass-card p-6">
-              <h3 className="text-xl font-semibold mb-6 gradient-text-rainbow">Education Background</h3>
+              <h3 className="text-xl font-semibold mb-6 gradient-text-rainbow">{t('profile.educationBackground')}</h3>
               <div className="space-y-4">
                 <div>
-                  <Label>Education Level *</Label>
+                  <Label>{t('profile.educationLevel')} *</Label>
                   <Select value={formData.educationLevel} onValueChange={(value) => updateField('educationLevel', value)}>
                     <SelectTrigger className="glass-card">
-                      <SelectValue placeholder="Select education level" />
+                      <SelectValue placeholder={t('profile.selectEducationLevel')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="High School">High School</SelectItem>
-                      <SelectItem value="Diploma">Diploma</SelectItem>
-                      <SelectItem value="Bachelor's">Bachelor's Degree</SelectItem>
-                      <SelectItem value="Master's">Master's Degree</SelectItem>
-                      <SelectItem value="PhD">PhD</SelectItem>
+                      <SelectItem value="High School">{t('profile.highSchool')}</SelectItem>
+                      <SelectItem value="Diploma">{t('profile.diploma')}</SelectItem>
+                      <SelectItem value="Bachelor's">{t('profile.bachelors')}</SelectItem>
+                      <SelectItem value="Master's">{t('profile.masters')}</SelectItem>
+                      <SelectItem value="PhD">{t('profile.phd')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div>
-                  <Label htmlFor="fieldOfStudy">Field of Study *</Label>
+                  <Label htmlFor="fieldOfStudy">{t('profile.fieldOfStudy')} *</Label>
                   <Input
                     id="fieldOfStudy"
                     value={formData.fieldOfStudy}
                     onChange={(e) => updateField('fieldOfStudy', e.target.value)}
-                    placeholder="e.g., Computer Science, Engineering, Business"
+                    placeholder={t('profile.fieldOfStudyPlaceholder')}
                     className="glass-card"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="specialization">Specialization</Label>
+                  <Label htmlFor="specialization">{t('profile.specialization')}</Label>
                   <Input
                     id="specialization"
                     value={formData.specialization}
                     onChange={(e) => updateField('specialization', e.target.value)}
-                    placeholder="e.g., Machine Learning, Web Development"
+                    placeholder={t('profile.specializationPlaceholder')}
                     className="glass-card"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="currentYear">Current Year/Experience Level</Label>
+                  <Label htmlFor="currentYear">{t('profile.currentYear')}</Label>
                   <Input
                     id="currentYear"
                     value={formData.currentYear}
                     onChange={(e) => updateField('currentYear', e.target.value)}
-                    placeholder="e.g., 3rd Year, Fresh Graduate, 2 Years Experience"
+                    placeholder={t('profile.currentYearPlaceholder')}
                     className="glass-card"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="certifications">Certifications & Courses Completed</Label>
+                  <Label htmlFor="certifications">{t('profile.certifications')}</Label>
                   <Textarea
                     id="certifications"
                     value={formData.certifications}
                     onChange={(e) => updateField('certifications', e.target.value)}
-                    placeholder="List any certifications, online courses, or additional qualifications you have completed"
+                    placeholder={t('profile.certificationsPlaceholder')}
                     className="glass-card"
                     rows={4}
                   />
@@ -233,8 +233,8 @@ export const ProfileForm = ({ onComplete, onBack }: ProfileFormProps) => {
             {/* Progress Header */}
             <Card className="glass-card p-6">
               <div className="flex justify-between items-center mb-4">
-                <h2 className="text-2xl font-bold gradient-text-rainbow">Career Profile Setup</h2>
-                <span className="text-sm text-muted-foreground">Step 3 of 4</span>
+                <h2 className="text-2xl font-bold gradient-text-rainbow">{t('profile.title')}</h2>
+                <span className="text-sm text-muted-foreground">{t('profile.step')} 3 {t('profile.of')} 4</span>
               </div>
               <div className="w-full bg-white/10 rounded-full h-2">
                 <div 
@@ -246,41 +246,41 @@ export const ProfileForm = ({ onComplete, onBack }: ProfileFormProps) => {
 
             {/* Skills & Interests Form */}
             <Card className="glass-card p-6">
-              <h3 className="text-xl font-semibold mb-6 gradient-text-rainbow">Skills & Interests</h3>
+              <h3 className="text-xl font-semibold mb-6 gradient-text-rainbow">{t('profile.skillsInterests')}</h3>
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="skills">Technical & Soft Skills *</Label>
+                  <Label htmlFor="skills">{t('profile.skills')} *</Label>
                   <Textarea
                     id="skills"
                     value={formData.skills}
                     onChange={(e) => updateField('skills', e.target.value)}
-                    placeholder="e.g., Java, Python, Leadership, Communication"
+                    placeholder={t('profile.skillsPlaceholder')}
                     className="glass-card"
                     rows={4}
                   />
                 </div>
                 <div>
-                  <Label htmlFor="interests">Subjects/Activities You Enjoy *</Label>
+                  <Label htmlFor="interests">{t('profile.interests')} *</Label>
                   <Textarea
                     id="interests"
                     value={formData.interests}
                     onChange={(e) => updateField('interests', e.target.value)}
-                    placeholder="What subjects or activities do you enjoy the most?"
+                    placeholder={t('profile.interestsPlaceholder')}
                     className="glass-card"
                     rows={4}
                   />
                 </div>
                 <div>
-                  <Label>Preferred Work Environment *</Label>
+                  <Label>{t('profile.workEnvironment')} *</Label>
                   <Select value={formData.workEnvironment} onValueChange={(value) => updateField('workEnvironment', value)}>
                     <SelectTrigger className="glass-card">
-                      <SelectValue placeholder="Select work environment" />
+                      <SelectValue placeholder={t('profile.selectWorkEnvironment')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Remote">Remote Work</SelectItem>
-                      <SelectItem value="In-Office">In-Office</SelectItem>
-                      <SelectItem value="Hybrid">Hybrid (Mix of both)</SelectItem>
-                      <SelectItem value="Flexible">Flexible/Varies</SelectItem>
+                      <SelectItem value="Remote">{t('profile.remote')}</SelectItem>
+                      <SelectItem value="In-Office">{t('profile.inOffice')}</SelectItem>
+                      <SelectItem value="Hybrid">{t('profile.hybrid')}</SelectItem>
+                      <SelectItem value="Flexible">{t('profile.flexible')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -295,8 +295,8 @@ export const ProfileForm = ({ onComplete, onBack }: ProfileFormProps) => {
             {/* Progress Header */}
             <Card className="glass-card p-6">
               <div className="flex justify-between items-center mb-4">
-                <h2 className="text-2xl font-bold gradient-text-rainbow">Career Profile Setup</h2>
-                <span className="text-sm text-muted-foreground">Step 4 of 4</span>
+                <h2 className="text-2xl font-bold gradient-text-rainbow">{t('profile.title')}</h2>
+                <span className="text-sm text-muted-foreground">{t('profile.step')} 4 {t('profile.of')} 4</span>
               </div>
               <div className="w-full bg-white/10 rounded-full h-2">
                 <div 
@@ -308,85 +308,85 @@ export const ProfileForm = ({ onComplete, onBack }: ProfileFormProps) => {
 
             {/* Career Goals & Preferences Form */}
             <Card className="glass-card p-6">
-              <h3 className="text-xl font-semibold mb-6 gradient-text-rainbow">Career Goals & Preferences</h3>
+              <h3 className="text-xl font-semibold mb-6 gradient-text-rainbow">{t('profile.careerGoals')}</h3>
               <div className="space-y-4">
                 <div>
-                  <Label>Short-term Goals (1-2 years) *</Label>
+                  <Label>{t('profile.shortTermGoals')} *</Label>
                   <Select value={formData.shortTermGoals} onValueChange={(value) => updateField('shortTermGoals', value)}>
                     <SelectTrigger className="glass-card">
-                      <SelectValue placeholder="Select short-term goal" />
+                      <SelectValue placeholder={t('profile.selectShortTermGoal')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Get Internship">Get an Internship</SelectItem>
-                      <SelectItem value="Graduate">Graduate Successfully</SelectItem>
-                      <SelectItem value="First Job">Land First Job</SelectItem>
-                      <SelectItem value="Skill Development">Develop New Skills</SelectItem>
-                      <SelectItem value="Career Switch">Switch Career Path</SelectItem>
-                      <SelectItem value="Promotion">Get Promoted</SelectItem>
+                      <SelectItem value="Get Internship">{t('profile.getInternship')}</SelectItem>
+                      <SelectItem value="Graduate">{t('profile.graduate')}</SelectItem>
+                      <SelectItem value="First Job">{t('profile.firstJob')}</SelectItem>
+                      <SelectItem value="Skill Development">{t('profile.skillDevelopment')}</SelectItem>
+                      <SelectItem value="Career Switch">{t('profile.careerSwitch')}</SelectItem>
+                      <SelectItem value="Promotion">{t('profile.promotion')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div>
-                  <Label>Study or Job Preference *</Label>
+                  <Label>{t('profile.studyOrJob')} *</Label>
                   <Select value={formData.studyOrJob} onValueChange={(value) => updateField('studyOrJob', value)}>
                     <SelectTrigger className="glass-card">
-                      <SelectValue placeholder="Select preference" />
+                      <SelectValue placeholder={t('profile.selectPreference')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Continue Studies">Continue Studies</SelectItem>
-                      <SelectItem value="Start Working">Start Working</SelectItem>
-                      <SelectItem value="Both">Both (Work & Study)</SelectItem>
-                      <SelectItem value="Career Change">Career Change</SelectItem>
+                      <SelectItem value="Continue Studies">{t('profile.continueStudies')}</SelectItem>
+                      <SelectItem value="Start Working">{t('profile.startWorking')}</SelectItem>
+                      <SelectItem value="Both">{t('profile.both')}</SelectItem>
+                      <SelectItem value="Career Change">{t('profile.careerChange')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div>
-                  <Label>Location Preference</Label>
+                  <Label>{t('profile.locationPreference')}</Label>
                   <Select value={formData.locationPreference} onValueChange={(value) => updateField('locationPreference', value)}>
                     <SelectTrigger className="glass-card">
-                      <SelectValue placeholder="Select location" />
+                      <SelectValue placeholder={t('profile.selectLocation')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Local">Local/Current City</SelectItem>
-                      <SelectItem value="National">Anywhere in Country</SelectItem>
-                      <SelectItem value="International">International</SelectItem>
-                      <SelectItem value="Remote">Remote Work</SelectItem>
+                      <SelectItem value="Local">{t('profile.local')}</SelectItem>
+                      <SelectItem value="National">{t('profile.national')}</SelectItem>
+                      <SelectItem value="International">{t('profile.international')}</SelectItem>
+                      <SelectItem value="Remote">{t('profile.remoteWork')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div>
-                  <Label>Company Type Preference</Label>
+                  <Label>{t('profile.companyType')}</Label>
                   <Select value={formData.companyType} onValueChange={(value) => updateField('companyType', value)}>
                     <SelectTrigger className="glass-card">
-                      <SelectValue placeholder="Select company type" />
+                      <SelectValue placeholder={t('profile.selectCompanyType')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Startup">Startup</SelectItem>
-                      <SelectItem value="MNC">Multinational Corporation</SelectItem>
-                      <SelectItem value="Government">Government Sector</SelectItem>
-                      <SelectItem value="NGO">Non-Profit/NGO</SelectItem>
-                      <SelectItem value="Freelance">Freelancing</SelectItem>
+                      <SelectItem value="Startup">{t('profile.startup')}</SelectItem>
+                      <SelectItem value="MNC">{t('profile.mnc')}</SelectItem>
+                      <SelectItem value="Government">{t('profile.government')}</SelectItem>
+                      <SelectItem value="NGO">{t('profile.ngo')}</SelectItem>
+                      <SelectItem value="Freelance">{t('profile.freelance')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div>
-                  <Label htmlFor="longTermGoals">Long-term Goals (5+ years) *</Label>
+                  <Label htmlFor="longTermGoals">{t('profile.longTermGoals')} *</Label>
                   <Textarea
                     id="longTermGoals"
                     value={formData.longTermGoals}
                     onChange={(e) => updateField('longTermGoals', e.target.value)}
-                    placeholder="e.g., Software Engineer, Product Manager, Data Scientist"
+                    placeholder={t('profile.longTermGoalsPlaceholder')}
                     className="glass-card"
                     rows={3}
                   />
                 </div>
                 <div>
-                  <Label htmlFor="careerTransition">Career Transition Plans</Label>
+                  <Label htmlFor="careerTransition">{t('profile.careerTransition')}</Label>
                   <Textarea
                     id="careerTransition"
                     value={formData.careerTransition}
                     onChange={(e) => updateField('careerTransition', e.target.value)}
-                    placeholder="e.g., I am from Mechanical but want IT career"
+                    placeholder={t('profile.careerTransitionPlaceholder')}
                     className="glass-card"
                     rows={3}
                   />
