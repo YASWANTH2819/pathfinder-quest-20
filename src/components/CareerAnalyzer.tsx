@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Card } from '@/components/ui/card';
@@ -63,6 +64,7 @@ interface CareerOption {
 
 export const CareerAnalyzer: React.FC<CareerAnalyzerProps> = ({ profileData, onBack }) => {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisComplete, setAnalysisComplete] = useState(false);
@@ -185,17 +187,17 @@ export const CareerAnalyzer: React.FC<CareerAnalyzerProps> = ({ profileData, onB
       setShowConfetti(true);
       setTimeout(() => setShowConfetti(false), 3000);
       
-      toast.success("🎉 Career analysis completed! Found " + mockCareerOptions.length + " perfect matches!");
+      toast.success(t('careerGuide.analysisComplete').replace('{count}', String(mockCareerOptions.length)));
     } catch (error) {
       console.error('Error in analysis:', error);
-      toast.error("Failed to complete analysis");
+      toast.error(t('careerGuide.analysisFailed'));
     } finally {
       setIsAnalyzing(false);
     }
   };
 
   const handleStartJourney = (career: CareerOption) => {
-    toast.success(`Starting your journey to become a ${career.career_name}!`);
+    toast.success(t('careerGuide.startingJourney').replace('{career}', career.career_name));
     navigate(`/career-growth?career=${encodeURIComponent(career.career_name)}`);
   };
 
@@ -210,31 +212,31 @@ export const CareerAnalyzer: React.FC<CareerAnalyzerProps> = ({ profileData, onB
             
             <div>
               <h2 className="text-3xl font-bold gradient-text-rainbow mb-2">
-                Ready to Discover Your Path?
+                {t('careerGuide.readyToDiscover')}
               </h2>
               <p className="text-muted-foreground">
-                {profileData.name}, let's analyze your profile and find the perfect careers for you!
+                {profileData.name}, {t('careerGuide.letsAnalyze')}
               </p>
             </div>
 
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold">What You'll Get:</h3>
+              <h3 className="text-lg font-semibold">{t('careerGuide.whatYouGet')}</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="flex items-center space-x-3 p-3 bg-white/5 rounded-lg">
                   <Target className="w-5 h-5 text-primary" />
-                  <span className="text-sm">5-6 Personalized Career Matches</span>
+                  <span className="text-sm">{t('careerGuide.personalizedMatches')}</span>
                 </div>
                 <div className="flex items-center space-x-3 p-3 bg-white/5 rounded-lg">
                   <BookOpen className="w-5 h-5 text-secondary" />
-                  <span className="text-sm">Learning Resources & Links</span>
+                  <span className="text-sm">{t('careerGuide.learningResources')}</span>
                 </div>
                 <div className="flex items-center space-x-3 p-3 bg-white/5 rounded-lg">
                   <TrendingUp className="w-5 h-5 text-accent" />
-                  <span className="text-sm">Step-by-Step Roadmaps</span>
+                  <span className="text-sm">{t('careerGuide.stepByStepRoadmaps')}</span>
                 </div>
                 <div className="flex items-center space-x-3 p-3 bg-white/5 rounded-lg">
                   <Briefcase className="w-5 h-5 text-primary" />
-                  <span className="text-sm">Timeline to Job-Ready</span>
+                  <span className="text-sm">{t('careerGuide.timelineToJobReady')}</span>
                 </div>
               </div>
             </div>
@@ -247,7 +249,7 @@ export const CareerAnalyzer: React.FC<CareerAnalyzerProps> = ({ profileData, onB
             >
               <span className="relative z-10 flex items-center justify-center">
                 <Sparkles className="w-5 h-5 mr-2" />
-                Generate My Career Options
+                {t('careerGuide.generateCareerOptions')}
               </span>
               <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
             </Button>
@@ -268,16 +270,16 @@ export const CareerAnalyzer: React.FC<CareerAnalyzerProps> = ({ profileData, onB
             
             <div>
               <h2 className="text-2xl font-bold gradient-text-rainbow mb-2">
-                Analyzing Your Profile
+                {t('careerGuide.analyzingProfile')}
               </h2>
               <p className="text-muted-foreground">
-                Our AI is finding the perfect career matches for you...
+                {t('careerGuide.findingMatches')}
               </p>
             </div>
 
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span>Analyzing your skills & interests</span>
+                <span>{t('careerGuide.analyzingSkills')}</span>
                 <span>85%</span>
               </div>
               <Progress value={85} className="h-2" />
@@ -313,12 +315,12 @@ export const CareerAnalyzer: React.FC<CareerAnalyzerProps> = ({ profileData, onB
                     <CheckCircle2 className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <h2 className="text-2xl font-bold text-white">AI Career Guide</h2>
-                    <p className="text-white/80 text-sm">Analysis Complete - Chat with AI</p>
+                    <h2 className="text-2xl font-bold text-white">{t('careerGuide.aiCareerGuide')}</h2>
+                    <p className="text-white/80 text-sm">{t('careerGuide.analysisCompleteChat')}</p>
                   </div>
                 </div>
                 <Badge variant="secondary" className="bg-[hsl(var(--cyber-green))]/30 text-white border-white/30">
-                  Career Score: {Math.floor(Math.random() * 30) + 70}
+                  {t('careerGuide.careerScore')}: {Math.floor(Math.random() * 30) + 70}
                 </Badge>
               </div>
             </div>
@@ -335,10 +337,10 @@ export const CareerAnalyzer: React.FC<CareerAnalyzerProps> = ({ profileData, onB
             className="text-center space-y-4"
           >
             <h1 className="text-4xl md:text-5xl font-bold gradient-text-rainbow">
-              Your Perfect Career Matches
+              {t('careerGuide.perfectMatches')}
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Based on your profile, here are {careerOptions.length} career paths personalized for you, {profileData.name}!
+              {t('careerGuide.basedOnProfile').replace('{count}', String(careerOptions.length)).replace('{name}', profileData.name)}
             </p>
           </motion.div>
 
@@ -371,12 +373,12 @@ export const CareerAnalyzer: React.FC<CareerAnalyzerProps> = ({ profileData, onB
                     {/* Timeline */}
                     <div className="flex items-center space-x-2 text-sm">
                       <Clock className="w-4 h-4 text-primary" />
-                      <span className="text-muted-foreground">Timeline: {career.estimated_timeline}</span>
+                      <span className="text-muted-foreground">{t('careerGuide.timeline')}: {career.estimated_timeline}</span>
                     </div>
 
                     {/* Required Skills */}
                     <div>
-                      <p className="text-xs font-semibold text-muted-foreground mb-2">Key Skills Needed:</p>
+                      <p className="text-xs font-semibold text-muted-foreground mb-2">{t('careerGuide.keySkillsNeeded')}:</p>
                       <div className="flex flex-wrap gap-2">
                         {career.required_skills.slice(0, 5).map((skill, i) => (
                           <Badge key={i} variant="outline" className="text-xs">
@@ -385,7 +387,7 @@ export const CareerAnalyzer: React.FC<CareerAnalyzerProps> = ({ profileData, onB
                         ))}
                         {career.required_skills.length > 5 && (
                           <Badge variant="outline" className="text-xs">
-                            +{career.required_skills.length - 5} more
+                            +{career.required_skills.length - 5} {t('careerGuide.more')}
                           </Badge>
                         )}
                       </div>
@@ -395,7 +397,7 @@ export const CareerAnalyzer: React.FC<CareerAnalyzerProps> = ({ profileData, onB
                     <div>
                       <p className="text-xs font-semibold text-muted-foreground mb-2">
                         <Video className="w-3 h-3 inline mr-1" />
-                        Learning Resources:
+                        {t('careerGuide.learningResourcesLabel')}:
                       </p>
                       <div className="space-y-1">
                         {career.youtube_links.map((link, i) => (
@@ -417,7 +419,7 @@ export const CareerAnalyzer: React.FC<CareerAnalyzerProps> = ({ profileData, onB
                     <div>
                       <p className="text-xs font-semibold text-muted-foreground mb-2">
                         <MapPin className="w-3 h-3 inline mr-1" />
-                        Roadmap Preview:
+                        {t('careerGuide.roadmapPreview')}:
                       </p>
                       <ul className="space-y-1">
                         {career.roadmap_steps.slice(0, 3).map((step, i) => (
@@ -428,7 +430,7 @@ export const CareerAnalyzer: React.FC<CareerAnalyzerProps> = ({ profileData, onB
                         ))}
                         {career.roadmap_steps.length > 3 && (
                           <li className="text-xs text-muted-foreground italic">
-                            +{career.roadmap_steps.length - 3} more steps...
+                            +{career.roadmap_steps.length - 3} {t('careerGuide.more')}...
                           </li>
                         )}
                       </ul>
@@ -443,7 +445,7 @@ export const CareerAnalyzer: React.FC<CareerAnalyzerProps> = ({ profileData, onB
                   >
                     <span className="relative z-10 flex items-center justify-center">
                       <Sparkles className="mr-2 w-5 h-5" />
-                      Start Journey
+                      {t('careerGuide.startThisJourney')}
                       <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
                     </span>
                     <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
@@ -466,7 +468,7 @@ export const CareerAnalyzer: React.FC<CareerAnalyzerProps> = ({ profileData, onB
               onClick={() => navigate('/career-growth')}
               className="group"
             >
-              👉 Continue to Career Growth Path
+              👉 {t('roadmap.title')}
               <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Button>
           </motion.div>

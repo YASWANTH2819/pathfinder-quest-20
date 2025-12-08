@@ -97,21 +97,27 @@ interface ChatInterfaceProps {
 }
 
 export const ChatInterface = ({ profileData }: ChatInterfaceProps) => {
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
   const { user } = useAuth();
   const { toast } = useToast();
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      content: `Hello ${profileData?.name || 'there'}! 🚀 I've reviewed your profile and I'm excited to help guide your career journey. Based on your background in ${profileData?.fieldOfStudy || 'your field'}, I can provide personalized advice on:\n\n🎯 **Career Recommendations** - Job roles and paths\n📚 **Skill Development** - Courses and certifications\n🗺️ **Learning Roadmaps** - Step-by-step career plans\n📹 **YouTube Resources** - Tutorial links and channels\n💼 **Job Platforms** - Where to find opportunities\n📄 **Resume Analysis** - Based on your current resume\n🎤 **Interview Prep** - Tips and practice questions\n\nWhat would you like to explore first?`,
-      sender: 'ai',
-      timestamp: new Date()
-    }
-  ]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isListening, setIsListening] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Initialize welcome message based on language
+  useEffect(() => {
+    const welcomeMessage: Message = {
+      id: '1',
+      content: t('chat.welcomeMessage')
+        .replace('{name}', profileData?.name || t('chat.there'))
+        .replace('{field}', profileData?.fieldOfStudy || t('chat.yourField')),
+      sender: 'ai',
+      timestamp: new Date()
+    };
+    setMessages([welcomeMessage]);
+  }, [language, profileData, t]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -126,8 +132,8 @@ export const ChatInterface = ({ profileData }: ChatInterfaceProps) => {
     const trimmedInput = inputValue.trim();
     if (trimmedInput.length > 2000) {
       toast({
-        title: 'Message too long',
-        description: 'Please keep your message under 2000 characters.',
+        title: t('chat.messageTooLong'),
+        description: t('chat.messageTooLongDesc'),
         variant: 'destructive'
       });
       return;
@@ -145,13 +151,13 @@ export const ChatInterface = ({ profileData }: ChatInterfaceProps) => {
     setIsLoading(true);
 
     try {
-      // Call edge function instead of direct API call
+      // Call edge function with language parameter
       const { data, error } = await supabase.functions.invoke('chat-with-ai', {
         body: {
           message: trimmedInput,
           language: language,
           context: profileData,
-          systemPrompt: 'You are a helpful career guidance AI assistant for Indian students. Provide practical, actionable advice tailored to the Indian job market and education system.'
+          systemPrompt: `You are a helpful career guidance AI assistant for Indian students. IMPORTANT: Always respond COMPLETELY in ${language === 'hi' ? 'Hindi (हिंदी)' : language === 'te' ? 'Telugu (తెలుగు)' : 'English'}. Do not mix languages. Provide practical, actionable advice tailored to the Indian job market and education system.`
         }
       });
 
@@ -231,13 +237,13 @@ export const ChatInterface = ({ profileData }: ChatInterfaceProps) => {
   };
 
   const quickOptions = [
-    "Career options",
-    "Courses and skills", 
-    "Learning roadmap",
-    "YouTube tutorials",
-    "Job platforms",
-    "Resume analyzer",
-    "Interview tips"
+    t('chat.quickCareerOptions'),
+    t('chat.quickCoursesSkills'),
+    t('chat.quickLearningRoadmap'),
+    t('chat.quickYoutubeTutorials'),
+    t('chat.quickJobPlatforms'),
+    t('chat.quickResumeAnalyzer'),
+    t('chat.quickInterviewTips')
   ];
 
   return (
@@ -277,7 +283,7 @@ export const ChatInterface = ({ profileData }: ChatInterfaceProps) => {
 
       {/* Quick Response Options */}
       <div className="p-4 border-t border-[var(--glass-border)]">
-        <p className="text-sm text-muted-foreground mb-2">Quick topics:</p>
+        <p className="text-sm text-muted-foreground mb-2">{t('chat.quickTopics')}:</p>
         <div className="flex flex-wrap gap-2">
           {quickOptions.map((option) => (
             <Button
@@ -300,7 +306,7 @@ export const ChatInterface = ({ profileData }: ChatInterfaceProps) => {
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && !isLoading && handleSendMessage()}
-            placeholder={isLoading ? "AI is thinking..." : "Ask about careers, skills, roadmaps, resume help..."}
+            placeholder={isLoading ? t('chat.aiThinking') : t('chat.placeholder')}
             disabled={isLoading}
             maxLength={2000}
             className="flex-1 glass-card"
