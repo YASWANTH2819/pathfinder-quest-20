@@ -1,10 +1,28 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Zod schema for request validation
+const profileDataSchema = z.object({
+  skills: z.string().max(500).optional(),
+  education_level: z.string().max(100).optional(),
+  educationLevel: z.string().max(100).optional(),
+  field_of_study: z.string().max(100).optional(),
+  fieldOfStudy: z.string().max(100).optional(),
+  current_year: z.string().max(50).optional(),
+  interests: z.string().max(500).optional(),
+}).optional();
+
+const roadmapRequestSchema = z.object({
+  careerName: z.string().min(2, "Career name must be at least 2 characters").max(100, "Career name must be less than 100 characters"),
+  profileData: profileDataSchema,
+  language: z.enum(['en', 'hi', 'te']).default('en'),
+});
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -12,15 +30,28 @@ serve(async (req) => {
   }
 
   try {
-    const { careerName, profileData, language = 'en' } = await req.json();
+    const body = await req.json();
+    
+    // Validate request body with Zod
+    const validationResult = roadmapRequestSchema.safeParse(body);
+    
+    if (!validationResult.success) {
+      console.error('Validation error:', validationResult.error.errors);
+      return new Response(JSON.stringify({ 
+        error: 'Invalid request data',
+        details: validationResult.error.errors.map(e => e.message).join(', '),
+        success: false
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const { careerName, profileData, language } = validationResult.data;
     const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
 
     if (!OPENAI_API_KEY) {
       throw new Error('OPENAI_API_KEY is not configured');
-    }
-
-    if (!careerName) {
-      throw new Error('Career name is required');
     }
 
     const languageInstructions = {
@@ -31,7 +62,7 @@ serve(async (req) => {
 
     const systemPrompt = `You are an expert career advisor. Create a personalized, gamified learning roadmap for someone pursuing a career as a ${careerName}.
 
-${languageInstructions[language as keyof typeof languageInstructions]}.
+${languageInstructions[language]}.
 
 Create a roadmap with 4-6 major milestones. Each milestone should have 5-8 microtasks that are:
 - Specific and actionable
@@ -73,6 +104,8 @@ User Profile:
 Create a personalized roadmap considering their background.`
       : `Career: ${careerName}. Create a comprehensive roadmap for someone starting in this field.`;
 
+    console.log('Generating roadmap for career:', careerName, 'language:', language);
+
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -109,6 +142,8 @@ Create a personalized roadmap considering their background.`
       console.error('Failed to parse roadmap JSON:', content);
       throw new Error('Failed to parse roadmap data');
     }
+
+    console.log('Roadmap generated successfully for:', careerName);
 
     return new Response(JSON.stringify({ 
       success: true,
