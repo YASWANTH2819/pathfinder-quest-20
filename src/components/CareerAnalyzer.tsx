@@ -32,8 +32,7 @@ interface ProfileData {
   skills: string;
   interests: string;
   workEnvironment: string;
-  shortTermGoals: string;
-  longTermGoals: string;
+  goals: string;
   careerTransition: string;
   studyOrJob: string;
   locationPreference: string;
@@ -94,8 +93,8 @@ export const CareerAnalyzer: React.FC<CareerAnalyzerProps> = ({ profileData, onB
           skills: profileData.skills,
           interests: profileData.interests,
           work_environment: profileData.workEnvironment,
-          short_term_goals: profileData.shortTermGoals,
-          long_term_goals: profileData.longTermGoals,
+          short_term_goals: profileData.goals,
+          long_term_goals: profileData.goals,
           career_transition: profileData.careerTransition,
           study_or_job: profileData.studyOrJob,
           location_preference: profileData.locationPreference,
@@ -170,7 +169,7 @@ export const CareerAnalyzer: React.FC<CareerAnalyzerProps> = ({ profileData, onB
         description: opt.description,
         match_percentage: opt.match_percentage,
         required_skills: opt.required_skills,
-        rationale: `Based on your interests in ${profileData.interests} and goals: ${profileData.shortTermGoals}, this career is a great match.`
+        rationale: `Based on your interests in ${profileData.interests} and goals: ${profileData.goals}, this career is a great match.`
       }));
 
       await supabase

@@ -20,10 +20,9 @@ interface ChatRequest {
   context?: {
     fieldOfStudy?: string
     interests?: string
-    shortTermGoals?: string
-    longTermGoals?: string
-    educationLevel?: string
+    goals?: string
     skills?: string
+    educationLevel?: string
     [key: string]: any
   }
   systemPrompt: string
@@ -41,14 +40,11 @@ const formatProfileContext = (context: ChatRequest['context']): string => {
   if (context.interests) {
     parts.push(`**Subjects/Areas They Enjoy:** ${context.interests}`)
   }
-  if (context.shortTermGoals) {
-    parts.push(`**Short-term Goals (1-2 years):** ${context.shortTermGoals}`)
-  }
-  if (context.longTermGoals) {
-    parts.push(`**Long-term Goals (5+ years):** ${context.longTermGoals}`)
+  if (context.goals) {
+    parts.push(`**Career Goals:** ${context.goals}`)
   }
   if (context.skills) {
-    parts.push(`**Current Skills:** ${context.skills}`)
+    parts.push(`**Skills:** ${context.skills}`)
   }
   if (context.educationLevel) {
     parts.push(`**Education Level:** ${context.educationLevel}`)
