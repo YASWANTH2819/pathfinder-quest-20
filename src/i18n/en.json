@@ -344,9 +344,39 @@
     "careerTransition": "Career Transition Plans",
     "careerTransitionPlaceholder": "e.g., I am from Mechanical but want IT career"
   },
-  "pages": {
+"pages": {
     "resumeAnalyzer": {
       "description": "Upload your resume and get instant AI-powered feedback on ATS compatibility, missing skills, and career recommendations."
     }
+  },
+  "chat": {
+    "welcomeMessage": "Hi {name}! 👋 I'm your AI Career Guide. Based on your background in {field}, I can help you explore career paths, find courses, plan your learning roadmap, and more. What would you like to know?",
+    "there": "there",
+    "yourField": "your field",
+    "quickTopics": "Quick topics",
+    "quickCareerOptions": "Career options",
+    "quickCoursesSkills": "Courses & skills",
+    "quickLearningRoadmap": "Learning roadmap",
+    "quickYoutubeTutorials": "YouTube tutorials",
+    "quickJobPlatforms": "Job platforms",
+    "quickResumeAnalyzer": "Resume analyzer",
+    "quickInterviewTips": "Interview tips",
+    "placeholder": "Ask about careers, skills, roadmaps, resume help…",
+    "aiThinking": "AI is thinking...",
+    "messageTooLong": "Message too long",
+    "messageTooLongDesc": "Please keep your message under 2000 characters"
+  },
+  "simpleForm": {
+    "title": "Tell Us About Yourself",
+    "subtitle": "Help us understand your background to provide personalized career recommendations",
+    "educationBackground": "Education Background",
+    "educationPlaceholder": "e.g., B.Tech in Computer Science, 3rd year",
+    "subjectsEnjoyed": "Subjects or Areas You Enjoy",
+    "subjectsPlaceholder": "e.g., Programming, Mathematics, Design, Marketing",
+    "shortTermGoals": "Short-term Career Goals (1-2 years)",
+    "shortTermPlaceholder": "e.g., Get an internship, Learn web development, Build portfolio",
+    "longTermGoals": "Long-term Career Goals (5+ years)",
+    "longTermPlaceholder": "e.g., Become a senior software engineer, Start my own company",
+    "getRecommendations": "Get Career Recommendations"
   }
 }
