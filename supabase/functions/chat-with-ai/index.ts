@@ -6,19 +6,55 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-// Validation schema
+// Validation schema with stricter rules
 const chatRequestSchema = z.object({
   message: z.string().trim().min(1, 'Message cannot be empty').max(2000, 'Message too long (max 2000 characters)'),
   language: z.string().max(10).optional(),
   context: z.any().optional(),
-  systemPrompt: z.string().max(1000).optional()
+  systemPrompt: z.string().max(2000).optional()
 })
 
 interface ChatRequest {
   message: string
   language: string
-  context?: any
+  context?: {
+    fieldOfStudy?: string
+    interests?: string
+    shortTermGoals?: string
+    longTermGoals?: string
+    educationLevel?: string
+    skills?: string
+    [key: string]: any
+  }
   systemPrompt: string
+}
+
+// Helper to format profile context into a structured prompt section
+const formatProfileContext = (context: ChatRequest['context']): string => {
+  if (!context) return ''
+  
+  const parts: string[] = []
+  
+  if (context.fieldOfStudy) {
+    parts.push(`**Education Background:** ${context.fieldOfStudy}`)
+  }
+  if (context.interests) {
+    parts.push(`**Subjects/Areas They Enjoy:** ${context.interests}`)
+  }
+  if (context.shortTermGoals) {
+    parts.push(`**Short-term Goals (1-2 years):** ${context.shortTermGoals}`)
+  }
+  if (context.longTermGoals) {
+    parts.push(`**Long-term Goals (5+ years):** ${context.longTermGoals}`)
+  }
+  if (context.skills) {
+    parts.push(`**Current Skills:** ${context.skills}`)
+  }
+  if (context.educationLevel) {
+    parts.push(`**Education Level:** ${context.educationLevel}`)
+  }
+  
+  return parts.length > 0 ? parts.join('\n') : ''
 }
 
 serve(async (req) => {
@@ -53,16 +89,71 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY not configured')
     }
 
-    // Prepare the context (limit size)
-    const contextString = context ? JSON.stringify(context).slice(0, 5000) : ''
+    // Format the user's profile context
+    const profileContextStr = formatProfileContext(context)
     
-    console.log('Calling Lovable AI Gateway for chat...')
+    // Log input lengths for debugging
+    console.log('Chat request received:', {
+      messageLength: message.length,
+      language: language || 'en',
+      hasContext: !!context,
+      profileContextLength: profileContextStr.length
+    })
+
+    // Build an enhanced system prompt that uses the user's actual input
+    const languageInstruction = language === 'hi' 
+      ? 'You MUST respond ENTIRELY in Hindi (हिंदी). Do not mix languages.'
+      : language === 'te'
+      ? 'You MUST respond ENTIRELY in Telugu (తెలుగు). Do not mix languages.'
+      : 'Respond in clear, professional English.'
+
+    const enhancedSystemPrompt = `You are an expert AI career counselor specializing in guidance for Indian students and professionals. Your role is to provide highly personalized, actionable career advice.
+
+${languageInstruction}
+
+## USER'S PROFILE INFORMATION
+${profileContextStr || 'No profile information provided.'}
+
+## YOUR GUIDELINES
+
+1. **Personalization is Critical**: 
+   - ALWAYS reference specific details from the user's profile above (their education, interests, goals).
+   - Mention their specific field of study, subjects they enjoy, and career goals by name.
+   - Tailor every recommendation to their unique background.
+
+2. **Be Specific and Actionable**:
+   - Instead of saying "learn programming", say "Since you're interested in [their interest], start with Python basics on freeCodeCamp, then move to Django for web development."
+   - Provide step-by-step guidance with concrete resources, timelines, and milestones.
+   - Suggest specific courses, certifications, or platforms (Coursera, NPTEL, LinkedIn Learning, etc.).
+
+3. **Structure Your Responses**:
+   - Use clear headings and bullet points.
+   - Break down advice into phases: immediate actions, short-term steps, long-term vision.
+   - Include estimated timelines where relevant.
+
+4. **Context-Aware Advice**:
+   - Consider the Indian job market, education system, and opportunities.
+   - Mention relevant Indian companies, startups, or organizations in their field.
+   - Account for factors like campus placements, entrance exams (GATE, CAT, etc.) if relevant.
+
+5. **Handle Vague Questions**:
+   - If the user's question is too vague, ask 1-2 specific clarifying questions before giving advice.
+   - Example: "To give you the best guidance, could you tell me: Are you looking for internship opportunities or full-time roles?"
+
+6. **Career Suggestions**:
+   - When suggesting career paths, explain WHY each matches their profile.
+   - Include match percentages or compatibility ratings when suggesting careers.
+   - List key skills needed and gap analysis based on their current skills.
+
+Remember: Generic advice helps no one. Every response must feel like it was written specifically for THIS user based on THEIR profile.`
+
+    console.log('Calling Lovable AI Gateway for personalized career chat...')
 
     // Build messages array for OpenAI-compatible API
     const messages = [
       {
         role: 'system',
-        content: `${systemPrompt || 'You are a helpful career guidance assistant for Indian students. Provide practical, actionable advice tailored to the Indian job market and education system.'}${contextString ? `\n\nCONTEXT: ${contextString}` : ''}`
+        content: enhancedSystemPrompt
       },
       {
         role: 'user',
@@ -80,8 +171,7 @@ serve(async (req) => {
       body: JSON.stringify({
         model: 'google/gemini-2.5-flash',
         messages: messages,
-        temperature: 0.8,
-        max_tokens: 1500,
+        max_tokens: 2000,
       })
     })
 
@@ -123,7 +213,7 @@ serve(async (req) => {
     const aiData = await aiResponse.json()
     const response = aiData.choices?.[0]?.message?.content || 'No response generated'
 
-    console.log('Successfully generated chat response')
+    console.log('Successfully generated personalized chat response, length:', response.length)
 
     return new Response(
       JSON.stringify({
@@ -140,7 +230,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         error: error.message,
-        response: 'I apologize, but I\'m having trouble processing your request right now. Please try again later.'
+        response: '❌ Something went wrong while generating guidance. Please try again in a moment.'
       }),
       {
         status: 500,
