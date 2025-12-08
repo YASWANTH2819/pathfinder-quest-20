@@ -64,17 +64,27 @@ export const ResumeUploader: React.FC<ResumeUploaderProps> = ({
       // Progress: File reading (25%)
       setProgress(25);
       
+      console.log('[ResumeUploader] Starting file extraction for:', file.name);
+      
       let resumeText: string;
       try {
         resumeText = await extractTextFromFile(file);
+        console.log('[ResumeUploader] DEBUG - Parsed resume length:', resumeText.length, 'characters');
+        console.log('[ResumeUploader] DEBUG - First 200 chars:', resumeText.substring(0, 200));
       } catch (extractError) {
+        console.error('[ResumeUploader] Extraction failed:', extractError);
         throw new Error(`Failed to extract text from file: ${extractError instanceof Error ? extractError.message : 'Unknown error'}`);
       }
       
       // Progress: Text extracted (50%)
       setProgress(50);
       
-      console.log('Extracted resume text length:', resumeText.length);
+      // Validate extracted text length
+      if (resumeText.trim().length < 50) {
+        throw new Error(`Resume text too short (${resumeText.length} characters). Please ensure your resume file contains readable text content, not just images.`);
+      }
+      
+      console.log('[ResumeUploader] Sending to AI for analysis, text length:', resumeText.length);
       
       // Build language-specific system prompt
       const languagePrompts: Record<string, string> = {

@@ -7,9 +7,9 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-// Validation schema
+// Validation schema - lowered minimum for better testing
 const resumeAnalysisSchema = z.object({
-  resumeText: z.string().min(50, 'Resume text too short').max(50000, 'Resume text too large (max 50KB)'),
+  resumeText: z.string().min(30, 'Resume text too short (minimum 30 characters)').max(50000, 'Resume text too large (max 50KB)'),
   targetRole: z.string().max(200).optional(),
   language: z.string().max(10),
   userId: z.string().uuid().optional(),
@@ -32,10 +32,15 @@ serve(async (req) => {
   try {
     // Parse and validate input
     const rawData = await req.json()
+    
+    console.log('[analyze-resume] Received request')
+    console.log('[analyze-resume] Resume text length:', rawData.resumeText?.length || 0)
+    console.log('[analyze-resume] First 100 chars:', rawData.resumeText?.substring(0, 100) || 'N/A')
+    
     const validationResult = resumeAnalysisSchema.safeParse(rawData)
     
     if (!validationResult.success) {
-      console.error('Validation error:', validationResult.error.errors)
+      console.error('[analyze-resume] Validation error:', validationResult.error.errors)
       return new Response(
         JSON.stringify({ 
           error: 'Invalid input',
@@ -50,6 +55,10 @@ serve(async (req) => {
 
     const { resumeText, targetRole, language, userId, systemPrompt }: ResumeAnalysisRequest = validationResult.data
 
+    console.log('[analyze-resume] Validation passed')
+    console.log('[analyze-resume] Language:', language)
+    console.log('[analyze-resume] Target role:', targetRole)
+
     // Get Lovable API key from environment
     const lovableApiKey = Deno.env.get('LOVABLE_API_KEY')
     if (!lovableApiKey) {
@@ -62,7 +71,7 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
     // Prepare the prompt - truncate resume if too long but keep essential content
-    const truncatedResume = resumeText.slice(0, 25000)
+    const truncatedResume = resumeText.slice(0, 20000)
     
     // Language-specific instructions
     const languageInstructions: Record<string, string> = {
@@ -73,51 +82,48 @@ serve(async (req) => {
     
     const langInstruction = languageInstructions[language] || languageInstructions.en
 
-    const systemMessage = `You are an expert ATS (Applicant Tracking System) resume analyzer with deep knowledge of hiring practices across industries. Your task is to provide PERSONALIZED and SPECIFIC feedback based on the actual resume content provided.
+    // Extract key identifiers from resume for personalization
+    const resumePreview = truncatedResume.substring(0, 500)
 
-CRITICAL: You MUST analyze the SPECIFIC content of the resume provided. Do NOT give generic advice. Reference specific sections, skills, experiences, and details FROM THE RESUME.
+    const systemMessage = `You are an expert ATS (Applicant Tracking System) resume analyzer with deep knowledge of hiring practices across industries. 
+
+CRITICAL INSTRUCTIONS:
+1. You MUST analyze the SPECIFIC content provided in the resume below
+2. You MUST reference specific skills, experiences, projects, and details that you find IN THE RESUME
+3. DO NOT give generic advice - every piece of feedback must relate to something actually in this resume
+4. If the resume mentions specific technologies (like React, Python, SQL, etc.), mention them in your analysis
+5. If the resume has specific job titles or companies, reference them
+6. Your scores must reflect THIS specific resume, not a generic assessment
 
 ${langInstruction}`
 
-    const userMessage = `Analyze this resume for the target role: "${targetRole || 'General career guidance'}"
+    const userMessage = `Analyze this SPECIFIC resume for the target role: "${targetRole || 'General career guidance'}"
 
-=== RESUME CONTENT START ===
+=== CANDIDATE'S RESUME TEXT (MUST BE ANALYZED) ===
 ${truncatedResume}
-=== RESUME CONTENT END ===
+=== END OF RESUME ===
 
-Based on the SPECIFIC content of this resume, provide a comprehensive ATS analysis. Your feedback MUST be personalized to THIS resume.
+Based on the EXACT content above, provide a PERSONALIZED analysis. You MUST:
+1. Mention specific skills you found (e.g., "I see you have React and Python listed...")
+2. Reference specific experiences or projects from the resume
+3. Identify what's missing based on what IS in the resume
+4. Give scores that reflect THIS resume's actual content
 
-Analyze and provide:
-1. **ATS Score (0-100)**: Based on THIS resume's formatting, keyword optimization, and ATS compatibility
-2. **Job Match Score (0-100)**: How well THIS resume aligns with the target role
-3. **Keyword Coverage (0-100)**: Industry-relevant keywords present in THIS resume
-4. **Skills Match Score (0-100)**: Skills relevance assessment
-
-5. **Missing Skills**: Specific skills that are MISSING from THIS resume but important for the target role
-
-6. **Quick Fixes**: Immediate improvements specific to THIS resume's content and structure
-
-7. **Career Health**: Overall assessment based on THIS candidate's profile (Excellent/Good/Moderate/Needs Upskill)
-
-8. **Recommendations**: Specific, actionable advice for THIS resume - mention specific sections, experiences, or content that should be improved
-
-9. **Explanation**: A comprehensive summary of the analysis, referencing specific elements FROM THIS RESUME
-
-Return ONLY a valid JSON object with this exact structure:
+Return ONLY a valid JSON object:
 {
-  "atsScore": number,
-  "jobMatchScore": number,
-  "keywordCoverage": number,
-  "skillsMatchScore": number,
-  "missingSkills": ["specific skill 1", "specific skill 2", ...],
-  "quickFixes": ["specific fix referencing resume content 1", "specific fix 2", ...],
+  "atsScore": number (0-100, based on THIS resume's ATS compatibility),
+  "jobMatchScore": number (0-100, how well THIS resume matches the target role),
+  "keywordCoverage": number (0-100, industry keywords found in THIS resume),
+  "skillsMatchScore": number (0-100),
+  "missingSkills": ["specific skills not found in THIS resume but needed for ${targetRole || 'the target role'}"],
+  "quickFixes": ["specific improvements for THIS resume - reference actual content"],
   "careerHealth": "Excellent" | "Good" | "Moderate" | "Needs Upskill",
-  "recommendations": ["specific recommendation 1", "specific recommendation 2", ...],
-  "explanation": "Personalized summary referencing specific content from the resume"
+  "recommendations": ["specific recommendations referencing content from THIS resume"],
+  "explanation": "A personalized summary that mentions specific items from the resume like skills: [list skills found], experience: [summarize experience found], education: [mention education if found]"
 }`
 
-    console.log('Calling Lovable AI Gateway for resume analysis...')
-    console.log('Resume length:', truncatedResume.length, 'characters')
+    console.log('[analyze-resume] Calling Lovable AI Gateway...')
+    console.log('[analyze-resume] Prompt length:', userMessage.length)
 
     // Call Lovable AI Gateway
     const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
@@ -133,13 +139,13 @@ Return ONLY a valid JSON object with this exact structure:
           { role: 'user', content: userMessage }
         ],
         temperature: 0.3,
-        max_tokens: 2500,
+        max_tokens: 3000,
       })
     })
 
     if (!aiResponse.ok) {
       const errorText = await aiResponse.text()
-      console.error('AI Gateway error:', aiResponse.status, errorText)
+      console.error('[analyze-resume] AI Gateway error:', aiResponse.status, errorText)
       
       if (aiResponse.status === 429) {
         return new Response(
@@ -173,7 +179,9 @@ Return ONLY a valid JSON object with this exact structure:
     const aiData = await aiResponse.json()
     const responseText = aiData.choices?.[0]?.message?.content || ''
 
-    console.log('AI Response received, length:', responseText.length)
+    console.log('[analyze-resume] AI Response received')
+    console.log('[analyze-resume] Response length:', responseText.length)
+    console.log('[analyze-resume] Response preview:', responseText.substring(0, 200))
 
     // Parse the JSON response
     let analysis
@@ -185,36 +193,44 @@ Return ONLY a valid JSON object with this exact structure:
         jsonText = jsonMatch[1].trim()
       }
       
+      // Also try to find JSON object directly
+      const jsonObjectMatch = responseText.match(/\{[\s\S]*\}/)
+      if (!jsonMatch && jsonObjectMatch) {
+        jsonText = jsonObjectMatch[0]
+      }
+      
       analysis = JSON.parse(jsonText)
+      
+      console.log('[analyze-resume] Parsed analysis successfully')
+      console.log('[analyze-resume] ATS Score:', analysis.atsScore)
+      console.log('[analyze-resume] Career Health:', analysis.careerHealth)
       
       // Validate required fields
       if (typeof analysis.atsScore !== 'number' || typeof analysis.jobMatchScore !== 'number') {
         throw new Error('Missing required analysis fields')
       }
     } catch (parseError) {
-      console.error('JSON parse error:', parseError, 'Response:', responseText.slice(0, 500))
+      console.error('[analyze-resume] JSON parse error:', parseError)
+      console.error('[analyze-resume] Raw response:', responseText.slice(0, 500))
       
       // Create a fallback response that still references the resume
-      const resumePreview = truncatedResume.slice(0, 200)
       analysis = {
-        atsScore: 55,
-        jobMatchScore: 50,
-        keywordCoverage: 45,
-        skillsMatchScore: 50,
-        missingSkills: ['Unable to parse specific missing skills - please try again'],
+        atsScore: 60,
+        jobMatchScore: 55,
+        keywordCoverage: 50,
+        skillsMatchScore: 55,
+        missingSkills: ['Analysis parsing failed - please try again'],
         quickFixes: [
           'Ensure resume uses standard formatting',
           'Add quantifiable achievements',
-          'Include industry-specific keywords',
-          'Add a clear professional summary'
+          'Include industry-specific keywords'
         ],
         careerHealth: 'Moderate',
         recommendations: [
           'Re-submit resume for detailed analysis',
-          'Ensure resume is in a parseable format',
-          'Consider reformatting complex layouts'
+          'Ensure resume is in a parseable format'
         ],
-        explanation: `Analysis encountered a parsing issue. Based on the resume beginning with "${resumePreview.slice(0, 100)}...", we recommend re-submitting for a complete analysis.`
+        explanation: `Analysis encountered an issue. Resume preview: "${resumePreview.slice(0, 100)}...". Please try again.`
       }
     }
 
@@ -240,16 +256,16 @@ Return ONLY a valid JSON object with this exact structure:
           })
 
         if (insertError) {
-          console.error('Error storing resume analysis:', insertError)
+          console.error('[analyze-resume] Error storing analysis:', insertError)
         } else {
-          console.log('Resume analysis stored successfully')
+          console.log('[analyze-resume] Analysis stored successfully')
         }
       } catch (dbError) {
-        console.error('Database error:', dbError)
+        console.error('[analyze-resume] Database error:', dbError)
       }
     }
 
-    console.log('Successfully analyzed resume with scores:', {
+    console.log('[analyze-resume] Returning analysis with scores:', {
       atsScore: analysis.atsScore,
       jobMatchScore: analysis.jobMatchScore,
       careerHealth: analysis.careerHealth
@@ -267,7 +283,7 @@ Return ONLY a valid JSON object with this exact structure:
     )
 
   } catch (error) {
-    console.error('Error in analyze-resume function:', error)
+    console.error('[analyze-resume] Error:', error)
     
     return new Response(
       JSON.stringify({ 
