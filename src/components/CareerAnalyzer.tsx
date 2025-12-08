@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
@@ -9,16 +9,11 @@ import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { motion } from 'framer-motion';
 import { 
-  Target, 
   Brain, 
-  TrendingUp, 
-  BookOpen, 
-  Briefcase, 
   ArrowRight,
   Sparkles,
   Clock,
   Video,
-  MapPin,
   CheckCircle2
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -71,6 +66,13 @@ export const CareerAnalyzer: React.FC<CareerAnalyzerProps> = ({ profileData, onB
   const [careerOptions, setCareerOptions] = useState<CareerOption[]>([]);
   const [showConfetti, setShowConfetti] = useState(false);
 
+  // Auto-start analysis when component mounts
+  useEffect(() => {
+    if (user && !analysisComplete && !isAnalyzing) {
+      handleStartAnalysis();
+    }
+  }, [user]);
+
   const handleStartAnalysis = async () => {
     if (!user) return;
 
@@ -81,9 +83,9 @@ export const CareerAnalyzer: React.FC<CareerAnalyzerProps> = ({ profileData, onB
         .from('career_profiles')
         .upsert({
           user_id: user.id,
-          name: profileData.name,
-          age: profileData.age,
-          country: profileData.country,
+          name: profileData.name || 'Student',
+          age: profileData.age || '20',
+          country: profileData.country || 'India',
           education_level: profileData.educationLevel,
           field_of_study: profileData.fieldOfStudy,
           specialization: profileData.specialization,
@@ -168,10 +170,10 @@ export const CareerAnalyzer: React.FC<CareerAnalyzerProps> = ({ profileData, onB
         description: opt.description,
         match_percentage: opt.match_percentage,
         required_skills: opt.required_skills,
-        rationale: `Based on your ${profileData.skills} and interest in ${profileData.interests}, this career is a great match.`
+        rationale: `Based on your interests in ${profileData.interests} and goals: ${profileData.shortTermGoals}, this career is a great match.`
       }));
 
-      const { error: optionsError } = await supabase
+      await supabase
         .from('career_options')
         .delete()
         .eq('user_id', user.id);
@@ -200,64 +202,6 @@ export const CareerAnalyzer: React.FC<CareerAnalyzerProps> = ({ profileData, onB
     toast.success(t('careerGuide.startingJourney').replace('{career}', career.career_name));
     navigate(`/career-growth?career=${encodeURIComponent(career.career_name)}`);
   };
-
-  if (!analysisComplete && !isAnalyzing) {
-    return (
-      <div className="min-h-screen cyber-grid flex items-center justify-center p-4">
-        <Card className="glass-card p-8 max-w-2xl w-full">
-          <div className="text-center space-y-6">
-            <div className="w-16 h-16 mx-auto bg-gradient-to-r from-primary to-secondary rounded-full flex items-center justify-center">
-              <Brain className="w-8 h-8 text-white" />
-            </div>
-            
-            <div>
-              <h2 className="text-3xl font-bold gradient-text-rainbow mb-2">
-                {t('careerGuide.readyToDiscover')}
-              </h2>
-              <p className="text-muted-foreground">
-                {profileData.name}, {t('careerGuide.letsAnalyze')}
-              </p>
-            </div>
-
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">{t('careerGuide.whatYouGet')}</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="flex items-center space-x-3 p-3 bg-white/5 rounded-lg">
-                  <Target className="w-5 h-5 text-primary" />
-                  <span className="text-sm">{t('careerGuide.personalizedMatches')}</span>
-                </div>
-                <div className="flex items-center space-x-3 p-3 bg-white/5 rounded-lg">
-                  <BookOpen className="w-5 h-5 text-secondary" />
-                  <span className="text-sm">{t('careerGuide.learningResources')}</span>
-                </div>
-                <div className="flex items-center space-x-3 p-3 bg-white/5 rounded-lg">
-                  <TrendingUp className="w-5 h-5 text-accent" />
-                  <span className="text-sm">{t('careerGuide.stepByStepRoadmaps')}</span>
-                </div>
-                <div className="flex items-center space-x-3 p-3 bg-white/5 rounded-lg">
-                  <Briefcase className="w-5 h-5 text-primary" />
-                  <span className="text-sm">{t('careerGuide.timelineToJobReady')}</span>
-                </div>
-              </div>
-            </div>
-
-            <Button 
-              variant="rainbow" 
-              size="lg" 
-              onClick={handleStartAnalysis}
-              className="relative overflow-hidden w-full bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:from-blue-700 hover:via-purple-700 hover:to-pink-700 text-white font-bold shadow-[0_0_20px_rgba(59,130,246,0.5)] hover:shadow-[0_0_30px_rgba(168,85,247,0.7)] border-2 border-white/30 hover:border-white/50 rounded-xl transition-all duration-300 hover:scale-105 active:scale-95 group"
-            >
-              <span className="relative z-10 flex items-center justify-center">
-                <Sparkles className="w-5 h-5 mr-2" />
-                {t('careerGuide.generateCareerOptions')}
-              </span>
-              <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
-            </Button>
-          </div>
-        </Card>
-      </div>
-    );
-  }
 
   if (isAnalyzing) {
     return (
@@ -319,9 +263,6 @@ export const CareerAnalyzer: React.FC<CareerAnalyzerProps> = ({ profileData, onB
                     <p className="text-white/80 text-sm">{t('careerGuide.analysisCompleteChat')}</p>
                   </div>
                 </div>
-                <Badge variant="secondary" className="bg-[hsl(var(--cyber-green))]/30 text-white border-white/30">
-                  {t('careerGuide.careerScore')}: {Math.floor(Math.random() * 30) + 70}
-                </Badge>
               </div>
             </div>
             <div className="h-[500px]">
@@ -340,7 +281,7 @@ export const CareerAnalyzer: React.FC<CareerAnalyzerProps> = ({ profileData, onB
               {t('careerGuide.perfectMatches')}
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              {t('careerGuide.basedOnProfile').replace('{count}', String(careerOptions.length)).replace('{name}', profileData.name)}
+              {t('careerGuide.basedOnProfile').replace('{count}', String(careerOptions.length)).replace('{name}', profileData.name || 'Student')}
             </p>
           </motion.div>
 
@@ -366,7 +307,7 @@ export const CareerAnalyzer: React.FC<CareerAnalyzerProps> = ({ profileData, onB
                         </p>
                       </div>
                       <Badge variant="secondary" className="bg-green-500/20 text-green-400 ml-4">
-                        {career.match_percentage}% Match
+                        {career.match_percentage}% {t('careerGuide.match')}
                       </Badge>
                     </div>
 
@@ -406,47 +347,26 @@ export const CareerAnalyzer: React.FC<CareerAnalyzerProps> = ({ profileData, onB
                             href={link}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-xs text-primary hover:underline flex items-center space-x-1"
+                            className="text-xs text-primary hover:underline block truncate"
                           >
-                            <Video className="w-3 h-3" />
-                            <span>Video Tutorial {i + 1}</span>
+                            📺 Tutorial {i + 1}
                           </a>
                         ))}
                       </div>
                     </div>
-
-                    {/* Roadmap Preview */}
-                    <div>
-                      <p className="text-xs font-semibold text-muted-foreground mb-2">
-                        <MapPin className="w-3 h-3 inline mr-1" />
-                        {t('careerGuide.roadmapPreview')}:
-                      </p>
-                      <ul className="space-y-1">
-                        {career.roadmap_steps.slice(0, 3).map((step, i) => (
-                          <li key={i} className="text-xs text-muted-foreground flex items-start">
-                            <span className="text-primary mr-2">{i + 1}.</span>
-                            {step}
-                          </li>
-                        ))}
-                        {career.roadmap_steps.length > 3 && (
-                          <li className="text-xs text-muted-foreground italic">
-                            +{career.roadmap_steps.length - 3} {t('careerGuide.more')}...
-                          </li>
-                        )}
-                      </ul>
-                    </div>
                   </div>
 
                   {/* Action Button */}
-                  <Button
-                    variant="rainbow"
-                    className="relative overflow-hidden w-full mt-6 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:from-blue-700 hover:via-purple-700 hover:to-pink-700 text-white font-bold shadow-[0_0_20px_rgba(59,130,246,0.5)] hover:shadow-[0_0_30px_rgba(168,85,247,0.7)] border-2 border-white/30 hover:border-white/50 rounded-xl transition-all duration-300 hover:scale-105 active:scale-95 group"
+                  <Button 
+                    variant="rainbow" 
+                    size="lg" 
                     onClick={() => handleStartJourney(career)}
+                    className="w-full mt-4 relative overflow-hidden bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:from-blue-700 hover:via-purple-700 hover:to-pink-700 text-white font-bold shadow-[0_0_20px_rgba(59,130,246,0.5)] hover:shadow-[0_0_30px_rgba(168,85,247,0.7)] border-2 border-white/30 hover:border-white/50 rounded-xl transition-all duration-300 hover:scale-105 active:scale-95 group"
                   >
                     <span className="relative z-10 flex items-center justify-center">
-                      <Sparkles className="mr-2 w-5 h-5" />
+                      <Sparkles className="w-4 h-4 mr-2" />
                       {t('careerGuide.startThisJourney')}
-                      <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                      <ArrowRight className="w-4 h-4 ml-2" />
                     </span>
                     <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
                   </Button>
@@ -454,24 +374,6 @@ export const CareerAnalyzer: React.FC<CareerAnalyzerProps> = ({ profileData, onB
               </motion.div>
             ))}
           </div>
-
-          {/* Continue Button */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.6 }}
-            className="text-center"
-          >
-            <Button
-              variant="outline"
-              size="lg"
-              onClick={() => navigate('/career-growth')}
-              className="group"
-            >
-              👉 {t('roadmap.title')}
-              <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </Button>
-          </motion.div>
         </div>
       </div>
     </>
