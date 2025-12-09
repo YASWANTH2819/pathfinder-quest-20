@@ -13,9 +13,15 @@ interface MCQ {
   id: string;
   question: string;
   options: string[];
-  correctAnswer: string;
   xpReward: number;
   difficulty: string;
+}
+
+interface MCQResult {
+  mcq_id: string;
+  is_correct: boolean;
+  correct_answer: string;
+  xp_earned: number;
 }
 
 interface DailyMCQProps {
@@ -30,8 +36,10 @@ export const DailyMCQ = ({ userId, careerName, onXPEarned }: DailyMCQProps) => {
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [showResults, setShowResults] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const [score, setScore] = useState(0);
+  const [quizResults, setQuizResults] = useState<MCQResult[]>([]);
 
   useEffect(() => {
     fetchDailyMCQs();
@@ -41,9 +49,10 @@ export const DailyMCQ = ({ userId, careerName, onXPEarned }: DailyMCQProps) => {
     try {
       setLoading(true);
       
+      // Fetch MCQs WITHOUT correct_answer - security fix
       const { data, error } = await supabase
         .from('daily_mcqs')
-        .select('*')
+        .select('id, question, options, xp_reward, difficulty, career_name')
         .eq('career_name', careerName)
         .limit(10);
 
@@ -59,7 +68,6 @@ export const DailyMCQ = ({ userId, careerName, onXPEarned }: DailyMCQProps) => {
           id: mcq.id,
           question: mcq.question,
           options: mcq.options as string[],
-          correctAnswer: mcq.correct_answer,
           xpReward: mcq.xp_reward,
           difficulty: mcq.difficulty
         })));
@@ -82,42 +90,58 @@ export const DailyMCQ = ({ userId, careerName, onXPEarned }: DailyMCQProps) => {
   };
 
   const handleSubmitQuiz = async () => {
-    let correctCount = 0;
-    const totalXP = mcqList.reduce((total, mcq, index) => {
-      const isCorrect = answers[index] === mcq.correctAnswer;
-      if (isCorrect) {
-        correctCount++;
-        return total + mcq.xpReward;
-      }
-      return total;
-    }, 0);
-
-    setScore(correctCount);
-    setShowResults(true);
+    setSubmitting(true);
     
-    // Show fireworks for completion
-    setShowConfetti(true);
-    setTimeout(() => setShowConfetti(false), 5000);
-    
-    if (onXPEarned) {
-      onXPEarned(totalXP);
-    }
-
-    // Save all responses
     try {
-      const responses = mcqList.map((mcq, index) => ({
-        user_id: userId,
+      // Prepare answers for server-side validation
+      const answersPayload = mcqList.map((mcq, index) => ({
         mcq_id: mcq.id,
+        selected_answer: answers[index] || ''
+      }));
+
+      // Call edge function to validate answers server-side
+      const { data, error } = await supabase.functions.invoke('validate-mcq-answer', {
+        body: { answers: answersPayload }
+      });
+
+      if (error) {
+        console.error('Error validating quiz:', error);
+        toast.error('Failed to submit quiz. Please try again.');
+        setSubmitting(false);
+        return;
+      }
+
+      const { results, summary } = data;
+      
+      setQuizResults(results);
+      setScore(summary.correct_count);
+      setShowResults(true);
+      
+      // Show fireworks for completion
+      setShowConfetti(true);
+      setTimeout(() => setShowConfetti(false), 5000);
+      
+      if (onXPEarned) {
+        onXPEarned(summary.total_xp);
+      }
+
+      // Save all responses
+      const responses = results.map((result: MCQResult, index: number) => ({
+        user_id: userId,
+        mcq_id: result.mcq_id,
         selected_answer: answers[index] || '',
-        is_correct: answers[index] === mcq.correctAnswer,
-        xp_earned: answers[index] === mcq.correctAnswer ? mcq.xpReward : 0
+        is_correct: result.is_correct,
+        xp_earned: result.xp_earned
       }));
 
       await supabase.from('user_mcq_responses').insert(responses);
       
-      toast.success(`Quiz Complete! You scored ${correctCount}/10 🎉`);
+      toast.success(`Quiz Complete! You scored ${summary.correct_count}/10 🎉`);
     } catch (error) {
-      console.error('Error saving responses:', error);
+      console.error('Error submitting quiz:', error);
+      toast.error('Something went wrong. Please try again.');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -257,12 +281,12 @@ export const DailyMCQ = ({ userId, careerName, onXPEarned }: DailyMCQProps) => {
               ) : (
                 <Button
                   onClick={handleSubmitQuiz}
-                  disabled={!canSubmit}
+                  disabled={!canSubmit || submitting}
                   className="relative overflow-hidden bg-gradient-to-r from-green-500 via-emerald-500 to-blue-500 hover:from-green-600 hover:via-emerald-600 hover:to-blue-600 text-white font-bold shadow-[0_0_20px_rgba(34,197,94,0.5)] hover:shadow-[0_0_30px_rgba(16,185,129,0.7)] border-2 border-white/30 hover:border-white/50 rounded-xl transition-all duration-300 hover:scale-105 active:scale-95 group"
                 >
                   <span className="relative z-10 flex items-center">
                     <Send className="w-5 h-5 mr-2" />
-                    Submit Quiz
+                    {submitting ? 'Submitting...' : 'Submit Quiz'}
                   </span>
                   <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
                 </Button>
@@ -296,12 +320,14 @@ export const DailyMCQ = ({ userId, careerName, onXPEarned }: DailyMCQProps) => {
                 </p>
               </div>
 
-              {/* Review Answers */}
+              {/* Review Answers - Now using server-validated results */}
               <div className="space-y-3 text-left mt-6">
                 <h3 className="font-semibold mb-3">Review Your Answers:</h3>
                 {mcqList.map((mcq, index) => {
+                  const result = quizResults[index];
                   const userAnswer = answers[index];
-                  const isCorrect = userAnswer === mcq.correctAnswer;
+                  const isCorrect = result?.is_correct || false;
+                  const correctAnswer = result?.correct_answer || '';
                   
                   return (
                     <div
@@ -323,9 +349,9 @@ export const DailyMCQ = ({ userId, careerName, onXPEarned }: DailyMCQProps) => {
                       <p className="text-sm text-muted-foreground">
                         Your answer: <span className={isCorrect ? 'text-green-600' : 'text-red-600'}>{userAnswer || 'Not answered'}</span>
                       </p>
-                      {!isCorrect && (
+                      {!isCorrect && correctAnswer && (
                         <p className="text-sm text-muted-foreground">
-                          Correct answer: <span className="text-green-600">{mcq.correctAnswer}</span>
+                          Correct answer: <span className="text-green-600">{correctAnswer}</span>
                         </p>
                       )}
                     </div>
@@ -338,6 +364,7 @@ export const DailyMCQ = ({ userId, careerName, onXPEarned }: DailyMCQProps) => {
                   setShowResults(false);
                   setAnswers({});
                   setCurrentIndex(0);
+                  setQuizResults([]);
                   fetchDailyMCQs();
                 }}
                 className="relative overflow-hidden w-full bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:from-blue-700 hover:via-purple-700 hover:to-pink-700 text-white font-bold shadow-[0_0_20px_rgba(59,130,246,0.5)] hover:shadow-[0_0_30px_rgba(168,85,247,0.7)] border-2 border-white/30 hover:border-white/50 rounded-xl transition-all duration-300 hover:scale-105 active:scale-95 group"

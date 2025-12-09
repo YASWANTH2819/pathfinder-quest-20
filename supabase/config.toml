@@ -14,3 +14,6 @@ verify_jwt = true
 
 [functions.generate-career-recommendations]
 verify_jwt = true
+
+[functions.validate-mcq-answer]
+verify_jwt = true
