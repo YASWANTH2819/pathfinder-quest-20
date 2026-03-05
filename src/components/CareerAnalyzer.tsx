@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
@@ -92,12 +92,35 @@ export const CareerAnalyzer: React.FC<CareerAnalyzerProps> = ({ profileData, onB
   const [currentStep, setCurrentStep] = useState<FlowStep>('recommendations');
   const [roadmapData, setRoadmapData] = useState<RoadmapYear[]>([]);
   const [isLoadingRoadmap, setIsLoadingRoadmap] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState('');
+  const roadmapCache = useRef<Map<string, RoadmapYear[]>>(new Map());
 
   useEffect(() => {
     if (user && !analysisComplete && !isAnalyzing) {
       handleStartAnalysis();
     }
   }, [user]);
+
+  // Progressive loading messages
+  useEffect(() => {
+    if (!isLoadingRoadmap) {
+      setLoadingMessage('');
+      return;
+    }
+    const messages = [
+      'Analyzing your skills...',
+      'Identifying career gaps...',
+      'Building your personalized roadmap...',
+      'Preparing growth recommendations...'
+    ];
+    let index = 0;
+    setLoadingMessage(messages[0]);
+    const interval = setInterval(() => {
+      index = Math.min(index + 1, messages.length - 1);
+      setLoadingMessage(messages[index]);
+    }, 2000);
+    return () => clearInterval(interval);
+  }, [isLoadingRoadmap]);
 
   const handleStartAnalysis = async () => {
     if (!user) return;
@@ -276,41 +299,54 @@ export const CareerAnalyzer: React.FC<CareerAnalyzerProps> = ({ profileData, onB
     return { current: currentSkills, required: requiredSkills, missing, matchPercent };
   };
 
-  // Generate roadmap for selected career
-  const generateRoadmap = async () => {
-    if (!selectedCareer) return;
+  // Generate roadmap for selected career (with caching + quick mode)
+  const generateRoadmap = async (career?: CareerOption) => {
+    const target = career || selectedCareer;
+    if (!target) return;
+    
+    // Check cache first
+    const cacheKey = target.career_name;
+    const cached = roadmapCache.current.get(cacheKey);
+    if (cached) {
+      setRoadmapData(cached);
+      return;
+    }
+    
     setIsLoadingRoadmap(true);
     try {
       const { data, error } = await supabase.functions.invoke('generate-career-roadmap', {
         body: {
-          careerName: selectedCareer.career_name,
+          careerName: target.career_name,
           profileData: {
             skills: profileData.skills,
             education: profileData.fieldOfStudy || profileData.educationLevel,
             interests: profileData.interests
           },
-          language: 'en'
+          language: 'en',
+          mode: 'quick'
         }
       });
       if (error) throw error;
+      let years: RoadmapYear[] = [];
       if (data?.roadmap?.years) {
-        setRoadmapData(data.roadmap.years);
+        years = data.roadmap.years;
       } else if (data?.roadmap?.milestones) {
-        // Map milestones to year format
         const milestones = data.roadmap.milestones || [];
-        setRoadmapData(milestones.slice(0, 4).map((m: any, i: number) => ({
+        years = milestones.slice(0, 4).map((m: any, i: number) => ({
           year: `Year ${i + 1}`,
           focus: m.title || m.name || `Phase ${i + 1}`,
           activities: m.tasks?.map((t: any) => typeof t === 'string' ? t : t.title) || m.activities || [],
           milestones: m.milestones || [`Complete ${m.title || 'phase'}`]
-        })));
+        }));
       } else {
-        // Fallback roadmap
-        setRoadmapData(getFallbackRoadmap());
+        years = getFallbackRoadmap();
       }
+      roadmapCache.current.set(cacheKey, years);
+      setRoadmapData(years);
     } catch (error) {
       console.error('Roadmap generation failed:', error);
-      setRoadmapData(getFallbackRoadmap());
+      const fallback = getFallbackRoadmap();
+      setRoadmapData(fallback);
     } finally {
       setIsLoadingRoadmap(false);
     }
@@ -337,11 +373,13 @@ export const CareerAnalyzer: React.FC<CareerAnalyzerProps> = ({ profileData, onB
     return { projects: ['Build a portfolio project', 'Contribute to open source', 'Create a case study'], internships: ['Industry intern at startups', 'Corporate internship programs', 'Virtual internship platforms'], certifications: ['Google Career Certificates', 'Coursera Professional Certificates', 'LinkedIn Learning Paths'], competitions: ['Industry hackathons', 'Case study competitions', 'Innovation challenges'] };
   };
 
-  // Handle career selection - enter multi-step flow
+  // Handle career selection - pre-fetch roadmap immediately
   const handleSelectCareer = (career: CareerOption) => {
     setSelectedCareer(career);
     setCurrentStep('skillGap');
     setRoadmapData([]);
+    // Start roadmap generation in background while user views skill gap
+    generateRoadmap(career);
   };
 
   const handleNextStep = () => {
@@ -350,9 +388,7 @@ export const CareerAnalyzer: React.FC<CareerAnalyzerProps> = ({ profileData, onB
     if (currentIndex < steps.length - 1) {
       const next = steps[currentIndex + 1];
       setCurrentStep(next);
-      if (next === 'roadmap' && roadmapData.length === 0) {
-        generateRoadmap();
-      }
+      // Roadmap already pre-fetching from handleSelectCareer, no need to trigger again
     }
   };
 
@@ -503,7 +539,15 @@ export const CareerAnalyzer: React.FC<CareerAnalyzerProps> = ({ profileData, onB
                 {isLoadingRoadmap ? (
                   <div className="text-center py-8">
                     <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-3"></div>
-                    <p className="text-sm text-muted-foreground">Generating your personalized roadmap...</p>
+                    <p className="text-sm text-muted-foreground">{loadingMessage || 'Generating your personalized roadmap...'}</p>
+                    <div className="flex justify-center gap-1.5 mt-3">
+                      {['Analyzing', 'Identifying', 'Building', 'Preparing'].map((_, i) => (
+                        <div key={i} className={`w-2 h-2 rounded-full transition-colors duration-300 ${
+                          i <= ['Analyzing your skills...', 'Identifying career gaps...', 'Building your personalized roadmap...', 'Preparing growth recommendations...'].indexOf(loadingMessage)
+                            ? 'bg-primary' : 'bg-muted'
+                        }`} />
+                      ))}
+                    </div>
                   </div>
                 ) : (
                   <div className="space-y-4">
