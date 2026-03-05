@@ -6,7 +6,6 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-// Validation schema
 const careerRequestSchema = z.object({
   education: z.string().max(500),
   interests: z.string().max(1000),
@@ -27,14 +26,8 @@ serve(async (req) => {
     if (!validationResult.success) {
       console.error('[generate-career-recommendations] Validation error:', validationResult.error.errors)
       return new Response(
-        JSON.stringify({ 
-          error: 'Invalid input',
-          details: validationResult.error.errors[0].message
-        }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        }
+        JSON.stringify({ error: 'Invalid input', details: validationResult.error.errors[0].message }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
@@ -66,6 +59,7 @@ CRITICAL RULES:
 3. If user mentions "Communication" or "Management", prioritize Product Manager, Business Analyst, HR roles.
 4. Each career MUST have a match_percentage from 60-95 based on how well it matches the user's skills.
 5. Return EXACTLY in the JSON format requested.
+6. For EACH career, also suggest practical projects, internships, certifications, and competitions.
 
 ${languageInstructions[language] || languageInstructions.en}`
 
@@ -89,7 +83,11 @@ Return ONLY a valid JSON object:
       "rationale": "Why this career matches their skills (mention their specific skills)",
       "timeline": "X-Y months",
       "youtube_links": ["https://youtube.com/relevant-tutorial"],
-      "roadmap_steps": ["Step 1", "Step 2", "Step 3", "Step 4", "Step 5"]
+      "roadmap_steps": ["Step 1", "Step 2", "Step 3", "Step 4", "Step 5"],
+      "projects": ["Project idea 1", "Project idea 2", "Project idea 3"],
+      "internships": ["Internship suggestion 1", "Internship suggestion 2"],
+      "certifications": ["Certification 1", "Certification 2"],
+      "competitions": ["Competition/Hackathon 1", "Competition/Hackathon 2"]
     }
   ]
 }`
@@ -109,7 +107,7 @@ Return ONLY a valid JSON object:
           { role: 'user', content: userPrompt }
         ],
         temperature: 0.5,
-        max_tokens: 3000,
+        max_tokens: 4000,
       })
     })
 
@@ -123,14 +121,12 @@ Return ONLY a valid JSON object:
           { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )
       }
-      
       if (aiResponse.status === 402) {
         return new Response(
           JSON.stringify({ error: 'AI credits exhausted. Please add funds.', careers: null }),
           { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )
       }
-      
       throw new Error(`AI Gateway error: ${aiResponse.statusText}`)
     }
 
@@ -139,7 +135,6 @@ Return ONLY a valid JSON object:
 
     console.log('[generate-career-recommendations] AI Response length:', responseText.length)
 
-    // Parse JSON from response
     let careers
     try {
       let jsonText = responseText
@@ -147,15 +142,12 @@ Return ONLY a valid JSON object:
       if (jsonMatch) {
         jsonText = jsonMatch[1].trim()
       }
-      
       const jsonObjectMatch = responseText.match(/\{[\s\S]*\}/)
       if (!jsonMatch && jsonObjectMatch) {
         jsonText = jsonObjectMatch[0]
       }
-      
       const parsed = JSON.parse(jsonText)
       careers = parsed.careers || []
-      
       console.log('[generate-career-recommendations] Parsed', careers.length, 'careers')
     } catch (parseError) {
       console.error('[generate-career-recommendations] JSON parse error:', parseError)
@@ -172,7 +164,6 @@ Return ONLY a valid JSON object:
 
   } catch (error) {
     console.error('[generate-career-recommendations] Error:', error)
-    
     return new Response(
       JSON.stringify({ error: error.message || 'An unexpected error occurred', careers: null }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
