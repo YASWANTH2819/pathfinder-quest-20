@@ -194,7 +194,7 @@ export const WeeklyAssignment: React.FC<WeeklyAssignmentProps> = ({
     setUploadProgress(0);
 
     try {
-      let fileUrl = null;
+      let uploadedFilePath: string | null = null;
 
       // Upload file if selected
       if (selectedFile) {
@@ -211,12 +211,7 @@ export const WeeklyAssignment: React.FC<WeeklyAssignmentProps> = ({
         if (uploadError) throw uploadError;
 
         setUploadProgress(60);
-
-        const { data: urlData } = supabase.storage
-          .from('assignment-submissions')
-          .getPublicUrl(fileName);
-
-        fileUrl = urlData.publicUrl;
+        uploadedFilePath = fileName;
       }
 
       setUploadProgress(80);
@@ -227,7 +222,7 @@ export const WeeklyAssignment: React.FC<WeeklyAssignmentProps> = ({
         user_id: userId,
         badge_code: `weekly_${weekStart}`,
         badge_name: 'Weekly Assignment Complete',
-        badge_description: `Completed: ${assignment.title}${fileUrl ? ' (File uploaded)' : ''}`,
+        badge_description: `Completed: ${assignment.title}${uploadedFilePath ? ` (File uploaded: ${selectedFile?.name ?? 'attachment'})` : ''}`,
         icon_name: 'FileText'
       });
 

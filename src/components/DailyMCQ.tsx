@@ -49,12 +49,12 @@ export const DailyMCQ = ({ userId, careerName, onXPEarned }: DailyMCQProps) => {
     try {
       setLoading(true);
       
-      // Fetch MCQs WITHOUT correct_answer - security fix
-      const { data, error } = await supabase
-        .from('daily_mcqs')
-        .select('id, question, options, xp_reward, difficulty, career_name')
-        .eq('career_name', careerName)
-        .limit(10);
+      // Fetch MCQs from secure edge function (no correct_answer exposure)
+      const { data, error } = await supabase.functions.invoke('get-daily-mcqs', {
+        body: { careerName }
+      });
+
+      const mcqs = data?.mcqs ?? [];
 
       if (error) {
         console.error('Error fetching MCQs:', error);
@@ -62,8 +62,8 @@ export const DailyMCQ = ({ userId, careerName, onXPEarned }: DailyMCQProps) => {
         return;
       }
 
-      if (data && data.length > 0) {
-        const shuffled = data.sort(() => 0.5 - Math.random()).slice(0, 10);
+      if (mcqs.length > 0) {
+        const shuffled = mcqs.sort(() => 0.5 - Math.random()).slice(0, 10);
         setMcqList(shuffled.map(mcq => ({
           id: mcq.id,
           question: mcq.question,
