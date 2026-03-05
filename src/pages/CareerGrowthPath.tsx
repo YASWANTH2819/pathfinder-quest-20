@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -64,6 +65,7 @@ const careerColors: Record<number, string> = {
 export const CareerGrowthPath = () => {
   const { user } = useAuth();
   const { t } = useLanguage();
+  const [searchParams] = useSearchParams();
   const [careerOptions, setCareerOptions] = useState<CareerOption[]>([]);
   const [selectedCareer, setSelectedCareer] = useState<CareerOption | null>(null);
   const [careerProgress, setCareerProgress] = useState<CareerProgress | null>(null);
@@ -71,57 +73,71 @@ export const CareerGrowthPath = () => {
   const [startingJourney, setStartingJourney] = useState(false);
   const [showRoadmap, setShowRoadmap] = useState(false);
 
+  const careerFromUrl = searchParams.get('career');
+
+  // Fetch both career options and progress in parallel, then resolve
   useEffect(() => {
-    if (user) {
-      fetchCareerOptions();
-      fetchCareerProgress();
-    }
-  }, [user]);
-
-  const fetchCareerOptions = async () => {
     if (!user) return;
+    
+    const init = async () => {
+      setLoading(true);
+      try {
+        // Parallel fetch
+        const [optionsResult, progressResult] = await Promise.all([
+          supabase
+            .from('career_options')
+            .select('*')
+            .eq('user_id', user.id)
+            .order('match_percentage', { ascending: false }),
+          supabase
+            .from('career_progress')
+            .select('*')
+            .eq('user_id', user.id)
+            .single()
+        ]);
 
-    try {
-      const { data, error } = await supabase
-        .from('career_options')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('match_percentage', { ascending: false });
+        const options = optionsResult.data || [];
+        setCareerOptions(options);
 
-      if (error) throw error;
-      setCareerOptions(data || []);
-    } catch (error) {
-      console.error('Error fetching career options:', error);
-      toast.error('Failed to load career options');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchCareerProgress = async () => {
-    if (!user) return;
-
-    try {
-      const { data, error } = await supabase
-        .from('career_progress')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
-
-      if (error && error.code !== 'PGRST116') throw error;
-      setCareerProgress(data);
-      
-      if (data) {
-        const selected = careerOptions.find(c => c.id === data.selected_career_id);
-        if (selected) {
-          setSelectedCareer(selected);
-          setShowRoadmap(true);
+        const progress = progressResult.data;
+        const progressError = progressResult.error;
+        
+        if (progressError && progressError.code !== 'PGRST116') {
+          console.error('Error fetching career progress:', progressError);
         }
+
+        // If we have existing progress, show the roadmap immediately
+        if (progress) {
+          setCareerProgress(progress);
+          const matched = options.find((c: CareerOption) => c.id === progress.selected_career_id);
+          if (matched) {
+            setSelectedCareer(matched);
+            setShowRoadmap(true);
+            setLoading(false);
+            return;
+          }
+        }
+
+        // If career param in URL, auto-start journey for that career
+        if (careerFromUrl && options.length > 0) {
+          const urlCareer = options.find(
+            (c: CareerOption) => c.career_name.toLowerCase() === careerFromUrl.toLowerCase()
+          );
+          if (urlCareer) {
+            setLoading(false);
+            handleSelectCareer(urlCareer);
+            return;
+          }
+        }
+      } catch (error) {
+        console.error('Error initializing career growth path:', error);
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error('Error fetching career progress:', error);
-    }
-  };
+    };
+
+    init();
+  }, [user, careerFromUrl]);
 
   const handleSelectCareer = async (career: CareerOption) => {
     if (!user) return;
@@ -130,49 +146,57 @@ export const CareerGrowthPath = () => {
     setSelectedCareer(career);
 
     try {
-      // Generate roadmap for selected career
-      const { data: roadmapData, error: roadmapError } = await supabase.functions.invoke('generate-roadmap', {
+      // Generate roadmap using the dedicated edge function (full mode for growth path)
+      const { data: roadmapData, error: roadmapError } = await supabase.functions.invoke('generate-career-roadmap', {
         body: {
-          goal: `Become a ${career.career_name}`,
+          careerName: career.career_name,
           profileData: {},
           language: 'en',
-          userId: user.id,
-          systemPrompt: `Create a comprehensive career roadmap for becoming a ${career.career_name}. Focus on skills: ${career.required_skills.join(', ')}.`
+          mode: 'full'
         }
       });
 
       if (roadmapError) throw roadmapError;
 
-      // Transform roadmap structure to steps format
+      // Transform roadmap to steps format
+      const milestones = roadmapData?.roadmap?.milestones || [];
       const transformedRoadmap = {
-        steps: [
-          ...(roadmapData.roadmap?.shortTerm || []).map((item: any) => ({
-            title: item.task,
-            description: item.description || '',
-            duration: item.duration,
-            type: item.type,
-            resources: item.resources || [],
-            completed: false
-          })),
-          ...(roadmapData.roadmap?.midTerm || []).map((item: any) => ({
-            title: item.task,
-            description: item.description || '',
-            duration: item.duration,
-            type: item.type,
-            resources: item.resources || [],
-            completed: false
-          })),
-          ...(roadmapData.roadmap?.longTerm || []).map((item: any) => ({
-            title: item.task,
-            description: item.description || '',
-            duration: item.duration,
-            type: item.type,
-            resources: item.resources || [],
+        steps: milestones.flatMap((m: any) => 
+          (m.tasks || []).map((task: any) => ({
+            title: typeof task === 'string' ? task : task.title || '',
+            description: typeof task === 'string' ? '' : task.description || '',
+            duration: task.duration || '',
+            type: task.type || 'learning',
+            resources: task.resources || [],
             completed: false
           }))
-        ],
-        explanation: roadmapData.explanation || ''
+        ),
+        milestones,
+        explanation: roadmapData?.roadmap?.explanation || ''
       };
+
+      // If no steps from milestones, try years format
+      if (transformedRoadmap.steps.length === 0 && roadmapData?.roadmap?.years) {
+        transformedRoadmap.steps = roadmapData.roadmap.years.flatMap((yr: any) =>
+          (yr.activities || []).map((activity: string) => ({
+            title: activity,
+            description: `${yr.year} - ${yr.focus}`,
+            completed: false,
+            resources: []
+          }))
+        );
+      }
+
+      // Fallback steps if still empty
+      if (transformedRoadmap.steps.length === 0) {
+        transformedRoadmap.steps = [
+          { title: 'Research the field', description: 'Study what this career involves', completed: false, resources: [] },
+          { title: 'Learn fundamentals', description: 'Begin with foundational courses', completed: false, resources: [] },
+          { title: 'Build practice projects', description: 'Apply your skills practically', completed: false, resources: [] },
+          { title: 'Create portfolio', description: 'Showcase your work', completed: false, resources: [] },
+          { title: 'Seek opportunities', description: 'Apply for internships and jobs', completed: false, resources: [] },
+        ];
+      }
 
       // Save or update career progress
       const { error: progressError } = await supabase
@@ -191,26 +215,28 @@ export const CareerGrowthPath = () => {
 
       if (progressError) throw progressError;
 
-      await fetchCareerProgress();
+      // Fetch the saved progress
+      const { data: savedProgress } = await supabase
+        .from('career_progress')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (savedProgress) {
+        setCareerProgress(savedProgress);
+      }
       
-      setTimeout(() => {
-        setStartingJourney(false);
-        setShowRoadmap(true);
-        toast.success(`🎉 Journey started for ${career.career_name}!`);
-      }, 2000);
+      setStartingJourney(false);
+      setShowRoadmap(true);
+      toast.success(`🎉 Journey started for ${career.career_name}!`);
 
     } catch (error: any) {
       console.error('Error starting career journey:', error);
       
-      // Check if it's a FunctionsHttpError with specific status codes
       if (error?.context?.status === 429) {
         toast.error('⏳ Too many requests. Please wait a moment and try again.');
       } else if (error?.context?.status === 402) {
         toast.error('💳 AI credits exhausted. Please add credits in Settings > Workspace > Usage.');
-      } else if (error?.message?.includes('Rate limit')) {
-        toast.error('⏳ Rate limit exceeded. Please try again in a moment.');
-      } else if (error?.message?.includes('Payment required')) {
-        toast.error('💳 Please add AI credits to continue. Go to Settings > Workspace > Usage.');
       } else {
         toast.error('Failed to start career journey. Please try again.');
       }
