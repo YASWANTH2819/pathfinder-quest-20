@@ -1,4 +1,3 @@
-import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
@@ -7,11 +6,11 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Zod schema for request validation
 const profileDataSchema = z.object({
   skills: z.string().max(500).optional(),
   education_level: z.string().max(100).optional(),
   educationLevel: z.string().max(100).optional(),
+  education: z.string().max(200).optional(),
   field_of_study: z.string().max(100).optional(),
   fieldOfStudy: z.string().max(100).optional(),
   current_year: z.string().max(50).optional(),
@@ -19,7 +18,7 @@ const profileDataSchema = z.object({
 }).optional();
 
 const roadmapRequestSchema = z.object({
-  careerName: z.string().min(2, "Career name must be at least 2 characters").max(100, "Career name must be less than 100 characters"),
+  careerName: z.string().min(2).max(100),
   profileData: profileDataSchema,
   language: z.enum(['en', 'hi', 'te']).default('en'),
 });
@@ -31,30 +30,21 @@ serve(async (req) => {
 
   try {
     const body = await req.json();
-    
-    // Validate request body with Zod
     const validationResult = roadmapRequestSchema.safeParse(body);
     
     if (!validationResult.success) {
-      console.error('Validation error:', validationResult.error.errors);
       return new Response(JSON.stringify({ 
         error: 'Invalid request data',
         details: validationResult.error.errors.map(e => e.message).join(', '),
         success: false
-      }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
     const { careerName, profileData, language } = validationResult.data;
-    const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
+    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
+    if (!lovableApiKey) throw new Error('LOVABLE_API_KEY not configured');
 
-    if (!OPENAI_API_KEY) {
-      throw new Error('OPENAI_API_KEY is not configured');
-    }
-
-    const languageInstructions = {
+    const languageInstructions: Record<string, string> = {
       en: 'Respond in English',
       hi: 'Respond in Hindi (हिंदी)',
       te: 'Respond in Telugu (తెలుగు)'
@@ -69,6 +59,8 @@ Create a roadmap with 4-6 major milestones. Each milestone should have 5-8 micro
 - Mix of learning (📘), practice (⚙️), and self-assessment (🧠) tasks
 - Self-assessment tasks should be reflective questions or conceptual exercises (NO file uploads)
 - Progressive in difficulty
+
+Also return a "years" array with a 4-year structured plan.
 
 Return ONLY valid JSON in this exact format:
 {
@@ -89,6 +81,14 @@ Return ONLY valid JSON in this exact format:
         }
       ]
     }
+  ],
+  "years": [
+    {
+      "year": "Year 1",
+      "focus": "Focus area",
+      "activities": ["Activity 1", "Activity 2"],
+      "milestones": ["Key milestone 1"]
+    }
   ]
 }`;
 
@@ -96,7 +96,7 @@ Return ONLY valid JSON in this exact format:
       ? `Career: ${careerName}
 User Profile:
 - Skills: ${profileData.skills || 'Not specified'}
-- Education: ${profileData.education_level || profileData.educationLevel || 'Not specified'}
+- Education: ${profileData.education_level || profileData.educationLevel || profileData.education || 'Not specified'}
 - Field: ${profileData.field_of_study || profileData.fieldOfStudy || 'Not specified'}
 - Experience: ${profileData.current_year || 'Not specified'}
 - Interests: ${profileData.interests || 'Not specified'}
@@ -106,49 +106,56 @@ Create a personalized roadmap considering their background.`
 
     console.log('Generating roadmap for career:', careerName, 'language:', language);
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${OPENAI_API_KEY}`,
+        'Authorization': `Bearer ${lovableApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-5-mini-2025-08-07',
+        model: 'google/gemini-2.5-flash',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt }
         ],
-        max_completion_tokens: 2000,
+        temperature: 0.5,
+        max_tokens: 3000,
       }),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('OpenAI API error:', response.status, errorText);
-      throw new Error(`OpenAI API error: ${response.status}`);
+      console.error('AI Gateway error:', response.status, errorText);
+      
+      if (response.status === 429) {
+        return new Response(JSON.stringify({ error: 'Rate limit exceeded. Please try again later.', success: false }),
+          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+      if (response.status === 402) {
+        return new Response(JSON.stringify({ error: 'AI credits exhausted. Please add funds.', success: false }),
+          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+      throw new Error(`AI Gateway error: ${response.status}`);
     }
 
     const data = await response.json();
-    const content = data.choices[0].message.content;
+    const content = data.choices?.[0]?.message?.content || '';
     
-    // Parse JSON from response
     let roadmap;
     try {
-      // Try to extract JSON from markdown code blocks if present
-      const jsonMatch = content.match(/```(?:json)?\s*(\{[\s\S]*\})\s*```/) || content.match(/(\{[\s\S]*\})/);
-      const jsonString = jsonMatch ? jsonMatch[1] : content;
-      roadmap = JSON.parse(jsonString);
+      const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/);
+      let jsonText = jsonMatch ? jsonMatch[1].trim() : content;
+      const objMatch = jsonText.match(/\{[\s\S]*\}/);
+      if (objMatch) jsonText = objMatch[0];
+      roadmap = JSON.parse(jsonText);
     } catch (parseError) {
-      console.error('Failed to parse roadmap JSON:', content);
+      console.error('Failed to parse roadmap JSON:', content.substring(0, 500));
       throw new Error('Failed to parse roadmap data');
     }
 
     console.log('Roadmap generated successfully for:', careerName);
 
-    return new Response(JSON.stringify({ 
-      success: true,
-      roadmap: roadmap
-    }), {
+    return new Response(JSON.stringify({ success: true, roadmap }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
@@ -157,9 +164,6 @@ Create a personalized roadmap considering their background.`
     return new Response(JSON.stringify({ 
       error: error instanceof Error ? error.message : 'Unknown error',
       success: false
-    }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
   }
 });
