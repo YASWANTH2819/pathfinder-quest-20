@@ -119,7 +119,7 @@ Create a personalized roadmap considering their background.`
           { role: 'user', content: userPrompt }
         ],
         temperature: 0.5,
-        max_tokens: 3000,
+        max_tokens: 8000,
       }),
     });
 
@@ -149,8 +149,31 @@ Create a personalized roadmap considering their background.`
       if (objMatch) jsonText = objMatch[0];
       roadmap = JSON.parse(jsonText);
     } catch (parseError) {
-      console.error('Failed to parse roadmap JSON:', content.substring(0, 500));
-      throw new Error('Failed to parse roadmap data');
+      console.error('Failed to parse roadmap JSON, using fallback. Raw content length:', content.length);
+      roadmap = {
+        milestones: [
+          { id: "m1", title: `${careerName} Foundations`, description: "Build core skills", xpReward: 100, tasks: [
+            { id: "t1", title: "Research the field", description: "Study what this career involves", type: "learning", xpReward: 10, isCompleted: false },
+            { id: "t2", title: "Identify key skills", description: "List the top skills needed", type: "learning", xpReward: 10, isCompleted: false },
+            { id: "t3", title: "Start learning basics", description: "Begin with foundational courses", type: "practice", xpReward: 15, isCompleted: false },
+          ]},
+          { id: "m2", title: "Skill Development", description: "Develop practical abilities", xpReward: 150, tasks: [
+            { id: "t4", title: "Complete an online course", description: "Finish a structured learning program", type: "learning", xpReward: 20, isCompleted: false },
+            { id: "t5", title: "Build a small project", description: "Apply your skills practically", type: "practice", xpReward: 25, isCompleted: false },
+            { id: "t6", title: "Self-assess progress", description: "Reflect on what you've learned", type: "self-assessment", xpReward: 10, isCompleted: false },
+          ]},
+          { id: "m3", title: "Portfolio & Experience", description: "Gain real-world experience", xpReward: 200, tasks: [
+            { id: "t7", title: "Build a portfolio project", description: "Create something to showcase", type: "practice", xpReward: 30, isCompleted: false },
+            { id: "t8", title: "Seek internship opportunities", description: "Apply for hands-on experience", type: "practice", xpReward: 25, isCompleted: false },
+          ]},
+        ],
+        years: [
+          { year: "Year 1", focus: "Foundations", activities: ["Learn basics", "Take courses"], milestones: ["Complete fundamentals"] },
+          { year: "Year 2", focus: "Skill Building", activities: ["Build projects", "Get certified"], milestones: ["Portfolio ready"] },
+          { year: "Year 3", focus: "Experience", activities: ["Internships", "Networking"], milestones: ["First job/internship"] },
+          { year: "Year 4", focus: "Career Launch", activities: ["Full-time role", "Specialize"], milestones: ["Career established"] },
+        ]
+      };
     }
 
     console.log('Roadmap generated successfully for:', careerName);
