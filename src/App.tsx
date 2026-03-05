@@ -59,6 +59,11 @@ const App = () => (
                     <CareerGrowthPath />
                   </ProtectedRoute>
                 } />
+                <Route path="/career-growth-path" element={
+                  <ProtectedRoute>
+                    <CareerGrowthPath />
+                  </ProtectedRoute>
+                } />
                 <Route path="/career-health" element={
                   <ProtectedRoute>
                     <CareerHealthScore />

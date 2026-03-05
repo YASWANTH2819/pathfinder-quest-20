@@ -46,11 +46,12 @@ serve(async (req) => {
       });
     }
 
-    const { data: mcqs, error: mcqError } = await adminClient
+    // First try exact match
+    let { data: mcqs, error: mcqError } = await adminClient
       .from('daily_mcqs')
       .select('id, question, options, xp_reward, difficulty, career_name')
       .eq('career_name', careerName)
-      .limit(10);
+      .limit(20);
 
     if (mcqError) {
       console.error('Error fetching MCQs:', mcqError);
@@ -58,6 +59,87 @@ serve(async (req) => {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
+    }
+
+    // If no exact match, try case-insensitive partial match
+    if (!mcqs || mcqs.length === 0) {
+      const { data: fuzzyMcqs } = await adminClient
+        .from('daily_mcqs')
+        .select('id, question, options, xp_reward, difficulty, career_name')
+        .ilike('career_name', `%${careerName.split(' ')[0]}%`)
+        .limit(20);
+      
+      mcqs = fuzzyMcqs || [];
+    }
+
+    // If still no MCQs found, generate them dynamically via AI
+    if (mcqs.length === 0) {
+      console.log(`No MCQs found for "${careerName}", generating via AI...`);
+      
+      const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
+      if (lovableApiKey) {
+        try {
+          const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${lovableApiKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model: 'google/gemini-2.5-flash-lite',
+              messages: [
+                { role: 'system', content: `Generate exactly 10 multiple-choice questions for a ${careerName} career quiz. Each question should test practical knowledge. Return ONLY valid JSON array: [{"question":"...","options":["A","B","C","D"],"correct_answer":"A","difficulty":"medium","xp_reward":10}]` },
+                { role: 'user', content: `Create 10 MCQ questions for ${careerName} career path.` }
+              ],
+              temperature: 0.7,
+              max_tokens: 3000,
+            }),
+          });
+
+          if (response.ok) {
+            const aiData = await response.json();
+            const content = aiData.choices?.[0]?.message?.content || '';
+            
+            let questions;
+            try {
+              const jsonMatch = content.match(/\[[\s\S]*\]/);
+              if (jsonMatch) {
+                questions = JSON.parse(jsonMatch[0]);
+              }
+            } catch (e) {
+              console.error('Failed to parse AI MCQ response');
+            }
+
+            if (questions && Array.isArray(questions) && questions.length > 0) {
+              // Store generated MCQs in database for future use
+              const mcqsToInsert = questions.slice(0, 10).map((q: any) => ({
+                career_name: careerName,
+                question: q.question,
+                options: q.options,
+                correct_answer: q.correct_answer || q.options[0],
+                difficulty: q.difficulty || 'medium',
+                xp_reward: q.xp_reward || 10,
+              }));
+
+              const { data: insertedMcqs, error: insertError } = await adminClient
+                .from('daily_mcqs')
+                .insert(mcqsToInsert)
+                .select('id, question, options, xp_reward, difficulty, career_name');
+
+              if (!insertError && insertedMcqs) {
+                mcqs = insertedMcqs;
+                console.log(`Generated and stored ${mcqs.length} MCQs for "${careerName}"`);
+              } else {
+                console.error('Error inserting generated MCQs:', insertError);
+                // Return generated questions without IDs as fallback
+                mcqs = mcqsToInsert.map((q: any, i: number) => ({ ...q, id: `gen-${i}` }));
+              }
+            }
+          }
+        } catch (aiError) {
+          console.error('AI MCQ generation failed:', aiError);
+        }
+      }
     }
 
     return new Response(JSON.stringify({ mcqs: mcqs ?? [] }), {
