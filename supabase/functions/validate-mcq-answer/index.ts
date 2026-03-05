@@ -24,12 +24,16 @@ serve(async (req) => {
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+    const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+
+    const authClient = createClient(supabaseUrl, supabaseAnonKey, {
       global: { headers: { Authorization: authHeader } }
     });
 
+    const adminClient = createClient(supabaseUrl, supabaseServiceRoleKey);
+
     // Verify user is authenticated
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const { data: { user }, error: authError } = await authClient.auth.getUser();
     if (authError || !user) {
       return new Response(
         JSON.stringify({ error: 'Unauthorized' }),
@@ -51,7 +55,7 @@ serve(async (req) => {
     const mcqIds = answers.map((a: { mcq_id: string }) => a.mcq_id);
 
     // Fetch correct answers from database (server-side only)
-    const { data: mcqs, error: mcqError } = await supabase
+    const { data: mcqs, error: mcqError } = await adminClient
       .from('daily_mcqs')
       .select('id, correct_answer, xp_reward')
       .in('id', mcqIds);
