@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { RoadmapView } from '@/components/RoadmapView';
+import { getPredefinedRoadmap, getGenericRoadmap } from '@/data/predefinedRoadmaps';
 
 interface CareerOption {
   id: string;
@@ -70,19 +71,16 @@ export const CareerGrowthPath = () => {
   const [selectedCareer, setSelectedCareer] = useState<CareerOption | null>(null);
   const [careerProgress, setCareerProgress] = useState<CareerProgress | null>(null);
   const [loading, setLoading] = useState(true);
-  const [startingJourney, setStartingJourney] = useState(false);
   const [showRoadmap, setShowRoadmap] = useState(false);
 
   const careerFromUrl = searchParams.get('career');
 
-  // Fetch both career options and progress in parallel, then resolve
   useEffect(() => {
     if (!user) return;
     
     const init = async () => {
       setLoading(true);
       try {
-        // Parallel fetch
         const [optionsResult, progressResult] = await Promise.all([
           supabase
             .from('career_options')
@@ -118,7 +116,7 @@ export const CareerGrowthPath = () => {
           }
         }
 
-        // If career param in URL, auto-start journey for that career
+        // If career param in URL, auto-start journey instantly
         if (careerFromUrl && options.length > 0) {
           const urlCareer = options.find(
             (c: CareerOption) => c.career_name.toLowerCase() === careerFromUrl.toLowerCase()
@@ -126,6 +124,19 @@ export const CareerGrowthPath = () => {
           if (urlCareer) {
             setLoading(false);
             handleSelectCareer(urlCareer);
+            return;
+          }
+        }
+
+        // Also check localStorage for career selection
+        const storedCareer = localStorage.getItem('selectedCareer');
+        if (storedCareer && options.length > 0) {
+          const stored = options.find(
+            (c: CareerOption) => c.career_name.toLowerCase() === storedCareer.toLowerCase()
+          );
+          if (stored) {
+            setLoading(false);
+            handleSelectCareer(stored);
             return;
           }
         }
@@ -142,107 +153,84 @@ export const CareerGrowthPath = () => {
   const handleSelectCareer = async (career: CareerOption) => {
     if (!user) return;
 
-    setStartingJourney(true);
     setSelectedCareer(career);
 
+    // INSTANT: Load predefined roadmap immediately
+    const predefined = getPredefinedRoadmap(career.career_name) || getGenericRoadmap(career.career_name);
+    
+    const transformedRoadmap = {
+      steps: predefined.steps,
+      milestones: predefined.levels.map((lvl, i) => ({
+        id: `m${i + 1}`,
+        title: `${lvl.level} — ${lvl.title}`,
+        description: lvl.skills.join(', '),
+        xpReward: (i + 1) * 100,
+        tasks: lvl.skills.map((skill, j) => ({
+          id: `t${i}_${j}`,
+          title: skill,
+          description: `Master ${skill}`,
+          type: 'learning',
+          xpReward: 10 + (i * 5),
+          isCompleted: false,
+        })),
+      })),
+      explanation: `Personalized roadmap for ${career.career_name}`,
+    };
+
+    // Save progress to DB (don't block UI)
+    const savePromise = supabase
+      .from('career_progress')
+      .upsert({
+        user_id: user.id,
+        selected_career_id: career.id,
+        selected_career_name: career.career_name,
+        xp: 0,
+        streak_count: 0,
+        roadmap_data: transformedRoadmap,
+        last_activity_date: new Date().toISOString().split('T')[0]
+      }, { onConflict: 'user_id' });
+
+    // Show roadmap INSTANTLY
+    const tempProgress: CareerProgress = {
+      id: 'temp',
+      selected_career_id: career.id,
+      selected_career_name: career.career_name,
+      xp: 0,
+      streak_count: 0,
+      roadmap_data: transformedRoadmap,
+    };
+    setCareerProgress(tempProgress);
+    setShowRoadmap(true);
+    toast.success(`🎉 Journey started for ${career.career_name}!`);
+
+    // Persist in background, then update with real ID
     try {
-      // Generate roadmap using the dedicated edge function (full mode for growth path)
-      const { data: roadmapData, error: roadmapError } = await supabase.functions.invoke('generate-career-roadmap', {
-        body: {
-          careerName: career.career_name,
-          profileData: {},
-          language: 'en',
-          mode: 'full'
-        }
-      });
-
-      if (roadmapError) throw roadmapError;
-
-      // Transform roadmap to steps format
-      const milestones = roadmapData?.roadmap?.milestones || [];
-      const transformedRoadmap = {
-        steps: milestones.flatMap((m: any) => 
-          (m.tasks || []).map((task: any) => ({
-            title: typeof task === 'string' ? task : task.title || '',
-            description: typeof task === 'string' ? '' : task.description || '',
-            duration: task.duration || '',
-            type: task.type || 'learning',
-            resources: task.resources || [],
-            completed: false
-          }))
-        ),
-        milestones,
-        explanation: roadmapData?.roadmap?.explanation || ''
-      };
-
-      // If no steps from milestones, try years format
-      if (transformedRoadmap.steps.length === 0 && roadmapData?.roadmap?.years) {
-        transformedRoadmap.steps = roadmapData.roadmap.years.flatMap((yr: any) =>
-          (yr.activities || []).map((activity: string) => ({
-            title: activity,
-            description: `${yr.year} - ${yr.focus}`,
-            completed: false,
-            resources: []
-          }))
-        );
-      }
-
-      // Fallback steps if still empty
-      if (transformedRoadmap.steps.length === 0) {
-        transformedRoadmap.steps = [
-          { title: 'Research the field', description: 'Study what this career involves', completed: false, resources: [] },
-          { title: 'Learn fundamentals', description: 'Begin with foundational courses', completed: false, resources: [] },
-          { title: 'Build practice projects', description: 'Apply your skills practically', completed: false, resources: [] },
-          { title: 'Create portfolio', description: 'Showcase your work', completed: false, resources: [] },
-          { title: 'Seek opportunities', description: 'Apply for internships and jobs', completed: false, resources: [] },
-        ];
-      }
-
-      // Save or update career progress
-      const { error: progressError } = await supabase
-        .from('career_progress')
-        .upsert({
-          user_id: user.id,
-          selected_career_id: career.id,
-          selected_career_name: career.career_name,
-          xp: 0,
-          streak_count: 0,
-          roadmap_data: transformedRoadmap,
-          last_activity_date: new Date().toISOString().split('T')[0]
-        }, {
-          onConflict: 'user_id'
-        });
-
-      if (progressError) throw progressError;
-
-      // Fetch the saved progress
+      const { error } = await savePromise;
+      if (error) console.error('Error saving progress:', error);
+      
       const { data: savedProgress } = await supabase
         .from('career_progress')
         .select('*')
         .eq('user_id', user.id)
         .single();
-
-      if (savedProgress) {
-        setCareerProgress(savedProgress);
-      }
-      
-      setStartingJourney(false);
-      setShowRoadmap(true);
-      toast.success(`🎉 Journey started for ${career.career_name}!`);
-
-    } catch (error: any) {
-      console.error('Error starting career journey:', error);
-      
-      if (error?.context?.status === 429) {
-        toast.error('⏳ Too many requests. Please wait a moment and try again.');
-      } else if (error?.context?.status === 402) {
-        toast.error('💳 AI credits exhausted. Please add credits in Settings > Workspace > Usage.');
-      } else {
-        toast.error('Failed to start career journey. Please try again.');
-      }
-      
-      setStartingJourney(false);
+      if (savedProgress) setCareerProgress(savedProgress);
+    } catch (err) {
+      console.error('Background save error:', err);
     }
+
+    // Background: AI personalization (non-blocking)
+    supabase.functions.invoke('generate-career-roadmap', {
+      body: {
+        careerName: career.career_name,
+        profileData: {},
+        language: 'en',
+        mode: 'full'
+      }
+    }).then(({ data }) => {
+      if (data?.roadmap) {
+        console.log('AI personalization available for future use');
+      }
+    }).catch(() => {});
   };
 
   const getCareerIcon = (careerName: string) => {
@@ -259,48 +247,6 @@ export const CareerGrowthPath = () => {
           </div>
           <p className="mt-4 text-muted-foreground">Loading your career path...</p>
         </div>
-      </div>
-    );
-  }
-
-  if (startingJourney && selectedCareer) {
-    return (
-      <div className="min-h-screen cyber-grid flex items-center justify-center p-4">
-        <Card className="glass-card p-8 max-w-md w-full text-center">
-          <div className="space-y-6">
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ duration: 0.5 }}
-              className="w-20 h-20 mx-auto bg-gradient-to-r from-primary to-secondary rounded-full flex items-center justify-center"
-            >
-              <Trophy className="w-10 h-10 text-white" />
-            </motion.div>
-            
-            <div>
-              <h2 className="text-2xl font-bold gradient-text-rainbow mb-2">
-                Starting Your Journey
-              </h2>
-              <p className="text-muted-foreground">
-                Preparing your personalized roadmap for {selectedCareer.career_name}
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span>Level 1: Getting Started</span>
-                <span>0%</span>
-              </div>
-              <Progress value={0} className="h-3 animate-pulse" />
-            </div>
-
-            <div className="flex items-center justify-center space-x-2">
-              <div className="w-2 h-2 bg-primary rounded-full animate-bounce"></div>
-              <div className="w-2 h-2 bg-secondary rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-              <div className="w-2 h-2 bg-accent rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-            </div>
-          </div>
-        </Card>
       </div>
     );
   }
@@ -350,7 +296,6 @@ export const CareerGrowthPath = () => {
   return (
     <div className="min-h-screen cyber-grid p-4 md:p-8">
       <div className="max-w-7xl mx-auto space-y-8">
-        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -364,7 +309,6 @@ export const CareerGrowthPath = () => {
           </p>
         </motion.div>
 
-        {/* Career Options Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {careerOptions.map((career, index) => {
             const Icon = getCareerIcon(career.career_name);

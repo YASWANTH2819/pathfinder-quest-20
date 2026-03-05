@@ -405,8 +405,14 @@ export const CareerAnalyzer: React.FC<CareerAnalyzerProps> = ({ profileData, onB
 
   const handleStartJourney = () => {
     if (!selectedCareer) return;
+    if (!user) {
+      navigate('/auth');
+      return;
+    }
+    // Store selected career in localStorage for the growth path page
+    localStorage.setItem('selectedCareer', selectedCareer.career_name);
     toast.success(t('careerGuide.startingJourney').replace('{career}', selectedCareer.career_name));
-    navigate(`/career-growth?career=${encodeURIComponent(selectedCareer.career_name)}`);
+    navigate(`/career-growth-path?career=${encodeURIComponent(selectedCareer.career_name)}`);
   };
 
   if (isAnalyzing) {
