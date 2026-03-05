@@ -124,6 +124,16 @@ export default function CareerHealthScore({ onBack }: CareerHealthScoreProps) {
     return suggestions.slice(0, 5);
   };
 
+  const getDefaultSkillsForCareer = (career: string): string[] => {
+    const c = career.toLowerCase();
+    if (c.includes('python') || c.includes('data')) return ['Python', 'SQL', 'Data Analysis', 'Statistics', 'Visualization'];
+    if (c.includes('frontend') || c.includes('web')) return ['JavaScript', 'React', 'CSS', 'TypeScript', 'Responsive Design'];
+    if (c.includes('backend')) return ['Node.js', 'APIs', 'Database', 'Docker', 'Security'];
+    if (c.includes('full stack')) return ['Frontend', 'Backend', 'Database', 'DevOps', 'Testing'];
+    if (c.includes('ml') || c.includes('machine')) return ['Python', 'TensorFlow', 'Math', 'ML Algorithms', 'Data'];
+    return ['Core Skills', 'Problem Solving', 'Communication', 'Projects', 'Tools'];
+  };
+
   // Derive skill progress from roadmap data
   const skillProgressData = useMemo(() => {
     if (!healthData?.progressData?.roadmap_data) return [];
@@ -131,12 +141,10 @@ export default function CareerHealthScore({ onBack }: CareerHealthScoreProps) {
     const steps = rd.steps || [];
     const milestones = rd.milestones || [];
     
-    // Try to extract skills from milestones/steps
     const allSteps = milestones.length > 0
       ? milestones.flatMap((m: any) => (m.tasks || []).map((t: any) => typeof t === 'string' ? { title: t, completed: false } : t))
       : steps;
 
-    // Map to top career skills
     const careerSkills = healthData.progressData.selected_career_name
       ? getDefaultSkillsForCareer(healthData.progressData.selected_career_name)
       : ['Technical Skills', 'Problem Solving', 'Communication', 'Projects', 'Tools'];
@@ -150,16 +158,6 @@ export default function CareerHealthScore({ onBack }: CareerHealthScoreProps) {
       progress: Math.min(100, Math.round(baseProgress * (1 - i * 0.12) + Math.random() * 5))
     }));
   }, [healthData]);
-
-  const getDefaultSkillsForCareer = (career: string): string[] => {
-    const c = career.toLowerCase();
-    if (c.includes('python') || c.includes('data')) return ['Python', 'SQL', 'Data Analysis', 'Statistics', 'Visualization'];
-    if (c.includes('frontend') || c.includes('web')) return ['JavaScript', 'React', 'CSS', 'TypeScript', 'Responsive Design'];
-    if (c.includes('backend')) return ['Node.js', 'APIs', 'Database', 'Docker', 'Security'];
-    if (c.includes('full stack')) return ['Frontend', 'Backend', 'Database', 'DevOps', 'Testing'];
-    if (c.includes('ml') || c.includes('machine')) return ['Python', 'TensorFlow', 'Math', 'ML Algorithms', 'Data'];
-    return ['Core Skills', 'Problem Solving', 'Communication', 'Projects', 'Tools'];
-  };
 
   // Activity metrics
   const activityMetrics = useMemo(() => {
