@@ -21,6 +21,7 @@ const roadmapRequestSchema = z.object({
   careerName: z.string().min(2).max(100),
   profileData: profileDataSchema,
   language: z.enum(['en', 'hi', 'te']).default('en'),
+  mode: z.enum(['quick', 'full']).default('full'),
 });
 
 serve(async (req) => {
@@ -40,7 +41,7 @@ serve(async (req) => {
       }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
-    const { careerName, profileData, language } = validationResult.data;
+    const { careerName, profileData, language, mode } = validationResult.data;
     const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
     if (!lovableApiKey) throw new Error('LOVABLE_API_KEY not configured');
 
@@ -50,61 +51,23 @@ serve(async (req) => {
       te: 'Respond in Telugu (తెలుగు)'
     };
 
-    const systemPrompt = `You are an expert career advisor. Create a personalized, gamified learning roadmap for someone pursuing a career as a ${careerName}.
+    // Two-tier prompt: quick mode returns only years overview, full mode returns milestones + years
+    const isQuick = mode === 'quick';
 
-${languageInstructions[language]}.
+    const systemPrompt = isQuick
+      ? `You are a career advisor. Create a 4-year plan for a ${careerName} career. ${languageInstructions[language]}.
+Return ONLY valid JSON: {"years":[{"year":"Year 1","focus":"...","activities":["..."],"milestones":["..."]}]}`
+      : `You are a career advisor. Create a gamified roadmap for ${careerName}. ${languageInstructions[language]}.
+Return ONLY valid JSON with "milestones" (4-6 items, each with id/title/description/xpReward/tasks array) and "years" (4-year plan with year/focus/activities/milestones).
+Tasks have: id, title, description, type (learning|practice|self-assessment), xpReward, isCompleted (false).`;
 
-Create a roadmap with 4-6 major milestones. Each milestone should have 5-8 microtasks that are:
-- Specific and actionable
-- Mix of learning (📘), practice (⚙️), and self-assessment (🧠) tasks
-- Self-assessment tasks should be reflective questions or conceptual exercises (NO file uploads)
-- Progressive in difficulty
+    const skills = profileData?.skills || 'Not specified';
+    const education = profileData?.education_level || profileData?.educationLevel || profileData?.education || 'Not specified';
+    const interests = profileData?.interests || 'Not specified';
 
-Also return a "years" array with a 4-year structured plan.
+    const userPrompt = `Career: ${careerName}\nSkills: ${skills}\nEducation: ${education}\nInterests: ${interests}`;
 
-Return ONLY valid JSON in this exact format:
-{
-  "milestones": [
-    {
-      "id": "m1",
-      "title": "Milestone Title",
-      "description": "Brief description",
-      "xpReward": 100,
-      "tasks": [
-        {
-          "id": "t1",
-          "title": "Task title",
-          "description": "What to do",
-          "type": "learning|practice|self-assessment",
-          "xpReward": 10,
-          "isCompleted": false
-        }
-      ]
-    }
-  ],
-  "years": [
-    {
-      "year": "Year 1",
-      "focus": "Focus area",
-      "activities": ["Activity 1", "Activity 2"],
-      "milestones": ["Key milestone 1"]
-    }
-  ]
-}`;
-
-    const userPrompt = profileData 
-      ? `Career: ${careerName}
-User Profile:
-- Skills: ${profileData.skills || 'Not specified'}
-- Education: ${profileData.education_level || profileData.educationLevel || profileData.education || 'Not specified'}
-- Field: ${profileData.field_of_study || profileData.fieldOfStudy || 'Not specified'}
-- Experience: ${profileData.current_year || 'Not specified'}
-- Interests: ${profileData.interests || 'Not specified'}
-
-Create a personalized roadmap considering their background.`
-      : `Career: ${careerName}. Create a comprehensive roadmap for someone starting in this field.`;
-
-    console.log('Generating roadmap for career:', careerName, 'language:', language);
+    console.log(`Generating ${mode} roadmap for:`, careerName);
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -113,13 +76,13 @@ Create a personalized roadmap considering their background.`
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
+        model: isQuick ? 'google/gemini-2.5-flash-lite' : 'google/gemini-2.5-flash',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt }
         ],
         temperature: 0.5,
-        max_tokens: 8000,
+        max_tokens: isQuick ? 1000 : 4000,
       }),
     });
 
@@ -176,7 +139,7 @@ Create a personalized roadmap considering their background.`
       };
     }
 
-    console.log('Roadmap generated successfully for:', careerName);
+    console.log(`${mode} roadmap generated successfully for:`, careerName);
 
     return new Response(JSON.stringify({ success: true, roadmap }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
