@@ -29,9 +29,33 @@ serve(async (req) => {
   }
 
   try {
+    // Authenticate user from JWT
+    const authHeader = req.headers.get('Authorization')
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(
+        JSON.stringify({ error: 'Missing authorization header' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+
+    const authClient = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } }
+    })
+    const { data: { user: authUser }, error: authError } = await authClient.auth.getUser()
+    if (authError || !authUser) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
     const rawData = await req.json()
     
-    console.log('[analyze-resume] Received request')
+    console.log('[analyze-resume] Received request from user:', authUser.id)
     console.log('[analyze-resume] Resume text length:', rawData.resumeText?.length || 0)
     
     const validationResult = resumeAnalysisSchema.safeParse(rawData)
@@ -44,13 +68,13 @@ serve(async (req) => {
       )
     }
 
-    const { resumeText, targetRole, language, userId }: ResumeAnalysisRequest = validationResult.data
+    const { resumeText, targetRole, language }: ResumeAnalysisRequest = validationResult.data
+    // Use authenticated user ID, ignore any client-supplied userId
+    const verifiedUserId = authUser.id
 
     const lovableApiKey = Deno.env.get('LOVABLE_API_KEY')
     if (!lovableApiKey) throw new Error('LOVABLE_API_KEY not configured')
 
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
     const truncatedResume = resumeText.slice(0, 20000)
@@ -170,10 +194,10 @@ Return ONLY a valid JSON object:
       }
     }
 
-    if (userId && analysis) {
+    if (verifiedUserId && analysis) {
       try {
         await supabase.from('resumes').insert({
-          user_id: userId,
+          user_id: verifiedUserId,
           filename: 'uploaded_resume',
           resume_text: resumeText.slice(0, 10000),
           ats_score: analysis.atsScore,

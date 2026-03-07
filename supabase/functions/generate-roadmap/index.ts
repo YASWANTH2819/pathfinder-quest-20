@@ -30,6 +30,30 @@ serve(async (req) => {
   }
 
   try {
+    // Authenticate user from JWT
+    const authHeader = req.headers.get('Authorization')
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(
+        JSON.stringify({ error: 'Missing authorization header' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+
+    const authClient = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } }
+    })
+    const { data: { user: authUser }, error: authError } = await authClient.auth.getUser()
+    if (authError || !authUser) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
     // Parse and validate input
     const rawData = await req.json()
     const validationResult = roadmapRequestSchema.safeParse(rawData)
@@ -48,7 +72,9 @@ serve(async (req) => {
       )
     }
 
-    const { profileData, goal, language, userId, systemPrompt }: RoadmapRequest = validationResult.data
+    const { profileData, goal, language, systemPrompt }: RoadmapRequest = validationResult.data
+    // Use authenticated user ID, ignore any client-supplied userId
+    const verifiedUserId = authUser.id
 
     // Get Lovable AI API key from environment
     const lovableApiKey = Deno.env.get('LOVABLE_API_KEY')
@@ -56,9 +82,7 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY not configured')
     }
 
-    // Create Supabase client
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    // Create Supabase client for DB operations
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
     // Prepare the prompt for Gemini (limit profile data size)
@@ -199,12 +223,12 @@ Return your response as JSON with this structure:
       }
     }
 
-    // Store roadmap in database if userId provided
-    if (userId && roadmap) {
+    // Store roadmap in database using verified user ID
+    if (verifiedUserId && roadmap) {
       const { error: insertError } = await supabase
         .from('roadmaps')
         .insert({
-          user_id: userId,
+          user_id: verifiedUserId,
           goal: goal.slice(0, 500),
           language: language,
           structured_data: roadmap,
