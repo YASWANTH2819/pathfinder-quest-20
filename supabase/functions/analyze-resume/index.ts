@@ -194,10 +194,10 @@ Return ONLY a valid JSON object:
       }
     }
 
-    if (userId && analysis) {
+    if (verifiedUserId && analysis) {
       try {
         await supabase.from('resumes').insert({
-          user_id: userId,
+          user_id: verifiedUserId,
           filename: 'uploaded_resume',
           resume_text: resumeText.slice(0, 10000),
           ats_score: analysis.atsScore,

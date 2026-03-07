@@ -223,12 +223,12 @@ Return your response as JSON with this structure:
       }
     }
 
-    // Store roadmap in database if userId provided
-    if (userId && roadmap) {
+    // Store roadmap in database using verified user ID
+    if (verifiedUserId && roadmap) {
       const { error: insertError } = await supabase
         .from('roadmaps')
         .insert({
-          user_id: userId,
+          user_id: verifiedUserId,
           goal: goal.slice(0, 500),
           language: language,
           structured_data: roadmap,
