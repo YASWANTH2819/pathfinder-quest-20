@@ -87,45 +87,13 @@ serve(async (req) => {
     const langInstruction = languageInstructions[language] || languageInstructions.en
     const resumePreview = truncatedResume.substring(0, 500)
 
-    const systemMessage = `You are an expert ATS (Applicant Tracking System) resume analyzer with deep knowledge of hiring practices across industries. 
+    const systemMessage = `You are an ATS resume analyzer. Analyze the SPECIFIC resume content provided. Reference actual skills, experiences, projects found. Give scores reflecting THIS resume. ${langInstruction}`
 
-CRITICAL INSTRUCTIONS:
-1. You MUST analyze the SPECIFIC content provided in the resume below
-2. You MUST reference specific skills, experiences, projects, and details that you find IN THE RESUME
-3. DO NOT give generic advice - every piece of feedback must relate to something actually in this resume
-4. If the resume mentions specific technologies (like React, Python, SQL, etc.), mention them in your analysis
-5. If the resume has specific job titles or companies, reference them
-6. Your scores must reflect THIS specific resume, not a generic assessment
-
-${langInstruction}`
-
-    const userMessage = `Analyze this SPECIFIC resume for the target role: "${targetRole || 'General career guidance'}"
-
-=== CANDIDATE'S RESUME TEXT (MUST BE ANALYZED) ===
+    const userMessage = `Analyze for role: "${targetRole || 'General'}". Resume:
 ${truncatedResume}
-=== END OF RESUME ===
 
-Based on the EXACT content above, provide a PERSONALIZED analysis. You MUST:
-1. Mention specific skills you found (e.g., "I see you have React and Python listed...")
-2. Reference specific experiences or projects from the resume
-3. Identify what's missing based on what IS in the resume
-4. Give scores that reflect THIS resume's actual content
-
-Return ONLY a valid JSON object:
-{
-  "resumeScore": number (0-100, overall resume quality score combining all factors),
-  "atsScore": number (0-100, based on THIS resume's ATS compatibility),
-  "overallRating": number (0-10, your overall assessment of the resume quality),
-  "jobMatchScore": number (0-100, how well THIS resume matches the target role),
-  "keywordCoverage": number (0-100, industry keywords found in THIS resume),
-  "skillsMatchScore": number (0-100),
-  "missingSkills": ["specific skills not found in THIS resume but needed for ${targetRole || 'the target role'}"],
-  "quickFixes": ["specific improvements for THIS resume - reference actual content"],
-  "careerHealth": "Excellent" | "Good" | "Moderate" | "Needs Upskill",
-  "recommendations": ["specific recommendations referencing content from THIS resume"],
-  "careerAlignmentFeedback": "A paragraph explaining how well this resume aligns with the target career path, what's strong, and what needs improvement to be competitive in that field",
-  "explanation": "A personalized summary that mentions specific items from the resume like skills: [list skills found], experience: [summarize experience found], education: [mention education if found]"
-}`
+Return ONLY valid JSON:
+{"resumeScore":0-100,"atsScore":0-100,"overallRating":0-10,"jobMatchScore":0-100,"keywordCoverage":0-100,"skillsMatchScore":0-100,"missingSkills":["..."],"quickFixes":["..."],"careerHealth":"Excellent|Good|Moderate|Needs Upskill","recommendations":["..."],"careerAlignmentFeedback":"...","explanation":"..."}`
 
     console.log('[analyze-resume] Calling Lovable AI Gateway...')
 
@@ -136,13 +104,13 @@ Return ONLY a valid JSON object:
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
+        model: 'google/gemini-2.5-flash-lite',
         messages: [
           { role: 'system', content: systemMessage },
           { role: 'user', content: userMessage }
         ],
         temperature: 0.3,
-        max_tokens: 3000,
+        max_tokens: 1500,
       })
     })
 

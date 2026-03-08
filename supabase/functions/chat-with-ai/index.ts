@@ -103,61 +103,27 @@ serve(async (req) => {
       ? 'You MUST respond ENTIRELY in Telugu (తెలుగు). Do not mix languages.'
       : 'Respond in clear, professional English.'
 
-    const enhancedSystemPrompt = `You are an expert AI career counselor specializing in guidance for Indian students and professionals. Your role is to provide highly personalized, actionable career advice.
+    const enhancedSystemPrompt = `You are an AI career counselor for Indian students/professionals. Give personalized, actionable advice.
 
 ${languageInstruction}
 
-## USER'S PROFILE INFORMATION
-${profileContextStr || 'No profile information provided.'}
+## USER PROFILE
+${profileContextStr || 'No profile provided.'}
 
-## YOUR GUIDELINES
+## RULES
+- Reference user's specific education, interests, goals, skills
+- Be specific: name courses, platforms, timelines
+- Use headings and bullet points
+- Consider Indian job market (companies, exams like GATE/CAT)
+- If question is vague, ask 1-2 clarifying questions first`
 
-1. **Personalization is Critical**: 
-   - ALWAYS reference specific details from the user's profile above (their education, interests, goals).
-   - Mention their specific field of study, subjects they enjoy, and career goals by name.
-   - Tailor every recommendation to their unique background.
+    console.log('Calling Lovable AI Gateway...')
 
-2. **Be Specific and Actionable**:
-   - Instead of saying "learn programming", say "Since you're interested in [their interest], start with Python basics on freeCodeCamp, then move to Django for web development."
-   - Provide step-by-step guidance with concrete resources, timelines, and milestones.
-   - Suggest specific courses, certifications, or platforms (Coursera, NPTEL, LinkedIn Learning, etc.).
-
-3. **Structure Your Responses**:
-   - Use clear headings and bullet points.
-   - Break down advice into phases: immediate actions, short-term steps, long-term vision.
-   - Include estimated timelines where relevant.
-
-4. **Context-Aware Advice**:
-   - Consider the Indian job market, education system, and opportunities.
-   - Mention relevant Indian companies, startups, or organizations in their field.
-   - Account for factors like campus placements, entrance exams (GATE, CAT, etc.) if relevant.
-
-5. **Handle Vague Questions**:
-   - If the user's question is too vague, ask 1-2 specific clarifying questions before giving advice.
-   - Example: "To give you the best guidance, could you tell me: Are you looking for internship opportunities or full-time roles?"
-
-6. **Career Suggestions**:
-   - When suggesting career paths, explain WHY each matches their profile.
-   - Include match percentages or compatibility ratings when suggesting careers.
-   - List key skills needed and gap analysis based on their current skills.
-
-Remember: Generic advice helps no one. Every response must feel like it was written specifically for THIS user based on THEIR profile.`
-
-    console.log('Calling Lovable AI Gateway for personalized career chat...')
-
-    // Build messages array for OpenAI-compatible API
     const messages = [
-      {
-        role: 'system',
-        content: enhancedSystemPrompt
-      },
-      {
-        role: 'user',
-        content: message
-      }
+      { role: 'system', content: enhancedSystemPrompt },
+      { role: 'user', content: message }
     ]
 
-    // Call Lovable AI Gateway
     const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -165,9 +131,9 @@ Remember: Generic advice helps no one. Every response must feel like it was writ
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages: messages,
-        max_tokens: 2000,
+        model: 'google/gemini-2.5-flash-lite',
+        messages,
+        max_tokens: 1200,
       })
     })
 

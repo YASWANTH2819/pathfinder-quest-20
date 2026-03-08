@@ -51,46 +51,12 @@ serve(async (req) => {
       te: 'Respond in Telugu (తెలుగు).'
     }
 
-    const systemPrompt = `You are an expert career counselor specializing in the Indian job market. Your task is to recommend 5-6 HIGHLY RELEVANT career paths based on the user's profile.
+    const systemPrompt = `You are a career counselor for the Indian job market. Recommend 5 career paths matching the user's skills. Skills are the MOST important factor. Return EXACTLY the JSON format requested. ${languageInstructions[language] || languageInstructions.en}`
 
-CRITICAL RULES:
-1. Skills are the MOST IMPORTANT factor. If user mentions "Python", prioritize Python-related careers (Python Developer, Data Analyst, ML Engineer, Automation Engineer).
-2. If user mentions "Java" or "DSA", prioritize Software Developer, Backend Developer roles.
-3. If user mentions "Communication" or "Management", prioritize Product Manager, Business Analyst, HR roles.
-4. Each career MUST have a match_percentage from 60-95 based on how well it matches the user's skills.
-5. Return EXACTLY in the JSON format requested.
-6. For EACH career, also suggest practical projects, internships, certifications, and competitions.
+    const userPrompt = `Profile: Education: ${education || 'N/A'}, Interests: ${interests || 'N/A'}, Goals: ${goals || 'N/A'}, Skills: ${skills || 'N/A'}
 
-${languageInstructions[language] || languageInstructions.en}`
-
-    const userPrompt = `Generate personalized career recommendations based on this profile:
-
-**Education:** ${education || 'Not specified'}
-**Interests/Subjects:** ${interests || 'Not specified'}
-**Goals:** ${goals || 'Not specified'}
-**Skills:** ${skills || 'Not specified'}
-
-IMPORTANT: Analyze the SKILLS field carefully. If specific technologies are mentioned, the TOP recommendations must directly use those technologies.
-
-Return ONLY a valid JSON object:
-{
-  "careers": [
-    {
-      "name": "Career Title",
-      "description": "Brief description of this career path",
-      "match_percentage": 85,
-      "required_skills": ["Skill 1", "Skill 2", "Skill 3", "Skill 4", "Skill 5"],
-      "rationale": "Why this career matches their skills (mention their specific skills)",
-      "timeline": "X-Y months",
-      "youtube_links": ["https://youtube.com/relevant-tutorial"],
-      "roadmap_steps": ["Step 1", "Step 2", "Step 3", "Step 4", "Step 5"],
-      "projects": ["Project idea 1", "Project idea 2", "Project idea 3"],
-      "internships": ["Internship suggestion 1", "Internship suggestion 2"],
-      "certifications": ["Certification 1", "Certification 2"],
-      "competitions": ["Competition/Hackathon 1", "Competition/Hackathon 2"]
-    }
-  ]
-}`
+Return ONLY valid JSON:
+{"careers":[{"name":"...","description":"...","match_percentage":85,"required_skills":["..."],"rationale":"...","timeline":"X-Y months","roadmap_steps":["..."],"projects":["..."],"internships":["..."],"certifications":["..."],"competitions":["..."]}]}`
 
     console.log('[generate-career-recommendations] Calling Lovable AI Gateway...')
 
@@ -101,13 +67,13 @@ Return ONLY a valid JSON object:
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
+        model: 'google/gemini-2.5-flash-lite',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt }
         ],
         temperature: 0.5,
-        max_tokens: 4000,
+        max_tokens: 2500,
       })
     })
 
