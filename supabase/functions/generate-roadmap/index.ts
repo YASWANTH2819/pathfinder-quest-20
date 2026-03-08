@@ -122,11 +122,11 @@ Return your response as JSON with this structure:
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
+        model: 'google/gemini-2.5-flash-lite',
         messages: [
           {
             role: 'system',
-            content: systemPrompt || 'You are a career roadmap expert. Consider the Indian job market and education system.'
+            content: systemPrompt || 'You are a career roadmap expert. Consider the Indian job market.'
           },
           {
             role: 'user',
@@ -134,7 +134,7 @@ Return your response as JSON with this structure:
           }
         ],
         temperature: 0.7,
-        max_tokens: 3000,
+        max_tokens: 2000,
       })
     })
 
