@@ -55,6 +55,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         fetchUserProfile(session.user.id);
       }
       setLoading(false);
+    }).catch((err) => {
+      console.error('[AuthContext] getSession failed:', err);
+      setSession(null);
+      setUser(null);
+      setLoading(false);
     });
 
     return () => subscription.unsubscribe();
