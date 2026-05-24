@@ -32,32 +32,69 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Set up auth state listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        setSession(session);
-        if (session?.user) {
-          // Defer profile fetching to avoid blocking
-          setTimeout(() => {
-            fetchUserProfile(session.user.id);
-          }, 0);
-        } else {
-          setUser(null);
-        }
+    let isMounted = true;
+
+    // Safety timeout: never stay loading longer than 4 seconds
+    const safetyTimeout = setTimeout(() => {
+      if (isMounted) {
+        console.warn('[AuthContext] Safety timeout reached, forcing loading=false');
         setLoading(false);
       }
-    );
+    }, 4000);
 
-    // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      if (session?.user) {
-        fetchUserProfile(session.user.id);
+    try {
+      // Set up auth state listener FIRST
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(
+        async (event, session) => {
+          if (!isMounted) return;
+          setSession(session);
+          if (session?.user) {
+            // Defer profile fetching to avoid blocking
+            setTimeout(() => {
+              if (isMounted) fetchUserProfile(session.user.id);
+            }, 0);
+          } else {
+            setUser(null);
+          }
+          setLoading(false);
+          clearTimeout(safetyTimeout);
+        }
+      );
+
+      // THEN check for existing session
+      supabase.auth.getSession().then(({ data: { session }, error }) => {
+        if (!isMounted) return;
+        if (error) {
+          console.error('[AuthContext] getSession error:', error);
+        }
+        setSession(session);
+        if (session?.user) {
+          fetchUserProfile(session.user.id);
+        }
+        setLoading(false);
+        clearTimeout(safetyTimeout);
+      }).catch((err) => {
+        if (!isMounted) return;
+        console.error('[AuthContext] getSession failed:', err);
+        setSession(null);
+        setUser(null);
+        setLoading(false);
+        clearTimeout(safetyTimeout);
+      });
+
+      return () => {
+        isMounted = false;
+        clearTimeout(safetyTimeout);
+        subscription.unsubscribe();
+      };
+    } catch (err) {
+      console.error('[AuthContext] Auth setup error:', err);
+      if (isMounted) {
+        setLoading(false);
       }
-      setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
+      clearTimeout(safetyTimeout);
+      return () => { isMounted = false; clearTimeout(safetyTimeout); };
+    }
   }, []);
 
   const fetchUserProfile = async (userId: string) => {
