@@ -39,27 +39,50 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
 
   // Initialize language from localStorage or browser preference
   useEffect(() => {
-    const initializeLanguage = async () => {
-      const savedLang = localStorage.getItem(STORAGE_KEY) as Language;
-      const browserLang = navigator.language;
-      
-      let initialLang: Language = 'en';
-      
-      if (savedLang && ['en', 'hi', 'te'].includes(savedLang)) {
-        initialLang = savedLang;
-      } else if (browserLang.startsWith('hi')) {
-        initialLang = 'hi';
-      } else if (browserLang.startsWith('te')) {
-        initialLang = 'te';
-      }
+    let isMounted = true;
 
-      const translationData = await loadTranslations(initialLang);
-      setTranslations(translationData);
-      setLanguageState(initialLang);
-      setIsLoading(false);
+    const safetyTimeout = setTimeout(() => {
+      if (isMounted) {
+        console.warn('[LanguageContext] Safety timeout reached, forcing isLoading=false');
+        setIsLoading(false);
+      }
+    }, 3000);
+
+    const initializeLanguage = async () => {
+      try {
+        const savedLang = localStorage.getItem(STORAGE_KEY) as Language;
+        const browserLang = navigator.language;
+        
+        let initialLang: Language = 'en';
+        
+        if (savedLang && ['en', 'hi', 'te'].includes(savedLang)) {
+          initialLang = savedLang;
+        } else if (browserLang.startsWith('hi')) {
+          initialLang = 'hi';
+        } else if (browserLang.startsWith('te')) {
+          initialLang = 'te';
+        }
+
+        const translationData = await loadTranslations(initialLang);
+        if (!isMounted) return;
+        setTranslations(translationData);
+        setLanguageState(initialLang);
+        setIsLoading(false);
+        clearTimeout(safetyTimeout);
+      } catch (err) {
+        if (!isMounted) return;
+        console.error('[LanguageContext] Initialize error:', err);
+        setIsLoading(false);
+        clearTimeout(safetyTimeout);
+      }
     };
 
     initializeLanguage();
+
+    return () => {
+      isMounted = false;
+      clearTimeout(safetyTimeout);
+    };
   }, []);
 
   // Set new language and load its translations
